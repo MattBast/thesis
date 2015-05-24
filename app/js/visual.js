@@ -197,13 +197,13 @@ function newLevel( clusters ) {
 
 	}
 
-	console.log( newClusters );
+	level.push( newClusters );
 
 	if( clustered.length <= 10 ) {
 		console.log( "Got to top of tree with " + clustered.length + " clusters" );
+		plotClusters( level );
 	}
 	else {
-		level.push( newClusters );
 		newLevel( newClusters );
 	}
 }
@@ -236,6 +236,31 @@ function findCluster( id, clusters ) {
 	return [0,0];
 }
 
+function plotClusters( level ) {
+	var dataset = level[level.length - 1];
+	console.log( dataset );
+
+	var w = 500;
+	var h = 100;
+
+	var svg = d3.select("body")
+            	.append("svg")
+            	.attr("width", w)
+            	.attr("height", h);
+
+	svg.selectAll("circle")
+		.data(dataset)
+		.enter()
+		.append("circle")
+		.attr("cx", function(d, i) {
+			return (i * 50) + 25;
+		})
+		.attr("cy", h / 2)
+		.attr("r", function(d) {
+			return d.length;
+		});
+}
+
 Array.prototype.contains = function(obj) {
     var i = this.length + 1;
     while (i--) {
@@ -246,3 +271,20 @@ Array.prototype.contains = function(obj) {
     return false;
 }
 
+/*
+*** This function is not been used. Keep code for how to use ajax ***
+function sendToServer( object, file ) {
+	var fileName = file.name.slice(0, (file.name.length - 4) ) + ".json";
+	xmlhttp = new XMLHttpRequest();
+
+	xmlhttp.onreadystatechange = function() {
+		if( xmlhttp.readyState == 4 && xmlhttp.status == 200 ) {
+			p[1].innerHTML += xmlhttp.responseText;
+		}
+	}
+
+	xmlhttp.open("PUT", "http://localhost:8000/routes/" + fileName, true );
+	xmlhttp.setRequestHeader("Content-Type", {"Content-Type" : "application/json"} );
+	xmlhttp.send( object );
+}
+*/
