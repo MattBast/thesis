@@ -1,14 +1,14 @@
+//upload and print file when input changes
 var fileInput = document.getElementById( "fileInput" );
+fileInput.addEventListener("change", upload );
 
-var pattern = [];
+var patterns = [];
 var level = [];
+var simTable = [];
 
 //create table tag
 var table = document.createElement("table");
 document.body.appendChild( table );
-
-//upload and print file when input changes
-fileInput.addEventListener("change", upload );
 
 function upload() {
 	if( fileInput.files.length > 0 ) {
@@ -19,7 +19,6 @@ function upload() {
 		var reader = new FileReader();
 		readFile( file, reader );
 
-		levelOne();
 	}
 	else {
 		alert("File is empty");
@@ -42,12 +41,12 @@ function readFile( file, reader ) {
 		//find a row in file and fill in object with its data
 		for( var i = 0; i < array.length; i++ ) {
 			if( array[i].indexOf( "." ) != -1 && !isNaN( array[i] ) ) {
-				/* Start of new pattern. Push current pattern
-				to array and reset object */
-				count++;
+				 
+				count++; //<-- End of pattern.
 				row.index = count.toString();
-				pattern.push( JSON.stringify( row ) );
-				row.interestingness = array[i] + " ";
+				patterns.push( JSON.stringify( row ) );
+
+				row.interestingness = array[i] + " "; //<-- Start of new pattern.
 				row.entity1 = "";
 				row.entity2 = ""; 
 			}
@@ -67,7 +66,7 @@ function readFile( file, reader ) {
 
 function drawRow( rowNum ) {
 	var tr = table.insertRow();
-	var row = JSON.parse( pattern[rowNum] );
+	var row = JSON.parse( patterns[rowNum] );
 
 	var column1 = tr.insertCell();
 	column1.appendChild(document.createTextNode( row.index ));
@@ -91,8 +90,8 @@ function search() {
 
 	var index = document.getElementById( "textInput" ).value;
 
-	for( var i = 0; i < pattern.length; i++ ) {
-		var row = JSON.parse( pattern[i] ).index;
+	for( var i = 0; i < patterns.length; i++ ) {
+		var row = JSON.parse( patterns[i] ).index;
 		if( row === index ) {
 			drawRow( i );  //<-- add new rows as they come in
 		}
@@ -105,135 +104,69 @@ function clearTable() {
 	}
 }
 
-
 function levelOne() {
-	var clusters = [];
-	var clustered = [];
+	var patRef = []; //<-- pattern reference
 
-	for( var i = 1; i <= 50; i++ ) { //<-- loop through patterns
-		if( clustered.contains(i.toString()) ) { continue; }
-		var similar = []; //<-- an array recording how similar patterns are
-
-		for( var j = 1; j <= 50; j++ ) { //<-- loop through patterns
-			if( clustered.contains(j.toString()) ) { continue; }
-			if( j !== i ) { 
-				similar.push( compare( pattern[i], pattern[j] ) ); 
-			}	
-		}
-
-		var largest = largestSim( similar ); //<-- find largest similarity		
-		var cluster = [parseInt(JSON.parse( pattern[i] ).index), parseInt(largest)];
-		clusters.push( cluster );
-
-		clustered.push( cluster[0] );
-		clustered.push( cluster[1] );
+	for( var i = 1; i <= 20; i++ ) { //<-- loop through patterns
+		patRef.push( "p" + JSON.parse( patterns[i] ).index );
 	}
 
-	if( clustered.length == 0 ) {
-		return 0;
-	}
-	else {
-		level.push( clusters );
-		newLevel( clusters );
-	}
+	level.push( patRef );
+	buildSimTable( patRef );
+	//newLevel( patRef );
 
 }
 
-function compare( p1, p2 ) {
-	var pattern1 = JSON.parse( p1 );
-	var pattern2 = JSON.parse( p2 );
-	var entities1 = pattern1.entity1.split( " " );
+function buildSimTable( patRef ) {
+	for( var i = 0; i < patRef.length; i++ ) { //<-- loop through patterns
+		var similar = []; //<-- an array recording how similar patterns are
+
+		for( var j = 0; j < patRef.length; j++ ) { //<-- loop through patterns
+			if( j == i ) { 
+				 similar.push( 0 );
+			}
+			else {
+				similar.push( similarity( patterns[i], patterns[j] ) );
+			}	
+		}
+		simTable.push( similar );
+	}
+	console.log( simTable );
+}
+
+function similarity( p1, p2 ) {
+	p1 = JSON.parse( p1 );
+	p2 = JSON.parse( p2 );
+
+	var similarity = ( intersection( p1, p2 ) / union( p1, p2 ) );
+	return similarity; 
+}
+
+function intersection( p1, p2 ) {
+	var entities1 = p1.entity1.split( " " );
 	var matchEnt = 0; //<-- Number of matching entities found
 
 	for( var i = 0; i < entities1.length; i++ ) { 
-		if( pattern2.entity1.indexOf( entities1[i] ) != -1 ) {
+		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
 			matchEnt++;
 		}
 	}
 
-	var similarity = {
-		index : pattern2.index, 
-		similarity : matchEnt
-	};
-
-	return similarity;
+	return matchEnt;
 }
 
-function largestSim( similar ) {
-	var largestIndex = "";
-	var largestSim = 0;
-	for( var c = 0; c < similar.length; c++ ) {
-		if( similar[c].similarity > largestSim ) { 
-			largestIndex = similar[c].index;
-			largestSim = similar[c].similarity; 
-		}
-	}
-	
-	return largestIndex;
-}
+function union( p1, p2 ) {
+	var entities1 = p1.entity1.split( " " );
+	var entities2 = p2.entity2.split( " " );
+	var difEnt = entities1.length + entities2.length; 
 
-function newLevel( clusters ) {
-	var newClusters = [];
-	var clustered = [];
-
-	for( var i = 0; i < clusters.length; i++ ) { //<-- loop through patterns
-		if( clustered.contains(clusters[i].join( "" )) ) { continue; }
-		var similar = []; //<-- an array recording how similar patterns are
-
-		for( var j = 0; j < clusters.length; j++ ) { //<-- loop through patterns
-			if( clustered.contains(clusters[j].join( "" )) ) { continue; }
-			if( j !== i ) { 
-				similar.push( compareClus( clusters[i], clusters[j] ) ); 
-			}	
-		}
-
-		var largest = largestSim( similar ); //<-- find largest similarity
-		var tmpCluster = findCluster( largest, clusters );
-		var newCluster = clusters[i].concat( tmpCluster );
-		newClusters.push( newCluster );
-
-		clustered.push( clusters[i].join( "" ) );
-		clustered.push( tmpCluster.join( "" ) );
-
-	}
-
-	console.log( newClusters );
-
-	if( clustered.length <= 10 ) {
-		console.log( "Got to top of tree with " + clustered.length + " clusters" );
-	}
-	else {
-		level.push( newClusters );
-		newLevel( newClusters );
-	}
-}
-
-function compareClus( c1, c2 ) {
-	var matchEnt = 0;
-	/* loop through cluster arrays, compare all patterns 
-	and add up similarity score */
-	for( var i = 0; i < c1.length; i++ ) {
-		for( var j = 0; j < c2.length; j++ ) {
-			var tmp = compare( pattern[c1[i]], pattern[c2[j]]);
-			matchEnt += tmp.similarity;
+	for( var i = 0; i < entities1.length; i++ ) { 
+		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
+			difEnt--;
 		}
 	}
 
-	var similarity = {
-		index : c2.join( "" ),
-		similarity : matchEnt
-	};
-
-	return similarity;
-}
-
-function findCluster( id, clusters ) {
-	for( var i = 0; i < clusters.length; i++ ) {
-		if( clusters[i].join( "" ) == id ) {
-			return clusters[i];
-		}
-	}
-	return [0,0];
+	return difEnt;
 }
 
 Array.prototype.contains = function(obj) {
@@ -246,3 +179,6 @@ Array.prototype.contains = function(obj) {
     return false;
 }
 
+Array.prototype.max = function() {
+	return Math.max.apply( Math, this );
+};
