@@ -4,7 +4,6 @@ fileInput.addEventListener("change", upload );
 
 var patterns = [];
 var level = [];
-var simTable = [];
 
 //create table tag
 var table = document.createElement("table");
@@ -112,34 +111,13 @@ function initCluster() {
 	}
 
 	level.push( patRef );
-	buildSimTable( patRef );
-	//addCluster( patRef );
+	var simTable = buildSimTable( patRef );
+	addCluster( simTable );
 
-}
-
-function addCluster( clusters ) {
-	var simPat = [0,0]; //<-- similar patterns
-	var largestSim = 0;
-	for( var i = 0; i < simTable.length; i++ ) {
-		for( var j = 0; j < simTable[i].length; j++ ) {
-			if( simTable[i][j] > largestSim ) {
-				largestSim = simTable[i][j];
-				cluster = [i,j];
-			}
-		}
-	}
-
-	var newCluster = JSON.parse( patterns[simPat[0]] ).index + 
-						JSON.parse( patterns[simPat[1]] ).index;
-
-	clusters.push( newCluster );
-	clusters.splice( i, 1 );
-	clusters.splice( j, 1 );
-
-	updateSimTable( simPat, newCluster );
 }
 
 function buildSimTable( patRef ) {
+	var simTable = [];
 	for( var i = 0; i < patRef.length; i++ ) { //<-- loop through patterns
 		var similar = []; //<-- an array recording how similar patterns are
 
@@ -153,29 +131,51 @@ function buildSimTable( patRef ) {
 		}
 		simTable.push( similar );
 	}
-	console.log( simTable );
+	return simTable;
 }
 
-function updateSimTable( simPat, newCluster ) {
-	/* Currently does single linkage */
-
-	console.log( simPat );
-
-	//get pattern referneces from new cluster
-	var clusPat = newCluster.split( "." );
-
-	var similar = [];
-	//add new row with values of new cluster
-	for( var i = 0; i < simTable[simPat[0]].length; i++ ) {
-		if( simTable[simPat[0]][i] > simTable[simPat[1]][i] ) {
-			similar.push( simTable[simPat[0]][i] );
-		}
-		else {
-			similar.push( simTable[simPat[1]][i] );
+function addCluster( simTable ) {
+	var clusters = level[level.length - 1]
+	var simPat = [0,0]; //<-- similar patterns
+	var largestSim = 0;
+	for( var i = 0; i < simTable.length; i++ ) {
+		for( var j = 0; j < simTable[i].length; j++ ) {
+			if( i !== j && simTable[i][j] > largestSim ) {
+				largestSim = simTable[i][j];
+				simPat = [i,j];
+			}
 		}
 	}
 
-	simTable.push( similar );
+	var newCluster = clusters[simPat[0]] + clusters[simPat[1]];
+
+	clusters.push( newCluster );
+	clusters.splice( simPat[0], 1 );
+	clusters.splice( simPat[1], 1 );
+
+	simTable = updateSimTable( simTable, simPat, newCluster );
+}
+
+function updateSimTable( simTable, simPat, newCluster ) {
+	/* Currently does single linkage */
+
+	if( simPat[0] < simPat[1] ) {
+		simPat.swap( 0, 1 );
+	}
+
+	var similar = [];
+	//use single linkage rules to find appropiate similarity
+	for( var i = 0; i < simTable[simPat[0]].length; i++ ) {
+		if( simTable[simPat[1]][i] !== 0 && simTable[simPat[0]][i] > simTable[simPat[1]][i] ) {
+			similar.push( simTable[simPat[0]][i] );
+		}
+		if(  simTable[simPat[0]][i] !== 0 && simTable[simPat[1]][i] > simTable[simPat[0]][i] ) {
+			similar.push( simTable[simPat[1]][i] );
+		}
+	}
+	similar.push( 0 );
+
+	//remove rows representing clustered patterns
 	simTable.splice( simPat[0], 1 );
 	simTable.splice( simPat[1], 1 );
 
@@ -186,7 +186,9 @@ function updateSimTable( simPat, newCluster ) {
 		simTable[j].push( similar[j] );
 	}
 
-	console.log( simTable );
+	simTable.push( similar );
+
+	return simTable;
 }
 
 function similarity( p1, p2 ) {
@@ -236,4 +238,11 @@ Array.prototype.contains = function(obj) {
 
 Array.prototype.max = function() {
 	return Math.max.apply( Math, this );
-};
+}
+
+Array.prototype.swap = function (x,y) {
+  var tmp = this[x];
+  this[x] = this[y];
+  this[y] = tmp;
+  return this;
+}
