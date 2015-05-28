@@ -58,7 +58,7 @@ function readFile( file, reader ) {
 			}
 		}
 		drawRow( 1 );
-		levelOne();
+		initCluster();
 
 	});
 	reader.readAsText( file );
@@ -104,17 +104,39 @@ function clearTable() {
 	}
 }
 
-function levelOne() {
+function initCluster() {
 	var patRef = []; //<-- pattern reference
 
-	for( var i = 1; i <= 20; i++ ) { //<-- loop through patterns
-		patRef.push( "p" + JSON.parse( patterns[i] ).index );
+	for( var i = 1; i <= 5; i++ ) { //<-- loop through patterns
+		patRef.push( JSON.parse( patterns[i] ).index + "." );
 	}
 
 	level.push( patRef );
 	buildSimTable( patRef );
-	//newLevel( patRef );
+	//addCluster( patRef );
 
+}
+
+function addCluster( clusters ) {
+	var simPat = [0,0]; //<-- similar patterns
+	var largestSim = 0;
+	for( var i = 0; i < simTable.length; i++ ) {
+		for( var j = 0; j < simTable[i].length; j++ ) {
+			if( simTable[i][j] > largestSim ) {
+				largestSim = simTable[i][j];
+				cluster = [i,j];
+			}
+		}
+	}
+
+	var newCluster = JSON.parse( patterns[simPat[0]] ).index + 
+						JSON.parse( patterns[simPat[1]] ).index;
+
+	clusters.push( newCluster );
+	clusters.splice( i, 1 );
+	clusters.splice( j, 1 );
+
+	updateSimTable( simPat, newCluster );
 }
 
 function buildSimTable( patRef ) {
@@ -122,7 +144,7 @@ function buildSimTable( patRef ) {
 		var similar = []; //<-- an array recording how similar patterns are
 
 		for( var j = 0; j < patRef.length; j++ ) { //<-- loop through patterns
-			if( j == i ) { 
+			if( j === i ) { 
 				 similar.push( 0 );
 			}
 			else {
@@ -131,6 +153,39 @@ function buildSimTable( patRef ) {
 		}
 		simTable.push( similar );
 	}
+	console.log( simTable );
+}
+
+function updateSimTable( simPat, newCluster ) {
+	/* Currently does single linkage */
+
+	console.log( simPat );
+
+	//get pattern referneces from new cluster
+	var clusPat = newCluster.split( "." );
+
+	var similar = [];
+	//add new row with values of new cluster
+	for( var i = 0; i < simTable[simPat[0]].length; i++ ) {
+		if( simTable[simPat[0]][i] > simTable[simPat[1]][i] ) {
+			similar.push( simTable[simPat[0]][i] );
+		}
+		else {
+			similar.push( simTable[simPat[1]][i] );
+		}
+	}
+
+	simTable.push( similar );
+	simTable.splice( simPat[0], 1 );
+	simTable.splice( simPat[1], 1 );
+
+	//remove columns representing clustered patterns
+	for( var j = 0; j < simTable.length; j++ ) {
+		simTable[j].splice( simPat[0], 1 );
+		simTable[j].splice( simPat[1], 1 );
+		simTable[j].push( similar[j] );
+	}
+
 	console.log( simTable );
 }
 
