@@ -1,3 +1,5 @@
+var linkage = document.getElementsByName("linkage");
+
 //upload and print file when input changes
 var fileInput = document.getElementById( "fileInput" );
 fileInput.addEventListener("change", upload );
@@ -157,23 +159,23 @@ function addCluster( simTable ) {
 }
 
 function updateSimTable( simTable, simPat, newCluster ) {
-	/* Currently does single linkage */
-
 	if( simPat[0] < simPat[1] ) {
 		simPat.swap( 0, 1 );
 	}
 
 	var similar = [];
-	//use single linkage rules to find appropiate similarity
-	for( var i = 0; i < simTable[simPat[0]].length; i++ ) {
-		if( simTable[simPat[1]][i] !== 0 && simTable[simPat[0]][i] > simTable[simPat[1]][i] ) {
-			similar.push( simTable[simPat[0]][i] );
-		}
-		if(  simTable[simPat[0]][i] !== 0 && simTable[simPat[1]][i] > simTable[simPat[0]][i] ) {
-			similar.push( simTable[simPat[1]][i] );
-		}
+	if( linkage[1].checked ) {
+		console.log( "Complete linkage" );
+		similar = complete( simPat, simTable );
 	}
-	similar.push( 0 );
+	else if( linkage[2].checked ) {
+		console.log( "Avergae linkage" );
+		similar = average( simPat, simTable );
+	}
+	else {
+		console.log( "Single linkage" );
+		similar = single( simPat, simTable );
+	}
 
 	//remove rows representing clustered patterns
 	simTable.splice( simPat[0], 1 );
@@ -189,6 +191,41 @@ function updateSimTable( simTable, simPat, newCluster ) {
 	simTable.push( similar );
 
 	return simTable;
+}
+
+function single( simPat, simTable ) {
+	var similar = [];
+	for( var i = 0; i < simTable[simPat[0]].length; i++ ) {
+		if( simTable[simPat[1]][i] !== 0 && simTable[simPat[0]][i] > simTable[simPat[1]][i] ) {
+			similar.push( simTable[simPat[0]][i] );
+		}
+		if(  simTable[simPat[0]][i] !== 0 && simTable[simPat[1]][i] > simTable[simPat[0]][i] ) {
+			similar.push( simTable[simPat[1]][i] );
+		}
+	}
+	similar.push( 0 );
+	return similar;
+}
+
+function complete( simPat, simTable ) {
+	var similar = [];
+	for( var i = 0; i < simTable[simPat[0]].length; i++ ) {
+		if( simTable[simPat[1]][i] !== 0 && simTable[simPat[0]][i] < simTable[simPat[1]][i] ) {
+			similar.push( simTable[simPat[0]][i] );
+		}
+		if(  simTable[simPat[0]][i] !== 0 && simTable[simPat[1]][i] < simTable[simPat[0]][i] ) {
+			similar.push( simTable[simPat[1]][i] );
+		}
+	}
+	similar.push( 0 );
+	return similar;
+}
+
+function average( simPat, simTable ) {
+	var similar = [];
+	console.log( "Average has not been written yet" );
+	similar.push( 0 );
+	return similar;
 }
 
 function similarity( p1, p2 ) {
