@@ -115,7 +115,6 @@ function initCluster() {
 	level.push( patRef );
 	var simTable = buildSimTable( patRef );
 	addCluster( simTable );
-
 }
 
 function buildSimTable( patRef ) {
@@ -151,11 +150,23 @@ function addCluster( simTable ) {
 
 	var newCluster = clusters[simClus[0]] + clusters[simClus[1]];
 
-	clusters.push( newCluster );
+	if( simClus[0] < simClus[1] ) {
+		simClus.swap( 0, 1 );
+	}
 	clusters.splice( simClus[0], 1 );
 	clusters.splice( simClus[1], 1 );
+	clusters.push( newCluster );
 
 	simTable = updateSimTable( simTable, simClus, newCluster );
+	console.log( clusters );
+	
+	if( clusters.length == 1 ) {
+		console.log( "Got to top of tree" );
+	}
+	else {
+		level.push( clusters );
+		addCluster( simTable );
+	}
 }
 
 function updateSimTable( simTable, simClus, newCluster ) {
@@ -189,7 +200,7 @@ function updateSimTable( simTable, simClus, newCluster ) {
 	}
 
 	simTable.push( similar );
-	console.log( simTable );
+
 	return simTable;
 }
 
