@@ -108,7 +108,7 @@ function clearTable() {
 function initCluster() {
 	var patRef = []; //<-- pattern reference
 
-	for( var i = 1; i <= 5; i++ ) { //<-- loop through patterns
+	for( var i = 1; i <= 10; i++ ) { //<-- loop through patterns
 		patRef.push( JSON.parse( patterns[i] ).index + "." );
 	}
 
@@ -159,13 +159,13 @@ function addCluster( simTable ) {
 
 	simTable = updateSimTable( simTable, simClus, newCluster );
 	
-	if( clusters.length == 1 ) {
+	if( clusters.length == 3 ) {
 		console.log( "Got to top of tree" );
+		console.log( clusters );
 	}
 	else {
 		level.push( clusters );
 		addCluster( simTable );
-		console.log( level[level.length - 1] );
 	}
 }
 
