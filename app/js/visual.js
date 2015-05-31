@@ -108,7 +108,7 @@ function clearTable() {
 function initCluster() {
 	var patRef = []; //<-- pattern reference
 
-	for( var i = 1; i <= 10; i++ ) { //<-- loop through patterns
+	for( var i = 1; i < 100; i++ ) { //<-- loop through patterns
 		patRef.push( JSON.parse( patterns[i] ).index + "." );
 	}
 
@@ -194,7 +194,7 @@ function addCluster( simTable ) {
 
 	simTable = updateSimTable( simTable, simClus, newCluster );
 	
-	if( clusters.length <= 3 ) {
+	if( clusters.length <= 10 ) {
 		console.log( "Got to top of tree" );
 		visualise( level );
 	}
@@ -305,7 +305,7 @@ function visualise( level ) {
 
 	var yScale = d3.scale.linear()
 				.domain([ 0, h ])
-				.range([padding, h - padding]);
+				.range([0, 2]);
 
 	var rScale = d3.scale.linear()
 				.domain([ 0, largestClus ])
@@ -324,10 +324,10 @@ function visualise( level ) {
 			return xScale(i * (w / dataset.length) );
 		})
 		.attr("cy", function(d, i) {
-			return yScale(h / 2);
+			return h / 2;
 		})
 		.attr("r", function(d) {
-			return d.length * 10;
+			return d.length;
 		});
 }
 
