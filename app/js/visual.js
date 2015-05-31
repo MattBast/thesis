@@ -192,8 +192,9 @@ function addCluster( simTable ) {
 
 	simTable = updateSimTable( simTable, simClus, newCluster );
 	
-	if( clusters.length <= 10 ) {
+	if( clusters.length <= 3 ) {
 		console.log( "Got to top of tree" );
+		console.log( clusters );
 		visualise( level );
 	}
 	else {
@@ -326,7 +327,7 @@ function visualise( level ) {
 			return h / 2;
 		})
 		.attr("r", function(d) {
-			return d.length;
+			return (d.length + 1) * 10;
 		});
 }
 
@@ -351,7 +352,7 @@ function plotClusters( level ) {
 		})
 		.attr("cy", h / 2)
 		.attr("r", function(d) {
-			return d.length;
+			return d.length * 10;
 		});
 }
 
