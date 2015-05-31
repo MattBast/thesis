@@ -1,12 +1,22 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-GB" xml:lang="en-GB">
 	<link href="../css/index.css" rel="stylesheet" type="text/css" />
+	<link href="../css/visual.css" rel="stylesheet" type="text/css" />
 	<head>
 		<title>Visual</title>
 		<script type="text/javascript" src="../d3/d3.min.js"></script>
 	</head>
 	<body>
+		<ul>
+			<li><a href="index.html">Home</a></li>
+			<li><a href="visual.html">Visualise</a></li>
+			<li><a href="terms.html">Terminology</a></li>
+			<li><a href="tutorial.html">Tutorial</a></li>
+		</ul>
 		<div>
+			<input type="radio" name="linkage" value="single" checked="checked"/>Single
+			<input type="radio" name="linkage" value="complete"/>Complete
+			<input type="radio" name="linkage" value="average"/>Average<br>
 			<input type="file" id="fileInput"/><br>
 			<input type="text" name="index" id="textInput"/>
 			<button onclick="search()">Search</button><br>
