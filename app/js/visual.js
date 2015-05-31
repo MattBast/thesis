@@ -58,11 +58,7 @@ function readFile( file, reader ) {
 				row.entity2 += array[i] + " ";
 			}
 		}
-<<<<<<< HEAD
 		//drawRow( 1 );
-=======
-		drawRow( 1 );
->>>>>>> origin/master
 		initCluster();
 
 	});
@@ -112,11 +108,7 @@ function clearTable() {
 function initCluster() {
 	var patRef = []; //<-- pattern reference
 
-<<<<<<< HEAD
 	for( var i = 1; i < 100; i++ ) { //<-- loop through patterns
-=======
-	for( var i = 1; i <= 5; i++ ) { //<-- loop through patterns
->>>>>>> origin/master
 		patRef.push( JSON.parse( patterns[i] ).index + "." );
 	}
 
@@ -139,28 +131,6 @@ function buildSimTable( patRef ) {
 			}	
 		}
 		simTable.push( similar );
-<<<<<<< HEAD
-	}
-	return simTable;
-}
-
-function similarity( p1, p2 ) {
-	p1 = JSON.parse( p1 );
-	p2 = JSON.parse( p2 );
-
-	var similarity = ( intersection( p1, p2 ) / union( p1, p2 ) );
-	return similarity; 
-}
-
-function intersection( p1, p2 ) {
-	var entities1 = p1.entity1.split( " " );
-	var matchEnt = 0; //<-- Number of matching entities found
-
-	for( var i = 0; i < entities1.length; i++ ) { 
-		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
-			matchEnt++;
-		}
-=======
 	}
 	return simTable;
 }
@@ -206,16 +176,12 @@ function updateSimTable( simTable, simClus, newCluster ) {
 
 	var similar = [];
 	if( linkage[1].checked ) {
-		console.log( "Complete linkage" );
 		similar = complete( simClus, simTable );
->>>>>>> origin/master
 	}
 	else if( linkage[2].checked ) {
-		console.log( "Average linkage" );
 		similar = average( simClus, simTable );
 	}
 	else {
-		console.log( "Single linkage" );
 		similar = single( simClus, simTable );
 	}
 
@@ -223,7 +189,6 @@ function updateSimTable( simTable, simClus, newCluster ) {
 	simTable.splice( simClus[0], 1 );
 	simTable.splice( simClus[1], 1 );
 
-<<<<<<< HEAD
 	return matchEnt;
 }
 
@@ -329,87 +294,13 @@ function complete( simClus, simTable ) {
 		}
 		if( simTable[simClus[1]][i] !== 0 && simTable[simClus[1]][i] < simTable[simClus[0]][i] ) {
 			similar.push( simTable[simClus[1]][i] );
-=======
-	//remove columns representing clustered patterns
-	for( var j = 0; j < simTable.length; j++ ) {
-		simTable[j].splice( simClus[0], 1 );
-		simTable[j].splice( simClus[1], 1 );
-		simTable[j].push( similar[j] );
-	}
 
-	simTable.push( similar );
-
-	return simTable;
-}
-
-function single( simClus, simTable ) {
-	var similar = [];
-	for( var i = 0; i < simTable[simClus[0]].length; i++ ) {
-		if( simTable[simClus[1]][i] !== 0 && simTable[simClus[0]][i] > simTable[simClus[1]][i] ) {
-			similar.push( simTable[simClus[0]][i] );
-		}
-		if( simTable[simClus[0]][i] !== 0 && simTable[simClus[1]][i] > simTable[simClus[0]][i] ) {
-			similar.push( simTable[simClus[1]][i] );
 		}
 	}
 	similar.push( 0 );
 	return similar;
 }
 
-function complete( simClus, simTable ) {
-	var similar = [];
-	for( var i = 0; i < simTable[simClus[0]].length; i++ ) {
-		if( simTable[simClus[0]][i] !== 0 && simTable[simClus[0]][i] < simTable[simClus[1]][i] ) {
-			similar.push( simTable[simClus[0]][i] );
-		}
-		if( simTable[simClus[1]][i] !== 0 && simTable[simClus[1]][i] < simTable[simClus[0]][i] ) {
-			similar.push( simTable[simClus[1]][i] );
-		}
-	}
-	similar.push( 0 );
-	return similar;
-}
-
-function average( simClus, simTable ) {
-	var similar = [];
-	for( var i = 0; i < simTable[simClus[0]].length; i++ ) {
-		if( simTable[simClus[0]][i] !== 0 && simTable[simClus[1]][i] !== 0 ) {
-			similar.push( mean( simTable[simClus[0]][i], simTable[simClus[1]][i] ) );
-		}
-	}
-	similar.push( 0 );
-	return similar;
-}
-
-function mean( num1, num2 ) {
-	var total = num1 + num2;
-	total = total / 2;
-	return total;
-}
-
-function similarity( p1, p2 ) {
-	p1 = JSON.parse( p1 );
-	p2 = JSON.parse( p2 );
-
-	var similarity = ( intersection( p1, p2 ) / union( p1, p2 ) );
-	return similarity; 
-}
-
-function intersection( p1, p2 ) {
-	var entities1 = p1.entity1.split( " " );
-	var matchEnt = 0; //<-- Number of matching entities found
-
-	for( var i = 0; i < entities1.length; i++ ) { 
-		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
-			matchEnt++;
->>>>>>> origin/master
-		}
-	}
-	similar.push( 0 );
-	return similar;
-}
-
-<<<<<<< HEAD
 function average( simClus, simTable ) {
 	var similar = [];
 	for( var i = 0; i < simTable[simClus[0]].length; i++ ) {
