@@ -108,7 +108,7 @@ function clearTable() {
 function initCluster() {
 	var patRef = []; //<-- pattern reference
 
-	for( var i = 1; i < 100; i++ ) { //<-- loop through patterns
+	for( var i = 1; i < 10; i++ ) { //<-- loop through patterns
 		patRef.push( JSON.parse( patterns[i] ).index + "." );
 	}
 
@@ -135,74 +135,36 @@ function buildSimTable( patRef ) {
 	return simTable;
 }
 
-function addCluster( simTable ) {
-	var clusters = level[level.length - 1]
-	var simClus = [0,0]; //<-- similar clusters
-	var largestSim = 0;
-	for( var i = 0; i < simTable.length; i++ ) {
-		for( var j = 0; j < simTable[i].length; j++ ) {
-			if( i !== j && simTable[i][j] > largestSim ) {
-				largestSim = simTable[i][j];
-				simClus = [i,j];
-			}
-		}
-	}
+function similarity( p1, p2 ) {
+	p1 = JSON.parse( p1 );
+	p2 = JSON.parse( p2 );
 
-	var newCluster = clusters[simClus[0]] + clusters[simClus[1]];
-
-	if( simClus[0] < simClus[1] ) {
-		simClus.swap( 0, 1 );
-	}
-	clusters.splice( simClus[0], 1 );
-	clusters.splice( simClus[1], 1 );
-	clusters.push( newCluster );
-
-	simTable = updateSimTable( simTable, simClus, newCluster );
-	console.log( clusters );
-	
-	if( clusters.length == 1 ) {
-		console.log( "Got to top of tree" );
-	}
-	else {
-		level.push( clusters );
-		addCluster( simTable );
-	}
+	var similarity = ( intersection( p1, p2 ) / union( p1, p2 ) );
+	return similarity;
 }
 
-function updateSimTable( simTable, simClus, newCluster ) {
-	if( simClus[0] < simClus[1] ) {
-		simClus.swap( 0, 1 );
-	}
+function intersection( p1, p2 ) {
+	var entities1 = p1.entity1.split( " " );
+	var matchEnt = 0; //<-- Number of matching entities found
 
-	var similar = [];
-	if( linkage[1].checked ) {
-		similar = complete( simClus, simTable );
+	for( var i = 0; i < entities1.length; i++ ) {
+		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
+			matchEnt++;
+		}
 	}
-	else if( linkage[2].checked ) {
-		similar = average( simClus, simTable );
-	}
-	else {
-		similar = single( simClus, simTable );
-	}
-
-	//remove rows representing clustered patterns
-	simTable.splice( simClus[0], 1 );
-	simTable.splice( simClus[1], 1 );
-
 	return matchEnt;
 }
 
 function union( p1, p2 ) {
 	var entities1 = p1.entity1.split( " " );
 	var entities2 = p2.entity2.split( " " );
-	var difEnt = entities1.length + entities2.length; 
+	var difEnt = entities1.length + entities2.length;
 
-	for( var i = 0; i < entities1.length; i++ ) { 
+	for( var i = 0; i < entities1.length; i++ ) {
 		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
 			difEnt--;
 		}
 	}
-
 	return difEnt;
 }
 
@@ -391,23 +353,6 @@ function plotClusters( level ) {
 		.attr("r", function(d) {
 			return d.length;
 		});
-=======
-	return matchEnt;
-}
-
-function union( p1, p2 ) {
-	var entities1 = p1.entity1.split( " " );
-	var entities2 = p2.entity2.split( " " );
-	var difEnt = entities1.length + entities2.length; 
-
-	for( var i = 0; i < entities1.length; i++ ) { 
-		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
-			difEnt--;
-		}
-	}
-
-	return difEnt;
->>>>>>> origin/master
 }
 
 Array.prototype.contains = function(obj) {
@@ -429,7 +374,6 @@ Array.prototype.swap = function (x,y) {
   this[x] = this[y];
   this[y] = tmp;
   return this;
-<<<<<<< HEAD
 }
 
 /*
@@ -449,6 +393,3 @@ function sendToServer( object, file ) {
 	xmlhttp.send( object );
 }
 */
-=======
-}
->>>>>>> origin/master
