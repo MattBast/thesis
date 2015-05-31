@@ -9,16 +9,6 @@ ul {
     overflow: hidden;
 }
 
-rect {
-  fill: none;
-  pointer-events: all;
-}
-
-circle {
-  fill: none;
-  stroke-width: 2.5px;
-}
-
 li {
     float: center;
 }
@@ -40,17 +30,3 @@ a:hover, a:active {
     background-color: #7A991A;
 }
 
-div {
-	border: solid 1px black;
-  	margin: 15%;
-}
-
-input {
-	margin: 2%;
-}
-
-table {
-	width: 70%;
-	border: 1px solid black;
-  	margin: 15%;
-}

@@ -9,7 +9,7 @@ var level = [];
 
 //create table tag
 var table = document.createElement("table");
-document.body.appendChild( table );
+//document.body.appendChild( table );
 
 function upload() {
 	if( fileInput.files.length > 0 ) {
@@ -58,7 +58,7 @@ function readFile( file, reader ) {
 				row.entity2 += array[i] + " ";
 			}
 		}
-		drawRow( 1 );
+		//drawRow( 1 );
 		initCluster();
 
 	});
@@ -135,6 +135,41 @@ function buildSimTable( patRef ) {
 	return simTable;
 }
 
+function similarity( p1, p2 ) {
+	p1 = JSON.parse( p1 );
+	p2 = JSON.parse( p2 );
+
+	var similarity = ( intersection( p1, p2 ) / union( p1, p2 ) );
+	return similarity; 
+}
+
+function intersection( p1, p2 ) {
+	var entities1 = p1.entity1.split( " " );
+	var matchEnt = 0; //<-- Number of matching entities found
+
+	for( var i = 0; i < entities1.length; i++ ) { 
+		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
+			matchEnt++;
+		}
+	}
+
+	return matchEnt;
+}
+
+function union( p1, p2 ) {
+	var entities1 = p1.entity1.split( " " );
+	var entities2 = p2.entity2.split( " " );
+	var difEnt = entities1.length + entities2.length; 
+
+	for( var i = 0; i < entities1.length; i++ ) { 
+		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
+			difEnt--;
+		}
+	}
+
+	return difEnt;
+}
+
 function addCluster( simTable ) {
 	var clusters = level[level.length - 1]
 	var simClus = [0,0]; //<-- similar clusters
@@ -159,9 +194,9 @@ function addCluster( simTable ) {
 
 	simTable = updateSimTable( simTable, simClus, newCluster );
 	
-	if( clusters.length == 3 ) {
+	if( clusters.length <= 3 ) {
 		console.log( "Got to top of tree" );
-		console.log( clusters );
+		visualise( level );
 	}
 	else {
 		level.push( clusters );
@@ -246,39 +281,54 @@ function mean( num1, num2 ) {
 	return total;
 }
 
-function similarity( p1, p2 ) {
-	p1 = JSON.parse( p1 );
-	p2 = JSON.parse( p2 );
-
-	var similarity = ( intersection( p1, p2 ) / union( p1, p2 ) );
-	return similarity; 
-}
-
-function intersection( p1, p2 ) {
-	var entities1 = p1.entity1.split( " " );
-	var matchEnt = 0; //<-- Number of matching entities found
-
-	for( var i = 0; i < entities1.length; i++ ) { 
-		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
-			matchEnt++;
-		}
+function visualise( level ) {
+	var clusters = level[level.length - 1]
+	var dataset = [];
+	for( var i = 0; i < clusters.length; i++ ) {
+		dataset.push( clusters[i].split( ".", clusters[i].length - 2 ) );
 	}
 
-	return matchEnt;
-}
-
-function union( p1, p2 ) {
-	var entities1 = p1.entity1.split( " " );
-	var entities2 = p2.entity2.split( " " );
-	var difEnt = entities1.length + entities2.length; 
-
-	for( var i = 0; i < entities1.length; i++ ) { 
-		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
-			difEnt--;
+	var largestClus = 0;
+	for( var j = 0; j < dataset.length; j++ ) {
+		if( dataset[j].length > largestClus ) {
+			largestClus = dataset[j].length;
 		}
 	}
+	
+	var w = 500;
+	var h = 500;
+	var padding = 20;
 
-	return difEnt;
+	var xScale = d3.scale.linear()
+				.domain([ 0, w ])
+				.range([padding, w - padding * 2]);
+
+	var yScale = d3.scale.linear()
+				.domain([ 0, h ])
+				.range([padding, h - padding]);
+
+	var rScale = d3.scale.linear()
+				.domain([ 0, largestClus ])
+				.range([padding,dataset.length - padding]);
+
+	var svg = d3.select("body")
+				.append("svg")
+				.attr("width", w)
+				.attr("height", h);
+
+	svg.selectAll("circle")
+		.data(dataset)
+		.enter()
+		.append("circle")
+		.attr("cx", function(d, i) {
+			return xScale(i * (w / dataset.length) );
+		})
+		.attr("cy", function(d, i) {
+			return yScale(h / 2);
+		})
+		.attr("r", function(d) {
+			return d.length * 10;
+		});
 }
 
 Array.prototype.contains = function(obj) {

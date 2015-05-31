@@ -1,0 +1,22 @@
+div {
+	border: solid 1px black;
+  	margin: 15%;
+}
+
+input {
+	margin: 2%;
+}
+
+table {
+	width: 70%;
+	border: 1px solid black;
+  	margin: 15%;
+  	margin-top: -10%;
+}
+
+svg {
+	width: 70%;
+	height: 50%;
+	border: solid 1px black;
+	margin: 15%;
+}
