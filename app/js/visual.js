@@ -4,6 +4,11 @@ var linkage = document.getElementsByName("linkage");
 var fileInput = document.getElementById( "fileInput" );
 fileInput.addEventListener("change", upload );
 
+//loading spinner
+var button = document.getElementById( "button" );
+button.addEventListener( "click", loadSpin );
+var degrees = 0;
+
 var patterns = [];
 var level = [];
 
@@ -278,6 +283,35 @@ function mean( num1, num2 ) {
 	var total = num1 + num2;
 	total = total / 2;
 	return total;
+}
+
+function loadSpin() {
+	var interval = setInterval(spin, 100);
+}
+
+function spin() {
+	if( degrees === 360 ) {
+		degrees = 20;
+	}
+	else {
+		degrees += 20;
+	}
+	
+	var ctx = document.getElementById("spinner").getContext("2d");
+
+	ctx.save();
+	ctx.clearRect(0, 0, 500, 500);
+	//move to centre of canvas
+	ctx.translate(250, 250);
+
+	ctx.beginPath();
+	ctx.lineWidth = 10;
+	ctx.strokeStyle = "black";
+	ctx.rotate(degrees*Math.PI/180);
+	ctx.translate(-250, -250); //<-- put it back
+	ctx.arc(250,250,50,0,1.5*Math.PI);
+	ctx.stroke();
+	ctx.restore();
 }
 
 function visualise( level ) {
