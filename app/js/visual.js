@@ -331,31 +331,6 @@ function visualise( level ) {
 		});
 }
 
-function plotClusters( level ) {
-	var dataset = level[level.length - 1];
-	console.log( dataset );
-
-	var w = 500;
-	var h = 100;
-
-	var svg = d3.select("body")
-            	.append("svg")
-            	.attr("width", w)
-            	.attr("height", h);
-
-	svg.selectAll("circle")
-		.data(dataset)
-		.enter()
-		.append("circle")
-		.attr("cx", function(d, i) {
-			return (i * 50) + 25;
-		})
-		.attr("cy", h / 2)
-		.attr("r", function(d) {
-			return d.length * 10;
-		});
-}
-
 Array.prototype.contains = function(obj) {
     var i = this.length + 1;
     while (i--) {
