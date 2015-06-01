@@ -319,7 +319,7 @@ function visualise( level ) {
 	svg.append("line")
 		.attr("x1", w - padding)
 		.attr("y1", 0 + padding)
-		.attr("x2", w)
+		.attr("x2", w - padding)
 		.attr("y2", h - padding)
 		.attr("stroke-width", 2)
 		.attr("stroke", "black");
