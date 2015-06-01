@@ -194,7 +194,6 @@ function addCluster( simTable ) {
 	
 	if( clusters.length <= 3 ) {
 		console.log( "Got to top of tree" );
-		console.log( clusters );
 		visualise( level );
 	}
 	else {
@@ -285,7 +284,7 @@ function visualise( level ) {
 	var clusters = level[level.length - 1]
 	var dataset = [];
 	for( var i = 0; i < clusters.length; i++ ) {
-		dataset.push( clusters[i].split( ".", clusters[i].length - 2 ) );
+		dataset.push( clusters[i].split( ".", clusters[i].length - 1 ) );
 	}
 
 	var largestClus = 0;
@@ -294,6 +293,7 @@ function visualise( level ) {
 			largestClus = dataset[j].length;
 		}
 	}
+	console.log( dataset );
 	
 	var w = 500;
 	var h = 500;
@@ -316,6 +316,14 @@ function visualise( level ) {
 				.attr("width", w)
 				.attr("height", h);
 
+	svg.append("line")
+		.attr("x1", w - padding)
+		.attr("y1", 0 + padding)
+		.attr("x2", w)
+		.attr("y2", h - padding)
+		.attr("stroke-width", 2)
+		.attr("stroke", "black");
+
 	svg.selectAll("circle")
 		.data(dataset)
 		.enter()
@@ -327,7 +335,22 @@ function visualise( level ) {
 			return h / 2;
 		})
 		.attr("r", function(d) {
-			return (d.length + 1) * 10;
+			return (d.length) * 10;
+		})
+		.on("mouseover", function(d) {
+			var xPos = 0;
+			var yPos = parseFloat(d3.select("svg").attr("y"));
+
+			d3.select("#tooltip")
+				.style("left", xPos + "px")
+				.style("top", yPos + "px")
+				.select("#value")
+				.text(d.length);
+
+			d3.select("#tooltip").classed("hidden", false);
+		})
+		.on("mouseout", function() {
+			d3.select("#tooltip").classed("hidden", true);
 		});
 }
 
