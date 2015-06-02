@@ -19,8 +19,8 @@ table {
 svg {
 	width: 70%;
 	height: 50%;
-	border: solid 1px black;
-	margin: 15%;
+	margin-left: 15%;
+	margin-right: 15%;
 }
 
 #tooltip {
@@ -49,9 +49,11 @@ svg {
 	line-height: 20px;
 }
 
-canvas {
+#spinner {
+	display: block;
+	position: absolute;
 	margin-left: 15%;
 	margin-right: 15%;
 	width: 70%;
-	height: 30%;
+	height: 50%;
 }

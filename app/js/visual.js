@@ -2,12 +2,14 @@ var linkage = document.getElementsByName("linkage");
 
 //upload and print file when input changes
 var fileInput = document.getElementById( "fileInput" );
+fileInput.addEventListener("change", loadSpin );
 fileInput.addEventListener("change", upload );
 
 //loading spinner
 var button = document.getElementById( "button" );
 button.addEventListener( "click", loadSpin );
 var degrees = 0;
+var interval;
 
 var patterns = [];
 var level = [];
@@ -113,7 +115,7 @@ function clearTable() {
 function initCluster() {
 	var patRef = []; //<-- pattern reference
 
-	for( var i = 1; i < 10; i++ ) { //<-- loop through patterns
+	for( var i = 1; i < 80; i++ ) { //<-- loop through patterns
 		patRef.push( JSON.parse( patterns[i] ).index + "." );
 	}
 
@@ -199,6 +201,7 @@ function addCluster( simTable ) {
 	
 	if( clusters.length <= 3 ) {
 		console.log( "Got to top of tree" );
+		stopSpin();
 		visualise( level );
 	}
 	else {
@@ -286,23 +289,24 @@ function mean( num1, num2 ) {
 }
 
 function loadSpin() {
-	var interval = setInterval(spin, 100);
+	console.log( "Started spinning" );
+	document.getElementById("spinner").style.display = "block";
+	interval = setInterval(spin, 50);
 }
 
 function spin() {
 	if( degrees === 360 ) {
-		degrees = 20;
+		degrees = 10;
 	}
 	else {
-		degrees += 20;
+		degrees += 10;
 	}
 	
 	var ctx = document.getElementById("spinner").getContext("2d");
 
 	ctx.save();
 	ctx.clearRect(0, 0, 500, 500);
-	//move to centre of canvas
-	ctx.translate(250, 250);
+	ctx.translate(250, 250); //<-- move to centre of canvas
 
 	ctx.beginPath();
 	ctx.lineWidth = 10;
@@ -312,6 +316,11 @@ function spin() {
 	ctx.arc(250,250,50,0,1.5*Math.PI);
 	ctx.stroke();
 	ctx.restore();
+}
+
+function stopSpin() {
+	clearInterval(interval);
+	document.getElementById("spinner").style.display = "none";
 }
 
 function visualise( level ) {
@@ -349,7 +358,7 @@ function visualise( level ) {
 				.append("svg")
 				.attr("width", w)
 				.attr("height", h);
-
+	/*
 	svg.append("line")
 		.attr("x1", w - padding)
 		.attr("y1", 0 + padding)
@@ -357,7 +366,7 @@ function visualise( level ) {
 		.attr("y2", h - padding)
 		.attr("stroke-width", 2)
 		.attr("stroke", "black");
-
+	*/
 	svg.selectAll("circle")
 		.data(dataset)
 		.enter()
