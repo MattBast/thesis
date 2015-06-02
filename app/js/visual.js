@@ -6,8 +6,6 @@ fileInput.addEventListener("change", loadSpin );
 fileInput.addEventListener("change", upload );
 
 //loading spinner
-var button = document.getElementById( "button" );
-button.addEventListener( "click", loadSpin );
 var degrees = 0;
 var interval;
 
@@ -115,7 +113,7 @@ function clearTable() {
 function initCluster() {
 	var patRef = []; //<-- pattern reference
 
-	for( var i = 1; i < 80; i++ ) { //<-- loop through patterns
+	for( var i = 1; i < 20; i++ ) { //<-- loop through patterns
 		patRef.push( JSON.parse( patterns[i] ).index + "." );
 	}
 
