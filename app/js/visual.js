@@ -395,10 +395,10 @@ function visualise( level ) {
 }
 
 function frequencyTable() {
-	var clusters = level[level.length - 1];
-	var frequency1 = frequencyArray( clusters[0] );
-	var frequency2 = frequencyArray( clusters[1] );
-	var frequency3 = frequencyArray( clusters[2] );
+	var c = level[level.length - 1];
+	var frequency1 = frequencyArray( c[0] );
+	var frequency2 = frequencyArray( c[1] );
+	var frequency3 = frequencyArray( c[2] );
 
 	var totalFrequency = combine( frequency1, frequency2, frequency3 );
 
@@ -420,7 +420,17 @@ function frequencyTable() {
 		column2.appendChild(document.createTextNode( totalFrequency[i].frequency ));
 		column2.style.border = "1px solid black";
 
-		tr.addEventListener( "click", clickCell );
+		tr.addEventListener( "click", function() {
+			//clear the colour of all rows
+			var rows = table.rows;
+			for( var i = 0; i < rows.length; i++ ) {
+				rows[i].style.backgroundColor = "";
+			}
+
+			//change colour of the selected row
+			this.style.backgroundColor = "#98bf21";
+			findFrequency( frequency2, this.cells[0].innerHTML );
+		});
 	}
 	document.body.appendChild( table );
 }
@@ -473,16 +483,12 @@ function combine( frequency1, frequency2, frequency3 ) {
 	return totalFrequency;
 }
 
-function clickCell(e) {
-	//clear the colour of all rows
-	var rows = table.rows;
-	for( var i = 0; i < rows.length; i++ ) {
-		rows[i].style.backgroundColor = "";
+function findFrequency( cluster, entity ) {
+	for( var i = 0; i < cluster.length; i++ ) {
+		if( cluster[i].pattern === entity ) {
+			console.log( cluster[i].frequency );
+		}
 	}
-
-	//change colour of the selected row
-	this.style.backgroundColor = "#98bf21";
-	console.log( this.cells[0].innerHTML );
 }
 
 Array.prototype.contains = function(obj) {
