@@ -419,6 +419,8 @@ function frequencyTable() {
 		var column2 = tr.insertCell();
 		column2.appendChild(document.createTextNode( totalFrequency[i].frequency ));
 		column2.style.border = "1px solid black";
+
+		tr.addEventListener( "click", clickCell );
 	}
 	document.body.appendChild( table );
 }
@@ -457,7 +459,6 @@ function frequencyArray( cluster ) {
 function combine( frequency1, frequency2, frequency3 ) {
 	var totalFrequency = frequency1.concat( frequency2 );
 	totalFrequency = frequency3.concat( totalFrequency );
-	console.log( totalFrequency );
 
 	for( var i = 0; i < totalFrequency.length; i++ ) {
 		for( var j = i + 1; j < totalFrequency.length; j++ ) {
@@ -470,6 +471,18 @@ function combine( frequency1, frequency2, frequency3 ) {
 	}
 
 	return totalFrequency;
+}
+
+function clickCell(e) {
+	//clear the colour of all rows
+	var rows = table.rows;
+	for( var i = 0; i < rows.length; i++ ) {
+		rows[i].style.backgroundColor = "";
+	}
+
+	//change colour of the selected row
+	this.style.backgroundColor = "#98bf21";
+	console.log( this.cells[0].innerHTML );
 }
 
 Array.prototype.contains = function(obj) {
