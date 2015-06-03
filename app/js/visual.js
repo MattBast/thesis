@@ -14,7 +14,6 @@ var level = [];
 
 //create table tag
 var table = document.createElement("table");
-//document.body.appendChild( table );
 
 function upload() {
 	if( fileInput.files.length > 0 ) {
@@ -113,7 +112,7 @@ function clearTable() {
 function initCluster() {
 	var patRef = []; //<-- pattern reference
 
-	for( var i = 1; i < 20; i++ ) { //<-- loop through patterns
+	for( var i = 1; i < 10; i++ ) { //<-- loop through patterns
 		patRef.push( JSON.parse( patterns[i] ).index + "." );
 	}
 
@@ -201,6 +200,7 @@ function addCluster( simTable ) {
 		console.log( "Got to top of tree" );
 		stopSpin();
 		visualise( level );
+		frequencyTable();
 	}
 	else {
 		level.push( clusters );
@@ -322,7 +322,7 @@ function stopSpin() {
 }
 
 function visualise( level ) {
-	var clusters = level[level.length - 1]
+	var clusters = level[level.length - 1];
 	var dataset = [];
 	for( var i = 0; i < clusters.length; i++ ) {
 		dataset.push( clusters[i].split( ".", clusters[i].length - 1 ) );
@@ -334,7 +334,6 @@ function visualise( level ) {
 			largestClus = dataset[j].length;
 		}
 	}
-	console.log( dataset );
 	
 	var w = 500;
 	var h = 500;
@@ -393,6 +392,84 @@ function visualise( level ) {
 		.on("mouseout", function() {
 			d3.select("#tooltip").classed("hidden", true);
 		});
+}
+
+function frequencyTable() {
+	var clusters = level[level.length - 1];
+	var frequency1 = frequencyArray( clusters[0] );
+	var frequency2 = frequencyArray( clusters[1] );
+	var frequency3 = frequencyArray( clusters[2] );
+
+	var totalFrequency = combine( frequency1, frequency2, frequency3 );
+
+	var header = table.createTHead();
+	var row = header.insertRow(0);
+	var head1 = row.insertCell(0);
+	var head2 = row.insertCell(1);
+	head1.innerHTML = "<b>Entity name</b>";
+	head2.innerHTML = "<b>Frequency</b>";
+
+	for( var i = 0; i < totalFrequency.length; i++ ) {
+		var tr = table.insertRow();
+
+		var column1 = tr.insertCell();
+		column1.appendChild(document.createTextNode( totalFrequency[i].pattern ));
+		column1.style.border = "1px solid black";
+
+		var column2 = tr.insertCell();
+		column2.appendChild(document.createTextNode( totalFrequency[i].frequency ));
+		column2.style.border = "1px solid black";
+	}
+	document.body.appendChild( table );
+}
+
+function frequencyArray( cluster ) {
+	patternRefs = cluster.split( ".", cluster.length - 1 );
+	clusPats = ""; //<--cluster patterns
+	for( var i = 0; i < patternRefs.length; i++ ) {
+		if( patternRefs[i] !== "" ) {
+			clusPats += JSON.parse( patterns[parseInt( patternRefs[i] )] ).entity1;
+		}
+	}
+
+	var entities = clusPats.split( " " );
+	var frequencyCount = [];
+	while( entities.length !== 0 ) {
+
+		var patFrequency = {
+			pattern : entities[0],
+			frequency : 1
+		};
+		for( var j = 1; j < entities.length; j++ ) {
+			if( entities[j] === entities[0] ) {
+				patFrequency.frequency++;
+				entities.splice( j, 1 );
+				j--;
+			}
+		}
+		entities.splice( 0, 1 );
+		frequencyCount.push( patFrequency );
+	}
+		
+	return frequencyCount;
+}
+
+function combine( frequency1, frequency2, frequency3 ) {
+	var totalFrequency = frequency1.concat( frequency2 );
+	totalFrequency = frequency3.concat( totalFrequency );
+	console.log( totalFrequency );
+
+	for( var i = 0; i < totalFrequency.length; i++ ) {
+		for( var j = i + 1; j < totalFrequency.length; j++ ) {
+			if( totalFrequency[j].pattern === totalFrequency[i].pattern ) {
+				totalFrequency[i].frequency += totalFrequency[j].frequency;
+				totalFrequency.splice( j, 1 );
+				j--;
+			}
+		}
+	}
+
+	return totalFrequency;
 }
 
 Array.prototype.contains = function(obj) {
