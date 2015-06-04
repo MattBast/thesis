@@ -14,6 +14,9 @@ var level = [];
 
 //create table tag
 var table = document.createElement("table");
+var frequency1 = [];
+var frequency2 = [];
+var frequency3 = [];
 
 function upload() {
 	if( fileInput.files.length > 0 ) {
@@ -396,11 +399,13 @@ function visualise( level ) {
 
 function frequencyTable() {
 	var c = level[level.length - 1];
-	var frequency1 = frequencyArray( c[0] );
-	var frequency2 = frequencyArray( c[1] );
-	var frequency3 = frequencyArray( c[2] );
+	frequency1 = frequencyArray( c[0] );
+	frequency2 = frequencyArray( c[1] );
+	frequency3 = frequencyArray( c[2] );
 
-	var totalFrequency = combine( frequency1, frequency2, frequency3 );
+	var total = combine( frequency1, frequency2 );
+	total = combine( total, frequency3 );
+	console.log( total );
 
 	var header = table.createTHead();
 	var row = header.insertRow(0);
@@ -409,15 +414,15 @@ function frequencyTable() {
 	head1.innerHTML = "<b>Entity name</b>";
 	head2.innerHTML = "<b>Frequency</b>";
 
-	for( var i = 0; i < totalFrequency.length; i++ ) {
+	for( var i = 0; i < total.length; i++ ) {
 		var tr = table.insertRow();
 
 		var column1 = tr.insertCell();
-		column1.appendChild(document.createTextNode( totalFrequency[i].pattern ));
+		column1.appendChild(document.createTextNode( total[i].pattern ));
 		column1.style.border = "1px solid black";
 
 		var column2 = tr.insertCell();
-		column2.appendChild(document.createTextNode( totalFrequency[i].frequency ));
+		column2.appendChild(document.createTextNode( total[i].frequency ));
 		column2.style.border = "1px solid black";
 
 		tr.addEventListener( "click", function() {
@@ -429,10 +434,12 @@ function frequencyTable() {
 
 			//change colour of the selected row
 			this.style.backgroundColor = "#98bf21";
-			findFrequency( frequency2, this.cells[0].innerHTML );
+
+			findFrequency( frequency3, this.cells[0].innerHTML );
 		});
 	}
 	document.body.appendChild( table );
+	
 }
 
 function frequencyArray( cluster ) {
@@ -462,31 +469,34 @@ function frequencyArray( cluster ) {
 		entities.splice( 0, 1 );
 		frequencyCount.push( patFrequency );
 	}
-		
 	return frequencyCount;
 }
 
-function combine( frequency1, frequency2, frequency3 ) {
-	var totalFrequency = frequency1.concat( frequency2 );
-	totalFrequency = frequency3.concat( totalFrequency );
+function combine( f1, f2 ) {
+	var total = [];
 
-	for( var i = 0; i < totalFrequency.length; i++ ) {
-		for( var j = i + 1; j < totalFrequency.length; j++ ) {
-			if( totalFrequency[j].pattern === totalFrequency[i].pattern ) {
-				totalFrequency[i].frequency += totalFrequency[j].frequency;
-				totalFrequency.splice( j, 1 );
+	for( var i = 0; i < f1.length; i++ ) {
+		var patFrequency = {
+			pattern : f1[i].pattern,
+			frequency : f1[i].frequency
+		};
+		for( var j = i + 1; j < f2.length; j++ ) {
+			if( f2[j].pattern === f1[i].pattern ) {
+				patFrequency.frequency += f2[j].frequency;
+				f2.splice( j, 1 );
 				j--;
+				total.push( patFrequency );
 			}
 		}
 	}
-
-	return totalFrequency;
+	total = total.concat( f2 );
+	return total;
 }
 
 function findFrequency( cluster, entity ) {
 	for( var i = 0; i < cluster.length; i++ ) {
 		if( cluster[i].pattern === entity ) {
-			console.log( cluster[i].frequency );
+			console.log( cluster[i].pattern + " " + cluster[i].frequency );
 		}
 	}
 }
