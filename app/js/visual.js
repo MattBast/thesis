@@ -405,7 +405,6 @@ function frequencyTable() {
 
 	var total = combine( frequency1, frequency2 );
 	total = combine( total, frequency3 );
-	console.log( frequency2 );
 
 	var header = table.createTHead();
 	var row = header.insertRow(0);
@@ -438,6 +437,14 @@ function frequencyTable() {
 			var ef1 = findFrequency( frequency1, this.cells[0].innerHTML );
 			var ef2 = findFrequency( frequency2, this.cells[0].innerHTML );
 			var ef3 = findFrequency( frequency3, this.cells[0].innerHTML );
+			
+			//convert ratio to percentage
+			ef1 = Math.round( (ef1 * 100) / parseInt( this.cells[1].innerHTML ) );
+			ef2 = Math.round( (ef2 * 100) / parseInt( this.cells[1].innerHTML ) );
+			ef3 = Math.round( (ef3 * 100) / parseInt( this.cells[1].innerHTML ) );
+
+
+			reVisualise( ef1, ef2, ef3 );
 			console.log( "ef1 " + ef1 );
 			console.log( "ef2 " + ef2 );
 			console.log( "ef3 " + ef3 );
@@ -515,6 +522,85 @@ function findFrequency( cluster, entity ) {
 		}
 	} 
 	return 0;
+}
+
+function reVisualise( ef1, ef2, ef3 ) {
+	var clusters = level[level.length - 1];
+	var dataset = [];
+	for( var i = 0; i < clusters.length; i++ ) {
+		dataset.push( clusters[i].split( ".", clusters[i].length - 1 ) );
+	}
+
+	var largestClus = 0;
+	for( var j = 0; j < dataset.length; j++ ) {
+		if( dataset[j].length > largestClus ) {
+			largestClus = dataset[j].length;
+		}
+	}
+	
+	var w = 500;
+	var h = 500;
+	var padding = 20;
+
+	var xScale = d3.scale.linear()
+				.domain([ 0, w ])
+				.range([padding, w - padding * 2]);
+
+	var yScale = d3.scale.linear()
+				.domain([ 0, h ])
+				.range([0, 2]);
+
+	var rScale = d3.scale.linear()
+				.domain([ 0, largestClus ])
+				.range([padding,dataset.length - padding]);
+
+	var svg = d3.select("body")
+				.append("svg")
+				.attr("width", w)
+				.attr("height", h);
+	/*
+	svg.append("line")
+		.attr("x1", w - padding)
+		.attr("y1", 0 + padding)
+		.attr("x2", w - padding)
+		.attr("y2", h - padding)
+		.attr("stroke-width", 2)
+		.attr("stroke", "black");
+	*/
+	svg.selectAll("circle")
+		.data(dataset)
+		.enter()
+		.append("circle")
+		.attr("cx", function(d, i) {
+			return xScale(i * (w / dataset.length) );
+		})
+		.attr("cy", function(d, i) {
+			return h / 2;
+		})
+		.attr("r", function(d) {
+			return (d.length) * 10;
+		})
+		.style("fill", function(d,i) {
+			console.log( i );
+			if( i === 0 ) { return d3.rgb( ef1 + 100, 0, 0 ); }
+			else if( i === 1 ) { return d3.rgb( ef2 + 100, 0, 0 ); }
+			else { return d3.rgb( ef3 + 100, 0, 0 ); }
+		})
+		.on("mouseover", function(d) {
+			var xPos = 0;
+			var yPos = parseFloat(d3.select("svg").attr("y"));
+
+			d3.select("#tooltip")
+				.style("left", xPos + "px")
+				.style("top", yPos + "px")
+				.select("#value")
+				.text(d.length);
+
+			d3.select("#tooltip").classed("hidden", false);
+		})
+		.on("mouseout", function() {
+			d3.select("#tooltip").classed("hidden", true);
+		});
 }
 
 Array.prototype.contains = function(obj) {
