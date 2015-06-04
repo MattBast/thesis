@@ -405,7 +405,6 @@ function frequencyTable() {
 
 	var total = combine( frequency1, frequency2 );
 	total = combine( total, frequency3 );
-	console.log( total );
 
 	var header = table.createTHead();
 	var row = header.insertRow(0);
@@ -476,18 +475,19 @@ function combine( f1, f2 ) {
 	var total = [];
 
 	for( var i = 0; i < f1.length; i++ ) {
+		var shared = false;
 		var patFrequency = {
 			pattern : f1[i].pattern,
 			frequency : f1[i].frequency
 		};
-		for( var j = i + 1; j < f2.length; j++ ) {
+		for( var j = 0; j < f2.length; j++ ) {
 			if( f2[j].pattern === f1[i].pattern ) {
+				shared = true;
 				patFrequency.frequency += f2[j].frequency;
-				f2.splice( j, 1 );
-				j--;
 				total.push( patFrequency );
 			}
 		}
+		if( !shared ) { total.push( patFrequency ); }
 	}
 	total = total.concat( f2 );
 	return total;
