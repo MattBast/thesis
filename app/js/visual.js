@@ -405,6 +405,7 @@ function frequencyTable() {
 
 	var total = combine( frequency1, frequency2 );
 	total = combine( total, frequency3 );
+	console.log( frequency2 );
 
 	var header = table.createTHead();
 	var row = header.insertRow(0);
@@ -434,7 +435,12 @@ function frequencyTable() {
 			//change colour of the selected row
 			this.style.backgroundColor = "#98bf21";
 
-			findFrequency( frequency3, this.cells[0].innerHTML );
+			var ef1 = findFrequency( frequency1, this.cells[0].innerHTML );
+			var ef2 = findFrequency( frequency2, this.cells[0].innerHTML );
+			var ef3 = findFrequency( frequency3, this.cells[0].innerHTML );
+			console.log( "ef1 " + ef1 );
+			console.log( "ef2 " + ef2 );
+			console.log( "ef3 " + ef3 );
 		});
 	}
 	document.body.appendChild( table );
@@ -489,16 +495,26 @@ function combine( f1, f2 ) {
 		}
 		if( !shared ) { total.push( patFrequency ); }
 	}
-	total = total.concat( f2 );
+
+	for( var c = 0; c < f2.length; c++ ) {
+		var shared = false;
+		for( var d = 0; d < total.length; d++ ) {
+			if( total[d].pattern === f2[c].pattern ) {
+				shared = true;
+			}
+		}
+		if( !shared ) { total.push( f2[c] ); }
+	}
 	return total;
 }
 
 function findFrequency( cluster, entity ) {
 	for( var i = 0; i < cluster.length; i++ ) {
 		if( cluster[i].pattern === entity ) {
-			console.log( cluster[i].pattern + " " + cluster[i].frequency );
+			return cluster[i].frequency;
 		}
-	}
+	} 
+	return 0;
 }
 
 Array.prototype.contains = function(obj) {
