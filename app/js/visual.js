@@ -17,6 +17,7 @@ var table = document.createElement("table");
 var frequency1 = [];
 var frequency2 = [];
 var frequency3 = [];
+var total = [];
 
 function upload() {
 	if( fileInput.files.length > 0 ) {
@@ -70,46 +71,6 @@ function readFile( file, reader ) {
 
 	});
 	reader.readAsText( file );
-}
-
-function drawRow( rowNum ) {
-	var tr = table.insertRow();
-	var row = JSON.parse( patterns[rowNum] );
-
-	var column1 = tr.insertCell();
-	column1.appendChild(document.createTextNode( row.index ));
-	column1.style.border = "1px solid black";
-
-	var column2 = tr.insertCell();
-	column2.appendChild(document.createTextNode( row.interestingness ));
-	column2.style.border = "1px solid black";
-
-	var column3 = tr.insertCell();
-	column3.appendChild(document.createTextNode( row.entity1 ));
-	column3.style.border = "1px solid black";
-
-	var column4 = tr.insertCell();
-	column4.appendChild(document.createTextNode( row.entity2 ));
-	column4.style.border = "1px solid black";
-}
-
-function search() {
-	clearTable();
-
-	var index = document.getElementById( "textInput" ).value;
-
-	for( var i = 0; i < patterns.length; i++ ) {
-		var row = JSON.parse( patterns[i] ).index;
-		if( row === index ) {
-			drawRow( i );  //<-- add new rows as they come in
-		}
-	}
-}
-
-function clearTable() {
-	for( var i = 0; i < table.rows.length; i++ ) {
-		table.deleteRow(i);
-	}
 }
 
 function initCluster() {
@@ -354,10 +315,11 @@ function visualise( level ) {
 				.domain([ 0, largestClus ])
 				.range([padding,dataset.length - padding]);
 
-	var svg = d3.select("body")
+	var svg = d3.select("#visual")
 				.append("svg")
 				.attr("width", w)
-				.attr("height", h);
+				.attr("height", h)
+				.attr("id", "clusterVis");
 	/*
 	svg.append("line")
 		.attr("x1", w - padding)
@@ -380,15 +342,20 @@ function visualise( level ) {
 		.attr("r", function(d) {
 			return (d.length) * 10;
 		})
-		.on("mouseover", function(d) {
-			var xPos = 0;
+		.on("mouseover", function(d, i) {
 			var yPos = parseFloat(d3.select("svg").attr("y"));
+			var frequencyArray = [];
+			if( i === 0 ) { frequencyArray = frequency1; }
+			else if( i === 1 ) { frequencyArray = frequency2; }
+			else { frequencyArray = frequency3; }
 
 			d3.select("#tooltip")
-				.style("left", xPos + "px")
+				.style("left", 0)
 				.style("top", yPos + "px")
 				.select("#value")
-				.text(d.length);
+				.text( frequencyArray[0].pattern + " " + frequencyArray[0].frequency + " " +
+				frequencyArray[1].pattern + " " + frequencyArray[1].frequency + " " +
+				frequencyArray[2].pattern + " " + frequencyArray[2].frequency );
 
 			d3.select("#tooltip").classed("hidden", false);
 		})
@@ -398,12 +365,14 @@ function visualise( level ) {
 }
 
 function frequencyTable() {
+	createSearchBar();
+
 	var c = level[level.length - 1];
 	frequency1 = frequencyArray( c[0] );
 	frequency2 = frequencyArray( c[1] );
 	frequency3 = frequencyArray( c[2] );
 
-	var total = combine( frequency1, frequency2 );
+	total = combine( frequency1, frequency2 );
 	total = combine( total, frequency3 );
 
 	var header = table.createTHead();
@@ -413,7 +382,7 @@ function frequencyTable() {
 	head1.innerHTML = "<b>Entity name</b>";
 	head2.innerHTML = "<b>Frequency</b>";
 
-	for( var i = 0; i < total.length; i++ ) {
+	for( var i = 0; i < 10; i++ ) {
 		var tr = table.insertRow();
 
 		var column1 = tr.insertCell();
@@ -445,13 +414,50 @@ function frequencyTable() {
 
 
 			reVisualise( ef1, ef2, ef3 );
-			console.log( "ef1 " + ef1 );
-			console.log( "ef2 " + ef2 );
-			console.log( "ef3 " + ef3 );
 		});
 	}
 	document.body.appendChild( table );
-	
+}
+
+function createSearchBar() {
+	var box = document.getElementById("searchBar");
+
+	var searchBar = document.createElement("input");
+	searchBar.type = "text";
+	searchBar.id = "textInput";
+	box.appendChild( searchBar );
+
+	var button = document.createElement("button");
+	button.addEventListener( "click", search );
+	var t = document.createTextNode("Search");
+	button.appendChild( t );
+	box.appendChild( button );
+}
+
+function search() {
+	clearTable();
+
+	var entity = document.getElementById( "textInput" ).value;
+
+	for( var i = 0; i < total.length; i++ ) {
+		var row = total[i].pattern;
+		if( row.indexOf( entity ) != -1 ) {
+			var tr = table.insertRow();
+
+			var column1 = tr.insertCell();
+			column1.appendChild(document.createTextNode( total[i].pattern ));
+			column1.style.border = "1px solid black";
+
+			var column2 = tr.insertCell();
+			column2.appendChild(document.createTextNode( total[i].frequency ));
+			column2.style.border = "1px solid black";
+		}
+	}
+	document.body.appendChild( table );
+}
+
+function clearTable() {
+	document.body.removeChild( table );
 }
 
 function frequencyArray( cluster ) {
@@ -525,6 +531,11 @@ function findFrequency( cluster, entity ) {
 }
 
 function reVisualise( ef1, ef2, ef3 ) {
+	//remove previous visual
+	var visual = document.getElementById( "visual" );
+	var clusterVis = document.getElementById( "clusterVis" );
+	visual.removeChild( clusterVis );
+
 	var clusters = level[level.length - 1];
 	var dataset = [];
 	for( var i = 0; i < clusters.length; i++ ) {
@@ -554,10 +565,15 @@ function reVisualise( ef1, ef2, ef3 ) {
 				.domain([ 0, largestClus ])
 				.range([padding,dataset.length - padding]);
 
-	var svg = d3.select("body")
+	var colourScale = d3.scale.linear()
+						.domain([ 0, 100 ])
+						.range([ 0, 255 ]);
+
+	var svg = d3.select("#visual")
 				.append("svg")
 				.attr("width", w)
-				.attr("height", h);
+				.attr("height", h)
+				.attr("id", "clusterVis");
 	/*
 	svg.append("line")
 		.attr("x1", w - padding)
@@ -581,20 +597,24 @@ function reVisualise( ef1, ef2, ef3 ) {
 			return (d.length) * 10;
 		})
 		.style("fill", function(d,i) {
-			console.log( i );
-			if( i === 0 ) { return d3.rgb( ef1 + 100, 0, 0 ); }
-			else if( i === 1 ) { return d3.rgb( ef2 + 100, 0, 0 ); }
-			else { return d3.rgb( ef3 + 100, 0, 0 ); }
+			if( i === 0 ) { return d3.rgb( colourScale(ef1), 0, 0 ); }
+			else if( i === 1 ) { return d3.rgb( colourScale(ef2), 0, 0 ); }
+			else { return d3.rgb( colourScale(ef3), 0, 0 ); }
 		})
-		.on("mouseover", function(d) {
-			var xPos = 0;
+		.on("mouseover", function(d, i) {
 			var yPos = parseFloat(d3.select("svg").attr("y"));
+			var frequencyArray = [];
+			if( i === 0 ) { frequencyArray = frequency1; }
+			else if( i === 1 ) { frequencyArray = frequency2; }
+			else { frequencyArray = frequency3; }
 
 			d3.select("#tooltip")
-				.style("left", xPos + "px")
+				.style("left", 0)
 				.style("top", yPos + "px")
 				.select("#value")
-				.text(d.length);
+				.text( frequencyArray[0].pattern + " " + frequencyArray[0].frequency + " " +
+				frequencyArray[1].pattern + " " + frequencyArray[1].frequency + " " +
+				frequencyArray[2].pattern + " " + frequencyArray[2].frequency );
 
 			d3.select("#tooltip").classed("hidden", false);
 		})

@@ -5,6 +5,10 @@ div {
   	margin-top: 10%;
 }
 
+#searchBar {
+	margin: 15%;
+}
+
 input {
 	margin: 2%;
 }
