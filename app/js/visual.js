@@ -375,12 +375,7 @@ function frequencyTable() {
 	total = combine( frequency1, frequency2 );
 	total = combine( total, frequency3 );
 
-	var header = table.createTHead();
-	var row = header.insertRow(0);
-	var head1 = row.insertCell(0);
-	var head2 = row.insertCell(1);
-	head1.innerHTML = "<b>Entity name</b>";
-	head2.innerHTML = "<b>Frequency</b>";
+	createTableHead();
 
 	for( var i = 0; i < 10; i++ ) {
 		var tr = table.insertRow();
@@ -393,28 +388,7 @@ function frequencyTable() {
 		column2.appendChild(document.createTextNode( total[i].frequency ));
 		column2.style.border = "1px solid black";
 
-		tr.addEventListener( "click", function() {
-			//clear the colour of all rows
-			var rows = table.rows;
-			for( var i = 0; i < rows.length; i++ ) {
-				rows[i].style.backgroundColor = "";
-			}
-
-			//change colour of the selected row
-			this.style.backgroundColor = "#98bf21";
-
-			var ef1 = findFrequency( frequency1, this.cells[0].innerHTML );
-			var ef2 = findFrequency( frequency2, this.cells[0].innerHTML );
-			var ef3 = findFrequency( frequency3, this.cells[0].innerHTML );
-			
-			//convert ratio to percentage
-			ef1 = Math.round( (ef1 * 100) / parseInt( this.cells[1].innerHTML ) );
-			ef2 = Math.round( (ef2 * 100) / parseInt( this.cells[1].innerHTML ) );
-			ef3 = Math.round( (ef3 * 100) / parseInt( this.cells[1].innerHTML ) );
-
-
-			reVisualise( ef1, ef2, ef3 );
-		});
+		tr.addEventListener( "click", clickRow );
 	}
 	document.body.appendChild( table );
 }
@@ -434,8 +408,19 @@ function createSearchBar() {
 	box.appendChild( button );
 }
 
+function createTableHead() {
+	var header = table.createTHead();
+	var row = header.insertRow(0);
+	var head1 = row.insertCell(0);
+	var head2 = row.insertCell(1);
+	head1.innerHTML = "<b>Entity name</b>";
+	head2.innerHTML = "<b>Frequency</b>";
+}
+
 function search() {
 	clearTable();
+	table = document.createElement("table");
+	createTableHead();
 
 	var entity = document.getElementById( "textInput" ).value;
 
@@ -451,6 +436,8 @@ function search() {
 			var column2 = tr.insertCell();
 			column2.appendChild(document.createTextNode( total[i].frequency ));
 			column2.style.border = "1px solid black";
+
+			tr.addEventListener( "click", clickRow );
 		}
 	}
 	document.body.appendChild( table );
@@ -458,6 +445,28 @@ function search() {
 
 function clearTable() {
 	document.body.removeChild( table );
+}
+
+function clickRow() {
+	//clear the colour of all rows
+	var rows = table.rows;
+	for( var i = 0; i < rows.length; i++ ) {
+		rows[i].style.backgroundColor = "";
+	}
+
+	//change colour of the selected row
+	this.style.backgroundColor = "#98bf21";
+
+	var ef1 = findFrequency( frequency1, this.cells[0].innerHTML );
+	var ef2 = findFrequency( frequency2, this.cells[0].innerHTML );
+	var ef3 = findFrequency( frequency3, this.cells[0].innerHTML );
+			
+	//convert ratio to percentage
+	ef1 = Math.round( (ef1 * 100) / parseInt( this.cells[1].innerHTML ) );
+	ef2 = Math.round( (ef2 * 100) / parseInt( this.cells[1].innerHTML ) );
+	ef3 = Math.round( (ef3 * 100) / parseInt( this.cells[1].innerHTML ) );
+
+	reVisualise( ef1, ef2, ef3 );
 }
 
 function frequencyArray( cluster ) {
