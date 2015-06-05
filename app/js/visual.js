@@ -19,6 +19,10 @@ var frequency2 = [];
 var frequency3 = [];
 var total = [];
 
+//table search bar
+var box = document.getElementById( "searchBar" );
+var returnButton = document.createElement( "button" );
+
 function upload() {
 	if( fileInput.files.length > 0 ) {
 
@@ -365,8 +369,6 @@ function visualise( level ) {
 }
 
 function frequencyTable() {
-	createSearchBar();
-
 	var c = level[level.length - 1];
 	frequency1 = frequencyArray( c[0] );
 	frequency2 = frequencyArray( c[1] );
@@ -393,19 +395,31 @@ function frequencyTable() {
 	document.body.appendChild( table );
 }
 
-function createSearchBar() {
-	var box = document.getElementById("searchBar");
+function topTenButton() {
+	returnButton.addEventListener( "click", originalTable );
+	t = document.createTextNode( "Top 10" );
+	returnButton.appendChild( t );
+	box.appendChild( returnButton );
+}
 
-	var searchBar = document.createElement("input");
-	searchBar.type = "text";
-	searchBar.id = "textInput";
-	box.appendChild( searchBar );
+function originalTable() {
+	box.removeChild( returnButton );
+	clearTable();
 
-	var button = document.createElement("button");
-	button.addEventListener( "click", search );
-	var t = document.createTextNode("Search");
-	button.appendChild( t );
-	box.appendChild( button );
+	for( var i = 0; i < 10; i++ ) {
+		var tr = table.insertRow();
+
+		var column1 = tr.insertCell();
+		column1.appendChild(document.createTextNode( total[i].pattern ));
+		column1.style.border = "1px solid black";
+
+		var column2 = tr.insertCell();
+		column2.appendChild(document.createTextNode( total[i].frequency ));
+		column2.style.border = "1px solid black";
+
+		tr.addEventListener( "click", clickRow );
+	}
+	document.body.appendChild( table );
 }
 
 function createTableHead() {
@@ -418,6 +432,7 @@ function createTableHead() {
 }
 
 function search() {
+	topTenButton();
 	clearTable();
 	table = document.createElement("table");
 	createTableHead();
