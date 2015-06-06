@@ -1,8 +1,21 @@
 div {
 	border: solid 1px black;
+	height: 15%;
   	margin-left: 15%;
   	margin-right: 15%;
   	margin-top: 10%;
+  	margin-bottom: 0;
+}
+
+#visual {
+	margin-top: 2%;
+}
+
+#searchBar {
+	margin-top: 2%;
+	margin-bottom: 2%;
+	margin-left: 15%;
+	margin-right: 15%;
 }
 
 input {
@@ -13,14 +26,7 @@ table {
 	width: 70%;
 	border: 1px solid black;
   	margin: 15%;
-  	margin-top: -10%;
-}
-
-svg {
-	width: 70%;
-	height: 50%;
-	margin-left: 15%;
-	margin-right: 15%;
+  	margin-top: 0;
 }
 
 #tooltip {
