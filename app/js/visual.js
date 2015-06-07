@@ -10,7 +10,12 @@ var degrees = 0;
 var interval;
 
 var patterns = [];
-var level = [];
+
+//each element represents a level in the hierarchical clustering
+var level = []; 
+
+//lists of entities and indexs
+var entity = new Map();
 
 //create table tag
 var table = document.createElement("table");
@@ -91,6 +96,14 @@ function main() {
 	var simTable = buildSimTable();
 	console.log( "Finished building simTable" );
 
+	while( simTable.length > 3 ) {
+		simTable = addCluster( simTable );
+	}
+
+	console.log( "Got to top of tree" );
+	stopSpin();
+	visualise( level );
+	frequencyTable();
 }
 
 function initClusters() {
@@ -98,7 +111,7 @@ function initClusters() {
 
 	var parents = [];
 	for( var i = 0; i < patterns.length; i++ ) { //<-- loop through patterns
-		clusters.set( i, parents );
+		clusters.set( " " + i.toString(), parents );
 	}
 
 	level.push( clusters );
@@ -154,15 +167,15 @@ function addCluster( simTable ) {
 		}
 	}
 
-	var newCluster = clusters[simClus[0]] + clusters[simClus[1]];
-
+	var newCluster = clusters.get() + clusters.get();
+	/*
 	if( simClus[0] < simClus[1] ) {
 		simClus.swap( 0, 1 );
 	}
 	clusters.splice( simClus[0], 1 );
 	clusters.splice( simClus[1], 1 );
 	clusters.push( newCluster );
-
+	*/
 	simTable = updateSimTable( simTable, simClus, newCluster );
 	
 	if( clusters.length <= 3 ) {
