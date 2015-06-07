@@ -43,60 +43,79 @@ function readFile( file, reader ) {
 
 		var array = reader.result.split( " " );
 
-		var row = {
-			index : "",
-			interestingness : "",
-			entity1 : "",
-			entity2 : ""
-		};
-		var count = -1;
+		var map = new Map();
 
-		//find a row in file and fill in object with its data
+		var count = 1;
+
+		//find a pattern in file and fill in object with its data
 		for( var i = 0; i < array.length; i++ ) {
-			if( array[i].indexOf( "." ) != -1 && !isNaN( array[i] ) ) {
-				 
-				count++; //<-- End of pattern.
-				row.index = count.toString();
-				patterns.push( JSON.stringify( row ) );
+			if( array[i].indexOf( "." ) != -1 && !isNaN( array[i] ) ) { 
+				var pat = new Map(); //<-- pattern
+				pat.set( 0, array[i] );
+				patterns.push( pat );
 
-				row.interestingness = array[i] + " "; //<-- Start of new pattern.
-				row.entity1 = "";
-				row.entity2 = ""; 
 			}
-			else if( array[i].indexOf( "twitter_id" ) != -1 ) {
-				row.entity1 += array[i] + " ";
+			else if( array[i].indexOf( "." ) != -1 && isNaN( array[i] ) ) {
+				if( !map.has( array[i] ) ) {
+					map.set( array[i], count );
+					pat.set( count, array[i] );
+					count++;
+				}
+				else {
+					pat.set( map.get( array[i] ), array[i] );
+				}
 			}
 			else {
-				row.entity2 += array[i] + " ";
+					
 			}
 		}
-		//drawRow( 1 );
-		initCluster();
+		keyValueSwap( map );
+		console.log( "Finished reading" );
+		main();
 
 	});
 	reader.readAsText( file );
 }
 
-function initCluster() {
-	var patRef = []; //<-- pattern reference
-
-	for( var i = 1; i < 10; i++ ) { //<-- loop through patterns
-		patRef.push( JSON.parse( patterns[i] ).index + "." );
+function keyValueSwap( map ) {
+	var count = 0;
+	for( var key of map.keys() ) {
+		entity.set( count, key );
+		count++;
 	}
-
-	level.push( patRef );
-	var simTable = buildSimTable( patRef );
-	addCluster( simTable );
 }
 
-function buildSimTable( patRef ) {
+function main() {
+	var clusters = initClusters();
+	console.log( "Completed initial clustering" );
+	var simTable = buildSimTable();
+	console.log( "Finished building simTable" );
+
+}
+
+function initClusters() {
+	var clusters = new Map(); 
+
+	var parents = [];
+	for( var i = 0; i < patterns.length; i++ ) { //<-- loop through patterns
+		clusters.set( i, parents );
+	}
+
+	level.push( clusters );
+	return clusters;
+}
+
+function buildSimTable() {
 	var simTable = [];
-	for( var i = 0; i < patRef.length; i++ ) { //<-- loop through patterns
+	for( var i = 1; i < 1000; i++ ) { //<-- loop through patterns
 		var similar = []; //<-- an array recording how similar patterns are
 
-		for( var j = 0; j < patRef.length; j++ ) { //<-- loop through patterns
+		for( var j = 1; j < 1000; j++ ) { //<-- loop through patterns
 			if( j === i ) { 
-				 similar.push( 0 );
+				similar.push( 0 );
+			}
+			else if( i !== 1 && j < i ) { 
+				similar.push( simTable[j - 1][i - 1] );
 			}
 			else {
 				similar.push( similarity( patterns[i], patterns[j] ) );
@@ -108,36 +127,18 @@ function buildSimTable( patRef ) {
 }
 
 function similarity( p1, p2 ) {
-	p1 = JSON.parse( p1 );
-	p2 = JSON.parse( p2 );
+	var matchEnt = 0; //<-- intersection
+	var difEnt = p1.size + p2.size; //<-- union
 
-	var similarity = ( intersection( p1, p2 ) / union( p1, p2 ) );
-	return similarity;
-}
-
-function intersection( p1, p2 ) {
-	var entities1 = p1.entity1.split( " " );
-	var matchEnt = 0; //<-- Number of matching entities found
-
-	for( var i = 0; i < entities1.length; i++ ) {
-		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
+	for( var key of p1.keys() ) {
+		if( p2.has( key ) ) {
 			matchEnt++;
-		}
-	}
-	return matchEnt;
-}
-
-function union( p1, p2 ) {
-	var entities1 = p1.entity1.split( " " );
-	var entities2 = p2.entity2.split( " " );
-	var difEnt = entities1.length + entities2.length;
-
-	for( var i = 0; i < entities1.length; i++ ) {
-		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
 			difEnt--;
 		}
 	}
-	return difEnt;
+
+	var similarity = matchEnt / difEnt;
+	return similarity;
 }
 
 function addCluster( simTable ) {
