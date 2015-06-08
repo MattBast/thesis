@@ -29,7 +29,11 @@ var total = [];
 var box = document.getElementById( "searchBar" );
 var returnButton = document.createElement( "button" );
 
+//for timing the program
+var d = new Date();
+
 function upload() {
+	console.log( d.getMinutes() + " " + d.getSeconds() );
 	if( fileInput.files.length > 0 ) {
 
 		var file = fileInput.files[0];
@@ -53,15 +57,15 @@ function readFile( file, reader ) {
 
 		var count = 1;
 
-		//find a pattern in file and fill in object with its data
+		//find a pattern in file. Store each entity as a key, value
 		for( var i = 0; i < array.length; i++ ) {
 			if( array[i].indexOf( "." ) != -1 && !isNaN( array[i] ) ) { 
 				var pat = new Map(); //<-- pattern
-				pat.set( 0, array[i] );
+				pat.set( 0, array[i] ); //<-- interestingness
 				patterns.push( pat );
 
 			}
-			else if( array[i].indexOf( "." ) != -1 && isNaN( array[i] ) ) {
+			if( array[i].indexOf( "." ) != -1 && isNaN( array[i] ) ) {
 				if( !map.has( array[i] ) ) {
 					map.set( array[i], count );
 					pat.set( count, array[i] );
@@ -71,12 +75,10 @@ function readFile( file, reader ) {
 					pat.set( map.get( array[i] ), array[i] );
 				}
 			}
-			else {
-					
-			}
 		}
 		keyValueSwap( map );
 		console.log( "Finished reading" );
+		patterns = sparseMatrix();
 		main();
 
 	});
@@ -91,13 +93,33 @@ function keyValueSwap( map ) {
 	}
 }
 
+function sparseMatrix() {
+	var newPats = new Map(); //<-- new patterns
+
+	for( var i = 0; i < patterns.length; i++ ) {
+		var e = []; //<-- new array of entities in pattern
+		for( var key of entity.keys() ) {
+			if( patterns[i].has(key) ) {
+				e.push(1);
+			}
+			else {
+				e.push(0);
+			}
+		}
+		newPats.set( i, e );
+	}
+
+	return newPats;
+}
+
 function main() {
 	var clusters = initClusters();
 	console.log( "Completed initial clustering" );
 	var simTable = buildSimTable();
-	console.log( simTable );
 	console.log( "Finished building simTable" );
-
+	d = new Date();
+	console.log( d.getMinutes() + " " + d.getSeconds() );
+	/*
 	while( simTable.length > 3 ) {
 		simTable = addCluster( simTable );
 	}
@@ -106,6 +128,7 @@ function main() {
 	stopSpin();
 	visualise( level );
 	frequencyTable();
+	*/
 }
 
 function initClusters() {
@@ -122,18 +145,15 @@ function initClusters() {
 
 function buildSimTable() {
 	var simTable = [];
-	for( var i = 1; i < 10; i++ ) { //<-- loop through patterns
+	for( var i = 0; i < 4000; i++ ) { //<-- loop through patterns
 		var similar = []; //<-- an array recording how similar patterns are
 
-		for( var j = 1; j < 10; j++ ) { //<-- loop through patterns
+		for( var j = i; j < 4000; j++ ) { //<-- loop through patterns
 			if( j === i ) { 
 				similar.push( 0 );
 			}
-			else if( i !== 1 && j < i ) { 
-				similar.push( simTable[j - 1][i - 1] );
-			}
 			else {
-				similar.push( similarity( patterns[i], patterns[j] ) );
+				similar.push( similarity( patterns.get(i), patterns.get(j) ) );
 			}	
 		}
 		simTable.push( similar );
@@ -143,12 +163,18 @@ function buildSimTable() {
 
 function similarity( p1, p2 ) {
 	var matchEnt = 0; //<-- intersection
-	var difEnt = p1.size + p2.size; //<-- union
+	var difEnt = 0; //<-- union
 
-	for( var key of p1.keys() ) {
-		if( p2.has( key ) ) {
+	for( var i = 0; i < p1.length; i++ ) {
+		if( p1[i] === 1 && p2[i] === 1 ) {
 			matchEnt++;
 			difEnt--;
+		}
+		if( p1[i] === 1 ) {
+			difEnt++;
+		}
+		if( p2[i] === 1 ) {
+			difEnt++;
 		}
 	}
 
