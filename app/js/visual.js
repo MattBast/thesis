@@ -10,7 +10,7 @@ var degrees = 0;
 var interval;
 
 var patterns = [];
-var clusRef = new Map(); //<-- cluster reference
+var clusRef = new Map(); //<-- references the parents of a cluster
 
 //each element represents a level in the hierarchical clustering
 var level = []; 
@@ -117,26 +117,41 @@ function main() {
 	console.log( "Completed initial clustering" );
 	var simTable = buildSimTable();
 	console.log( "Finished building simTable" );
+	for( var key of simTable[0].keys() ) {
+		console.log( key );
+	}
+	for( var value of simTable[0].values() ) {
+		console.log( value );
+	}
+
+	for( var key of simTable[4].keys() ) {
+		console.log( key );
+	}
+	for( var value of simTable[4].values() ) {
+		console.log( value );
+	}
 	d = new Date();
 	console.log( d.getMinutes() + " " + d.getSeconds() );
+	
+	//keep clustering the patterns until there are only three clusters
 	/*
 	while( simTable.length > 3 ) {
 		simTable = addCluster( simTable );
 	}
-
+	*/
 	console.log( "Got to top of tree" );
 	stopSpin();
-	visualise( level );
-	frequencyTable();
-	*/
+	//visualise( level );
+	//frequencyTable();
+	
 }
 
 function initClusters() {
 	var clusters = []; //<-- pattern reference
 	var parents = [];
-	for( var i = 1; i < patterns.length; i++ ) { //<-- loop through patterns
-		clusters.push( " " + i.toString() );
-		clusRef.set( " " + i.toString(), parents );
+	for( var i = 1; i < patterns.size; i++ ) { //<-- loop through patterns
+		clusters.push( i.toString() );
+		clusRef.set( i.toString(), parents );
 	}
 
 	level.push( clusters );
@@ -145,15 +160,16 @@ function initClusters() {
 
 function buildSimTable() {
 	var simTable = [];
-	for( var i = 0; i < 4000; i++ ) { //<-- loop through patterns
-		var similar = []; //<-- an array recording how similar patterns are
+	for( var i = 0; i < 10; i++ ) { //<-- loop through patterns
+		var similar = new Map(); //<-- records how similar patterns are
 
-		for( var j = i; j < 4000; j++ ) { //<-- loop through patterns
+		for( var j = i; j < 10; j++ ) { //<-- loop through patterns
 			if( j === i ) { 
-				similar.push( 0 );
+				similar.set( i.toString() + "+" + j.toString() ,0 );
 			}
 			else {
-				similar.push( similarity( patterns.get(i), patterns.get(j) ) );
+				similar.set( i.toString() + "+" + j.toString() ,
+					similarity( patterns.get(i), patterns.get(j) ) );
 			}	
 		}
 		simTable.push( similar );
@@ -183,31 +199,31 @@ function similarity( p1, p2 ) {
 }
 
 function addCluster( simTable ) {
-	var clusters = level[level.length - 1]
+	var clusters = level[level.length - 1];
 	var simClus = [0,0]; //<-- similar clusters
 	var largestSim = 0;
 
 	//find two most similar clusters in simTable
 	for( var i = 0; i < simTable.length; i++ ) {
-		for( var j = 0; j < simTable[i].length; j++ ) {
-			if( i !== j && simTable[i][j] > largestSim ) {
-				largestSim = simTable[i][j];
-				simClus = [i,j];
+		for( var [key, value] of simTable[0].values() ) {
+			if( value > largestSim ) {
+				largestSim = value;
+				simClus = key.split( "+" );
 			}
 		}
 	}
 
 	//new cluster and its parents
-	var newCluster = clusters[ simClus[0] ] + clusters[ simClus[1] ];
-	clusRef.set( newCluster, [clusters[ simClus[0] ], clusters[ simClus[1] ]] );
+	var newCluster = simClus[0] + "." + simClus[1];
+	clusRef.set( newCluster, simClus );
 	console.log( clusRef.get(newCluster) );
 	
-	//set up cluster
-	if( simClus[0] < simClus[1] ) {
+	//update record of what clusters are on each level
+	if( parseInt( simClus[0] ) < parseInt( simClus[1] ) ) {
 		simClus.swap( 0, 1 );
 	}
-	clusters.splice( simClus[0], 1 );
-	clusters.splice( simClus[1], 1 );
+	clusters.splice( parseInt( simClus[0] ), 1 );
+	clusters.splice( parseInt( simClus[1] ), 1 );
 	clusters.push( newCluster );
 	
 	simTable = updateSimTable( simTable, simClus, newCluster );
@@ -217,7 +233,7 @@ function addCluster( simTable ) {
 }
 
 function updateSimTable( simTable, simClus, newCluster ) {
-	if( simClus[0] < simClus[1] ) {
+	if( parseInt( simClus[0] ) < parseInt( simClus[1] ) ) {
 		simClus.swap( 0, 1 );
 	}
 
