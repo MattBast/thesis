@@ -11,6 +11,7 @@ var interval;
 
 var patterns = [];
 var clusRef = new Map(); //<-- references the parents of a cluster
+var priorityQueue = []; //<-- orders patterns/clusters by similarity
 
 //each element represents a level in the hierarchical clustering
 var level = []; 
@@ -113,26 +114,13 @@ function sparseMatrix() {
 }
 
 function main() {
-	var clusters = initClusters();
+	initClusters();
 	console.log( "Completed initial clustering" );
 	var simTable = buildSimTable();
 	console.log( "Finished building simTable" );
-	for( var key of simTable[0].keys() ) {
-		console.log( key );
-	}
-	for( var value of simTable[0].values() ) {
-		console.log( value );
-	}
-
-	for( var key of simTable[4].keys() ) {
-		console.log( key );
-	}
-	for( var value of simTable[4].values() ) {
-		console.log( value );
-	}
-	d = new Date();
-	console.log( d.getMinutes() + " " + d.getSeconds() );
 	
+	simTable = addCluster( simTable );
+	console.log( simTable );
 	//keep clustering the patterns until there are only three clusters
 	/*
 	while( simTable.length > 3 ) {
@@ -143,36 +131,36 @@ function main() {
 	stopSpin();
 	//visualise( level );
 	//frequencyTable();
-	
+	d = new Date();
+	console.log( d.getMinutes() + " " + d.getSeconds() );
 }
 
 function initClusters() {
-	var clusters = []; //<-- pattern reference
+	var clusters = []; 
 	var parents = [];
-	for( var i = 1; i < patterns.size; i++ ) { //<-- loop through patterns
+	for( var i = 1; i < patterns.size; i++ ) { 
 		clusters.push( i.toString() );
 		clusRef.set( i.toString(), parents );
 	}
 
 	level.push( clusters );
-	return clusters;
 }
 
 function buildSimTable() {
-	var simTable = [];
-	for( var i = 0; i < 10; i++ ) { //<-- loop through patterns
-		var similar = new Map(); //<-- records how similar patterns are
-
-		for( var j = i; j < 10; j++ ) { //<-- loop through patterns
+	var simTable = new Map(); //<-- records how similar patterns are
+	for( var i = 0; i < 10; i++ ) { 
+		for( var j = i; j < 10; j++ ) { 
 			if( j === i ) { 
-				similar.set( i.toString() + "+" + j.toString() ,0 );
+				simTable.set( i.toString() + "+" + j.toString(), 0 );
+				priorityQueue.push( i.toString() + "+" + j.toString() );
 			}
 			else {
-				similar.set( i.toString() + "+" + j.toString() ,
+				simTable.set( i.toString() + "+" + j.toString(),
 					similarity( patterns.get(i), patterns.get(j) ) );
+				priorityQueue = addToQueue( priorityQueue, simTable,
+					i.toString() + "+" + j.toString() );
 			}	
 		}
-		simTable.push( similar );
 	}
 	return simTable;
 }
@@ -198,116 +186,100 @@ function similarity( p1, p2 ) {
 	return similarity;
 }
 
-function addCluster( simTable ) {
-	var clusters = level[level.length - 1];
-	var simClus = [0,0]; //<-- similar clusters
-	var largestSim = 0;
-
-	//find two most similar clusters in simTable
-	for( var i = 0; i < simTable.length; i++ ) {
-		for( var [key, value] of simTable[0].values() ) {
-			if( value > largestSim ) {
-				largestSim = value;
-				simClus = key.split( "+" );
-			}
+function addToQueue( queue, simTable, newSim ) {
+	for( var i = 0; i < queue.length; i++ ) {
+		if( simTable.get( newSim ) > simTable.get( queue[i] ) ) {
+			queue.splice( i, 0, newSim );
+			return queue;
 		}
 	}
+	queue.push( newSim );
+	return queue;
+}
+
+function addCluster( simTable ) {
+	var simClus = priorityQueue[0].split( "+" );
 
 	//new cluster and its parents
-	var newCluster = simClus[0] + "." + simClus[1];
+	var newCluster = simClus[0] + "-" + simClus[1];
 	clusRef.set( newCluster, simClus );
-	console.log( clusRef.get(newCluster) );
 	
-	//update record of what clusters are on each level
-	if( parseInt( simClus[0] ) < parseInt( simClus[1] ) ) {
-		simClus.swap( 0, 1 );
-	}
-	clusters.splice( parseInt( simClus[0] ), 1 );
-	clusters.splice( parseInt( simClus[1] ), 1 );
-	clusters.push( newCluster );
-	
-	simTable = updateSimTable( simTable, simClus, newCluster );
-	level.push( clusters );
+	simTable = updateSimTable( simTable, simClus );
+	//priorityQueue = updateQueue();	
 	
 	return simTable;
 }
 
-function updateSimTable( simTable, simClus, newCluster ) {
-	if( parseInt( simClus[0] ) < parseInt( simClus[1] ) ) {
-		simClus.swap( 0, 1 );
+function updateSimTable( simTable, simClus ) {
+	var tmp1 = [];
+	var tmp2 = [];
+
+	for( var key of simTable.keys() ) {
+		var object = {
+			key : "",
+			value : 0
+		};
+		if( key.indexOf( simClus[0] ) != -1 ) {
+			object.key = key;
+			object.value = simTable.get( key );
+			tmp1.push( object );
+			simTable.delete( key );
+		}
+		if( key.indexOf( simClus[1] ) != -1 ) {
+			object.key = key;
+			object.value = simTable.get( key );
+			tmp2.push( object );
+			simTable.delete( key );
+		}
 	}
 
-	var similar = [];
-	if( linkage[1].checked ) {
-		similar = complete( simClus, simTable );
-	}
-	else if( linkage[2].checked ) {
-		similar = average( simClus, simTable );
-	}
-	else {
-		similar = single( simClus, simTable );
-	}
+	var newClusSims = new Map();
+	var best = 0;
+	for( var i = 0; i < tmp1.length; i++ ) {
+		var clus = tmp1[i].key.split( "+" );
+		var ref = "";
+		if( clus[0] !== simClus[0] ) {
+			ref = clus[0];
+		}
+		else {
+			ref = clus[1];
+		}
 
-	//remove rows representing clustered patterns
-	simTable.splice( simClus[0], 1 );
-	simTable.splice( simClus[1], 1 );
-
-	//remove columns representing clustered patterns
-	for( var j = 0; j < simTable.length; j++ ) {
-		simTable[j].splice( simClus[0], 1 );
-		simTable[j].splice( simClus[1], 1 );
-		simTable[j].push( similar[j] );
+		var newKey = ref + "+" + simClus[0] + "-" + simClus[1];
+		best = mostSimilar( tmp1[i].value, tmp2[i].value );
+		newClusSims.set( newKey, best );
 	}
 
-	simTable.push( similar );
-
+	for( var key of newClusSims.keys() ) {
+		simTable.set( key, newClusSims.get( key ) );
+	}
 	return simTable;
 }
 
-function single( simClus, simTable ) {
-	var similar = [];
-	for( var i = 0; i < simTable[simClus[0]].length; i++ ) {
-		if( simTable[simClus[1]][i] !== 0 && simTable[simClus[0]][i] > simTable[simClus[1]][i] ) {
-			similar.push( simTable[simClus[0]][i] );
-		}
-		if( simTable[simClus[0]][i] !== 0 && simTable[simClus[1]][i] > simTable[simClus[0]][i] ) {
-			similar.push( simTable[simClus[1]][i] );
-		}
-	}
-	similar.push( 0 );
-	return similar;
-}
+function mostSimilar( num1, num2 ) {
+	var best = 0;
 
-function complete( simClus, simTable ) {
-	var similar = [];
-	for( var i = 0; i < simTable[simClus[0]].length; i++ ) {
-		if( simTable[simClus[0]][i] !== 0 && simTable[simClus[0]][i] < simTable[simClus[1]][i] ) {
-			similar.push( simTable[simClus[0]][i] );
-		}
-		if( simTable[simClus[1]][i] !== 0 && simTable[simClus[1]][i] < simTable[simClus[0]][i] ) {
-			similar.push( simTable[simClus[1]][i] );
-
-		}
+	if( linkage[1].checked ) { //<-- complete linkage
+		best = Math.min( num1, num2 );
 	}
-	similar.push( 0 );
-	return similar;
-}
-
-function average( simClus, simTable ) {
-	var similar = [];
-	for( var i = 0; i < simTable[simClus[0]].length; i++ ) {
-		if( simTable[simClus[0]][i] !== 0 && simTable[simClus[1]][i] !== 0 ) {
-			similar.push( mean( simTable[simClus[0]][i], simTable[simClus[1]][i] ) );
-		}
+	else if( linkage[2].checked ) { //<-- average linkage
+		best = mean( num1, num2 );
 	}
-	similar.push( 0 );
-	return similar;
+	else { //<-- single linkage
+		best = Math.max( num1, num2 );
+	}
+
+	return best;
 }
 
 function mean( num1, num2 ) {
 	var total = num1 + num2;
 	total = total / 2;
 	return total;
+}
+
+function updateQueue() {
+
 }
 
 function loadSpin() {
