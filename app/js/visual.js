@@ -238,7 +238,10 @@ function updateSimTable( simTable, simClus ) {
 	for( var i = 0; i < tmp1.length; i++ ) {
 		var clus = tmp1[i].key.split( "+" );
 		var ref = "";
-		if( clus[0] !== simClus[0] ) {
+		if( tmp1[i].value === undefined || tmp2[i].value === undefined ) {
+			continue;
+		}
+		else if( clus[0] !== simClus[0] && clus[0] !== simClus[1] ) {
 			ref = clus[0];
 		}
 		else {
