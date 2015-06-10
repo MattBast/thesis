@@ -119,14 +119,11 @@ function main() {
 	var simTable = buildSimTable();
 	console.log( "Finished building simTable" );
 	
-	simTable = addCluster( simTable );
-	console.log( simTable );
 	//keep clustering the patterns until there are only three clusters
-	/*
 	while( simTable.length > 3 ) {
 		simTable = addCluster( simTable );
 	}
-	*/
+
 	console.log( "Got to top of tree" );
 	stopSpin();
 	//visualise( level );
@@ -253,8 +250,16 @@ function updateSimTable( simTable, simClus ) {
 		newClusSims.set( newKey, best );
 	}
 
+	for( var j = 0; j < priorityQueue.length; j++ ) {
+		if( priorityQueue[j].indexOf( simClus[0] ) != -1 || 
+				priorityQueue[j].indexOf( simClus[1] ) != -1 ) {
+			priorityQueue.splice( j, 1 );
+		}
+	}
+
 	for( var key of newClusSims.keys() ) {
 		simTable.set( key, newClusSims.get( key ) );
+		priorityQueue = addToQueue( priorityQueue, simTable, key );
 	}
 	return simTable;
 }
@@ -279,10 +284,6 @@ function mean( num1, num2 ) {
 	var total = num1 + num2;
 	total = total / 2;
 	return total;
-}
-
-function updateQueue() {
-
 }
 
 function loadSpin() {
