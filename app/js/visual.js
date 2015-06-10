@@ -118,28 +118,27 @@ function main() {
 	console.log( "Completed initial clustering" );
 	var simTable = buildSimTable();
 	console.log( "Finished building simTable" );
-	
+
 	//keep clustering the patterns until there are only three clusters
-	while( simTable.length > 3 ) {
+	while( simTable.size > 10 ) {
 		simTable = addCluster( simTable );
 	}
 
 	console.log( "Got to top of tree" );
 	stopSpin();
-	//visualise( level );
+	//visualise( simTable );
 	//frequencyTable();
 	d = new Date();
 	console.log( d.getMinutes() + " " + d.getSeconds() );
 }
 
-function initClusters() {
-	var clusters = []; 
+function initClusters() { 
+	var clusters = [];
 	var parents = [];
 	for( var i = 1; i < patterns.size; i++ ) { 
 		clusters.push( i.toString() );
 		clusRef.set( i.toString(), parents );
 	}
-
 	level.push( clusters );
 }
 
@@ -147,15 +146,17 @@ function buildSimTable() {
 	var simTable = new Map(); //<-- records how similar patterns are
 	for( var i = 0; i < 10; i++ ) { 
 		for( var j = i; j < 10; j++ ) { 
+			var iKey = (i + 1).toString();
+			var jKey = (j + 1).toString();
 			if( j === i ) { 
-				simTable.set( i.toString() + "+" + j.toString(), 0 );
-				priorityQueue.push( i.toString() + "+" + j.toString() );
+				simTable.set( iKey + "+" + jKey, 0 );
+				priorityQueue.push( iKey + "+" + jKey );
 			}
 			else {
-				simTable.set( i.toString() + "+" + j.toString(),
+				simTable.set( iKey + "+" + jKey,
 					similarity( patterns.get(i), patterns.get(j) ) );
 				priorityQueue = addToQueue( priorityQueue, simTable,
-					i.toString() + "+" + j.toString() );
+					iKey + "+" + jKey );
 			}	
 		}
 	}
@@ -195,50 +196,92 @@ function addToQueue( queue, simTable, newSim ) {
 }
 
 function addCluster( simTable ) {
+	var clusters = level[level.length - 1];
 	var simClus = priorityQueue[0].split( "+" );
+	simTable.delete( simClus[0] + "+" + simClus[1] );
 
 	//new cluster and its parents
 	var newCluster = simClus[0] + "-" + simClus[1];
 	clusRef.set( newCluster, simClus );
+
+	//update clusters
+	for( var i = 0; i < clusters.length; i++ ) {
+		if( clusters[i] === simClus[0] || clusters[i] === simClus[1] ) {
+			clusters.splice( i, 1 );
+		}
+	}
+	clusters.push( newCluster );
 	
-	simTable = updateSimTable( simTable, simClus );
-	//priorityQueue = updateQueue();	
+	simTable = updateSimTable( simTable, simClus, clusters );
 	
 	return simTable;
 }
 
-function updateSimTable( simTable, simClus ) {
+function updateSimTable( simTable, simClus, clusters ) {
 	var tmp1 = [];
 	var tmp2 = [];
+	console.log( simClus );
 
-	for( var key of simTable.keys() ) {
+	simTable = removeSamePats( simTable, simClus );
+
+	for( var j = 0; j < clusters.length; j++ ) {
 		var object = {
 			key : "",
 			value : 0
 		};
-		if( key.indexOf( simClus[0] ) != -1 ) {
-			object.key = key;
-			object.value = simTable.get( key );
+		if( simTable.has( clusters[j] + "+" + simClus[0] ) ) {
+			object.key = clusters[j] + "+" + simClus[0];
+			object.value = simTable.get( object.key );
 			tmp1.push( object );
-			simTable.delete( key );
+			simTable.delete( object.key );
 		}
-		if( key.indexOf( simClus[1] ) != -1 ) {
-			object.key = key;
-			object.value = simTable.get( key );
+		if( simTable.has( simClus[0] + "+" +  clusters[j] ) ) {
+			object.key = simClus[0] + "+" +  clusters[j];
+			object.value = simTable.get( object.key );
+			tmp1.push( object );
+			simTable.delete( object.key );
+		}
+		if( simTable.has( clusters[j] + "+" + simClus[1] ) ) {
+			object.key = clusters[j] + "+" + simClus[1];
+			object.value = simTable.get( object.key );
 			tmp2.push( object );
-			simTable.delete( key );
+			simTable.delete( object.key );
+		}
+		if( simTable.has( simClus[1] + "+" +  clusters[j] ) ) {
+			object.key = simClus[1] + "+" +  clusters[j];
+			object.value = simTable.get( object.key );
+			tmp2.push( object );
+			simTable.delete( object.key );
 		}
 	}
 
+	var newClusSims = compareNewClus( simClus, tmp1, tmp2 );
+	simTable = updateTableAndQueue( simTable, newClusSims );
+	
+	console.log( simTable );
+	level.push( clusters );
+	return simTable;
+}
+
+function removeSamePats( simTable, simClus ) {
+	//remove comparisons where a pattern is compared to itself
+	if( simTable.has( simClus[0] + "+" +  simClus[0] ) ) {
+		simTable.delete( simClus[0] + "+" +  simClus[0] );
+	}
+	if( simTable.has( simClus[1] + "+" +  simClus[1] ) ) {
+		simTable.delete( simClus[1] + "+" +  simClus[1] );
+	}
+
+	return simTable;
+}
+
+function compareNewClus( simClus, tmp1, tmp2 ) {
 	var newClusSims = new Map();
 	var best = 0;
 	for( var i = 0; i < tmp1.length; i++ ) {
 		var clus = tmp1[i].key.split( "+" );
 		var ref = "";
-		if( tmp1[i].value === undefined || tmp2[i].value === undefined ) {
-			continue;
-		}
-		else if( clus[0] !== simClus[0] && clus[0] !== simClus[1] ) {
+		if( clus[0] !== simClus[0] && clus[0] !== simClus[1] ) {
 			ref = clus[0];
 		}
 		else {
@@ -249,19 +292,7 @@ function updateSimTable( simTable, simClus ) {
 		best = mostSimilar( tmp1[i].value, tmp2[i].value );
 		newClusSims.set( newKey, best );
 	}
-
-	for( var j = 0; j < priorityQueue.length; j++ ) {
-		if( priorityQueue[j].indexOf( simClus[0] ) != -1 || 
-				priorityQueue[j].indexOf( simClus[1] ) != -1 ) {
-			priorityQueue.splice( j, 1 );
-		}
-	}
-
-	for( var key of newClusSims.keys() ) {
-		simTable.set( key, newClusSims.get( key ) );
-		priorityQueue = addToQueue( priorityQueue, simTable, key );
-	}
-	return simTable;
+	return newClusSims;
 }
 
 function mostSimilar( num1, num2 ) {
@@ -278,6 +309,23 @@ function mostSimilar( num1, num2 ) {
 	}
 
 	return best;
+}
+
+function updateTableAndQueue( simTable, newClusSims ) {
+	//add new clusters to simTable and priorityQueue
+	for( var key of newClusSims.keys() ) {
+		simTable.set( key, newClusSims.get( key ) );
+		priorityQueue = addToQueue( priorityQueue, simTable, key );
+	}
+
+	//take out redundant clusters from priorityQueue
+	for( var c = 0; c < priorityQueue.length; c++ ) {
+		if( simTable.has( priorityQueue[c] ) === false ) {
+			priorityQueue.splice( c, 1 );
+			c--;
+		}
+	}
+	return simTable;
 }
 
 function mean( num1, num2 ) {
@@ -321,20 +369,23 @@ function stopSpin() {
 	document.getElementById("spinner").style.display = "none";
 }
 
-function visualise( level ) {
-	var clusters = level[level.length - 1];
+function visualise( simTable ) {
 	var dataset = [];
-	for( var i = 0; i < clusters.length; i++ ) {
-		dataset.push( clusters[i].split( " ", clusters[i].length - 1 ) );
+	var tmp = [];
+	for( var key of simTable.keys() ) {
+		tmp.push( key.split( "+" ) );
+		dataset.push( tmp[0].join(tmp[1]).split( "-" ) );
 	}
-
+	console.log( dataset );
+	/*
 	var largestClus = 0;
 	for( var j = 0; j < dataset.length; j++ ) {
 		if( dataset[j].length > largestClus ) {
 			largestClus = dataset[j].length;
 		}
 	}
-	
+	*/
+	/*
 	var w = 500;
 	var h = 500;
 	var padding = 20;
@@ -356,15 +407,7 @@ function visualise( level ) {
 				.attr("width", w)
 				.attr("height", h)
 				.attr("id", "clusterVis");
-	/*
-	svg.append("line")
-		.attr("x1", w - padding)
-		.attr("y1", 0 + padding)
-		.attr("x2", w - padding)
-		.attr("y2", h - padding)
-		.attr("stroke-width", 2)
-		.attr("stroke", "black");
-	*/
+	
 	svg.selectAll("circle")
 		.data(dataset)
 		.enter()
@@ -398,6 +441,7 @@ function visualise( level ) {
 		.on("mouseout", function() {
 			d3.select("#tooltip").classed("hidden", true);
 		});
+	*/
 }
 
 function frequencyTable() {
