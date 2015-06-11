@@ -440,6 +440,45 @@ function visualise( simTable ) {
 		})
 		.on("mouseout", function() {
 			d3.select("#tooltip").classed("hidden", true);
+		})
+		.on("click", function(d) {
+			dataset = clusRef.get( d );
+			console.log( dataset );
+			
+			var circle = svg.selectAll("circle")
+					.data(dataset);
+
+			circle.exit().attr("r", 0).remove();
+
+			circle.enter().append("circle")
+				.transition()
+				.duration(2000)
+				.ease("circle")
+				.attr("cx", function(d, i) {
+					return xScale( i );
+				})
+				.attr("cy", function(d, i) {
+					return h / 2;
+				})
+				.attr("r", function(d) {
+					return rScale((d.length - 1) / 2);
+				});
+
+			circle.transition()
+				.delay( function(d, i) {
+					return i * 100;
+				})
+				.duration(2000)
+				.ease("circle")
+				.attr("cx", function(d, i) {
+				return xScale( i );
+			})
+			.attr("cy", function(d, i) {
+				return h / 2;
+			})
+			.attr("r", function(d) {
+				return rScale((d.length - 1) / 2);
+			});
 		});
 }
 
