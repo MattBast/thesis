@@ -586,20 +586,21 @@ function getFrequency( cluster ) {
 }
 
 function combine( f1, f2 ) {
+	var total = new Map();
 	var checked = [];
 	for( var key of f1.keys() ) {
 		if( f2.has( key ) ) {
-			f1.set( key, f1.get( key ) + f2.get( key ) );
+			total.set( key, f1.get( key ) + f2.get( key ) );
 			checked.push( key );
 		}
 	}
 
 	for( var key of f2.keys() ) {
 		if( !checked.contains( key ) && f1.has( key ) ) {
-			f1.set( key, f2.get( key ) );
+			total.set( key, f2.get( key ) );
 		}
 	}
-	return f1;
+	return total;
 }
 
 function sortTotal( total ) {
