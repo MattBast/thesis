@@ -359,10 +359,10 @@ function spin() {
 
 	ctx.beginPath();
 	ctx.lineWidth = 10;
-	ctx.strokeStyle = "black";
+	ctx.strokeStyle = "#98bf21";
 	ctx.rotate(degrees*Math.PI/180);
 	ctx.translate(-250, -250); //<-- put it back
-	ctx.arc(250,250,50,0,1.5*Math.PI);
+	ctx.arc(250,250,25,0,1.5*Math.PI);
 	ctx.stroke();
 	ctx.restore();
 }
@@ -394,7 +394,7 @@ function visualise( simTable ) {
 
 	var rScale = d3.scale.linear()
 				.domain([ 0, largestClus ])
-				.range([25, 100]);
+				.range([25, 75]);
 
 	var svg = d3.select("#visual")
 				.append("svg")
@@ -415,27 +415,32 @@ function visualise( simTable ) {
 		.attr("r", function(d) {
 			return rScale((d.length - 1) / 2);
 		})
-		/*
 		.on("mouseover", function(d, i) {
 			var yPos = parseFloat(d3.select("svg").attr("y"));
-			var frequencyArray = [];
-			if( i === 0 ) { frequencyArray = frequency1; }
-			else if( i === 1 ) { frequencyArray = frequency2; }
-			else { frequencyArray = frequency3; }
+			var frequency;
+			if( i === 0 ) { frequency = frequency1; }
+			else if( i === 1 ) { frequency = frequency2; }
+			else { frequency = frequency3; }
+
+			var topThree = "";
+			var count = 0;
+			for( var key of frequency.keys() ) {
+				count++;
+				topThree += key + " " + frequency.get( key ) + " "; 
+				if( count === 3 ) { break; }
+			}
 
 			d3.select("#tooltip")
 				.style("left", 0)
 				.style("top", yPos + "px")
 				.select("#value")
-				.text( frequencyArray[0].pattern + " " + frequencyArray[0].frequency + " " +
-				frequencyArray[1].pattern + " " + frequencyArray[1].frequency + " " +
-				frequencyArray[2].pattern + " " + frequencyArray[2].frequency );
+				.text( topThree );
 
 			d3.select("#tooltip").classed("hidden", false);
 		})
 		.on("mouseout", function() {
 			d3.select("#tooltip").classed("hidden", true);
-		})*/;
+		});
 }
 
 function frequencyTable() {
@@ -461,7 +466,7 @@ function frequencyTable() {
 		column2.appendChild(document.createTextNode( sortedTotal[i].frequency ));
 		column2.style.border = "1px solid black";
 
-		//tr.addEventListener( "click", clickRow );
+		tr.addEventListener( "click", clickRow );
 	}
 	document.body.appendChild( table );
 }
@@ -490,7 +495,7 @@ function originalTable() {
 		column2.appendChild(document.createTextNode( sortedTotal[i].frequency ));
 		column2.style.border = "1px solid black";
 
-		//tr.addEventListener( "click", clickRow );
+		tr.addEventListener( "click", clickRow );
 	}
 }
 
@@ -544,9 +549,13 @@ function clickRow() {
 	//change colour of the selected row
 	this.style.backgroundColor = "#98bf21";
 
-	var ef1 = findFrequency( frequency1, this.cells[0].innerHTML );
-	var ef2 = findFrequency( frequency2, this.cells[0].innerHTML );
-	var ef3 = findFrequency( frequency3, this.cells[0].innerHTML );
+	var ef1 = frequency1.get( this.cells[0].innerHTML );
+	var ef2 = frequency2.get( this.cells[0].innerHTML );
+	var ef3 = frequency3.get( this.cells[0].innerHTML );
+
+	if( ef1 === undefined ) { ef1 = 0; }
+	if( ef2 === undefined ) { ef2 = 0; }
+	if( ef3 === undefined ) { ef3 = 0; }
 			
 	//convert ratio to percentage
 	ef1 = Math.round( (ef1 * 100) / parseInt( this.cells[1].innerHTML ) );
@@ -630,11 +639,8 @@ function reVisualise( ef1, ef2, ef3 ) {
 	var clusterVis = document.getElementById( "clusterVis" );
 	visual.removeChild( clusterVis );
 
-	var clusters = level[level.length - 1];
-	var dataset = [];
-	for( var i = 0; i < clusters.length; i++ ) {
-		dataset.push( clusters[i].split( ".", clusters[i].length - 1 ) );
-	}
+	var dataset = level[level.length - 1 ];
+	console.log( dataset );
 
 	var largestClus = 0;
 	for( var j = 0; j < dataset.length; j++ ) {
@@ -642,22 +648,19 @@ function reVisualise( ef1, ef2, ef3 ) {
 			largestClus = dataset[j].length;
 		}
 	}
+	largestClus = largestClus - ((largestClus - 1) / 2);
 	
 	var w = 500;
 	var h = 500;
 	var padding = 20;
 
 	var xScale = d3.scale.linear()
-				.domain([ 0, w ])
-				.range([padding, w - padding * 2]);
-
-	var yScale = d3.scale.linear()
-				.domain([ 0, h ])
-				.range([0, 2]);
+				.domain([ 0, 2 ])
+				.range([ w / 4, w - (w / 4)]);
 
 	var rScale = d3.scale.linear()
 				.domain([ 0, largestClus ])
-				.range([padding,dataset.length - padding]);
+				.range([25, 75]);
 
 	var colourScale = d3.scale.linear()
 						.domain([ 0, 100 ])
@@ -668,27 +671,19 @@ function reVisualise( ef1, ef2, ef3 ) {
 				.attr("width", w)
 				.attr("height", h)
 				.attr("id", "clusterVis");
-	/*
-	svg.append("line")
-		.attr("x1", w - padding)
-		.attr("y1", 0 + padding)
-		.attr("x2", w - padding)
-		.attr("y2", h - padding)
-		.attr("stroke-width", 2)
-		.attr("stroke", "black");
-	*/
+	
 	svg.selectAll("circle")
 		.data(dataset)
 		.enter()
 		.append("circle")
 		.attr("cx", function(d, i) {
-			return xScale(i * (w / dataset.length) );
+			return xScale( i );
 		})
 		.attr("cy", function(d, i) {
 			return h / 2;
 		})
 		.attr("r", function(d) {
-			return (d.length) * 10;
+			return rScale((d.length - 1) / 2);
 		})
 		.style("fill", function(d,i) {
 			if( i === 0 ) { return d3.rgb( colourScale(ef1), 0, 0 ); }
@@ -697,18 +692,24 @@ function reVisualise( ef1, ef2, ef3 ) {
 		})
 		.on("mouseover", function(d, i) {
 			var yPos = parseFloat(d3.select("svg").attr("y"));
-			var frequencyArray = [];
-			if( i === 0 ) { frequencyArray = frequency1; }
-			else if( i === 1 ) { frequencyArray = frequency2; }
-			else { frequencyArray = frequency3; }
+			var frequency;
+			if( i === 0 ) { frequency = frequency1; }
+			else if( i === 1 ) { frequency = frequency2; }
+			else { frequency = frequency3; }
+
+			var topThree = "";
+			var count = 0;
+			for( var key of frequency.keys() ) {
+				count++;
+				topThree += key + " " + frequency.get( key ) + " "; 
+				if( count === 3 ) { break; }
+			}
 
 			d3.select("#tooltip")
 				.style("left", 0)
 				.style("top", yPos + "px")
 				.select("#value")
-				.text( frequencyArray[0].pattern + " " + frequencyArray[0].frequency + " " +
-				frequencyArray[1].pattern + " " + frequencyArray[1].frequency + " " +
-				frequencyArray[2].pattern + " " + frequencyArray[2].frequency );
+				.text( topThree );
 
 			d3.select("#tooltip").classed("hidden", false);
 		})
