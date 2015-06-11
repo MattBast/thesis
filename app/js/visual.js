@@ -446,25 +446,24 @@ function frequencyTable() {
 	
 	total = combine( frequency1, frequency2 );
 	total = combine( total, frequency3 );
-	console.log( total );
-	/*
+	sortedTotal = sortTotal( total );
+
 	createTableHead();
 
 	for( var i = 0; i < 10; i++ ) {
 		var tr = table.insertRow();
 
 		var column1 = tr.insertCell();
-		column1.appendChild(document.createTextNode( total[i].pattern ));
+		column1.appendChild(document.createTextNode( sortedTotal[i].pattern ));
 		column1.style.border = "1px solid black";
 
 		var column2 = tr.insertCell();
-		column2.appendChild(document.createTextNode( total[i].frequency ));
+		column2.appendChild(document.createTextNode( sortedTotal[i].frequency ));
 		column2.style.border = "1px solid black";
 
-		tr.addEventListener( "click", clickRow );
+		//tr.addEventListener( "click", clickRow );
 	}
 	document.body.appendChild( table );
-	*/
 }
 
 function topTenButton() {
@@ -476,22 +475,23 @@ function topTenButton() {
 
 function originalTable() {
 	box.removeChild( returnButton );
-	clearTable();
+	table.deleteRow(1);
+
+
 
 	for( var i = 0; i < 10; i++ ) {
 		var tr = table.insertRow();
 
 		var column1 = tr.insertCell();
-		column1.appendChild(document.createTextNode( total[i].pattern ));
+		column1.appendChild(document.createTextNode( sortedTotal[i].pattern ));
 		column1.style.border = "1px solid black";
 
 		var column2 = tr.insertCell();
-		column2.appendChild(document.createTextNode( total[i].frequency ));
+		column2.appendChild(document.createTextNode( sortedTotal[i].frequency ));
 		column2.style.border = "1px solid black";
 
-		tr.addEventListener( "click", clickRow );
+		//tr.addEventListener( "click", clickRow );
 	}
-	document.body.appendChild( table );
 }
 
 function createTableHead() {
@@ -511,20 +511,20 @@ function search() {
 
 	var entity = document.getElementById( "textInput" ).value;
 
-	for( var i = 0; i < total.length; i++ ) {
-		var row = total[i].pattern;
+	for( var i = 0; i < sortedTotal.length; i++ ) {
+		var row = sortedTotal[i].pattern;
 		if( row.indexOf( entity ) != -1 ) {
 			var tr = table.insertRow();
 
 			var column1 = tr.insertCell();
-			column1.appendChild(document.createTextNode( total[i].pattern ));
+			column1.appendChild(document.createTextNode( sortedTotal[i].pattern ));
 			column1.style.border = "1px solid black";
 
 			var column2 = tr.insertCell();
-			column2.appendChild(document.createTextNode( total[i].frequency ));
+			column2.appendChild(document.createTextNode( sortedTotal[i].frequency ));
 			column2.style.border = "1px solid black";
 
-			tr.addEventListener( "click", clickRow );
+			//tr.addEventListener( "click", clickRow );
 		}
 	}
 	document.body.appendChild( table );
@@ -573,7 +573,6 @@ function getFrequency( cluster ) {
 			
 		}
 	}
-	console.log( frequency );
 	return frequency;
 }
 
@@ -592,6 +591,28 @@ function combine( f1, f2 ) {
 		}
 	}
 	return f1;
+}
+
+function sortTotal( total ) {
+	var sortedTotal = [];
+	for( var key of total.keys() ) {
+		var entity = {
+			pattern : key,
+			frequency : total.get( key )
+		};
+		var inserted = false;
+		for( var i = 0; i < sortedTotal.length; i++ ) {
+			if( total.get( key ) > sortedTotal[i].frequency ) {
+				sortedTotal.splice( i, 0, entity );
+				inserted = true;
+				break;
+			}
+		}
+		if( inserted === false ) {
+			sortedTotal.push( entity );
+		}
+	}
+	return sortedTotal;
 }
 
 function findFrequency( cluster, entity ) {
