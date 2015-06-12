@@ -130,6 +130,8 @@ function main() {
 	console.log( "Got to top of tree" );
 	stopSpin();
 	visualise( simTable );
+
+	createTableHead();
 	frequencyTable( level[level.length - 1] );
 	d = new Date();
 	console.log( d.getMinutes() + " " + d.getSeconds() );
@@ -500,9 +502,7 @@ function visualise( simTable ) {
 					return rScale((d.length - 1) / 2);
 				});
 
-				for( var i = table.rows.length - 1; i > 0; i-- ) {
-					table.deleteRow(i);
-				}
+				clearTable();
 				frequencyTable( dataset );
 			}
 			else {
@@ -529,9 +529,6 @@ function frequencyTable( c ) {
 		total = combine( total, frequency3 );
 		sortedTotal = sortTotal( total );
 	}
-	
-
-	createTableHead();
 
 	for( var i = 0; i < 10; i++ ) {
 		var tr = table.insertRow();
@@ -612,7 +609,9 @@ function search() {
 }
 
 function clearTable() {
-	document.body.removeChild( table );
+	for( var i = table.rows.length - 1; i > 0; i-- ) {
+		table.deleteRow(i);
+	}
 }
 
 function clickRow() {
@@ -848,9 +847,7 @@ function reVisualise( ef1, ef2, ef3 ) {
 					return rScale((d.length - 1) / 2);
 				});
 
-				for( var i = table.rows.length - 1; i > 0; i-- ) {
-					table.deleteRow(i);
-				}
+				clearTable();
 				frequencyTable( dataset );
 			}
 			else {
