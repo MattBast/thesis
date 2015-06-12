@@ -130,7 +130,7 @@ function main() {
 	console.log( "Got to top of tree" );
 	stopSpin();
 	visualise( simTable );
-	frequencyTable();
+	frequencyTable( level[level.length - 1] );
 	d = new Date();
 	console.log( d.getMinutes() + " " + d.getSeconds() );
 }
@@ -499,23 +499,37 @@ function visualise( simTable ) {
 				.attr("r", function(d) {
 					return rScale((d.length - 1) / 2);
 				});
+
+				for( var i = table.rows.length - 1; i > 0; i-- ) {
+					table.deleteRow(i);
+				}
+				frequencyTable( dataset );
 			}
 			else {
 				alert( "This cluster has no parents" );
 			}
-			
 		});
 }
 
-function frequencyTable() {
-	var c = level[level.length - 1];
-	frequency1 = getFrequency( c[0] );
-	frequency2 = getFrequency( c[1] );
-	frequency3 = getFrequency( c[2] );
+function frequencyTable( c ) {
+
+	if( c.length === 2 ) {
+		frequency1 = getFrequency( c[0] );
+		frequency2 = getFrequency( c[1] );
 	
-	total = combine( frequency1, frequency2 );
-	total = combine( total, frequency3 );
-	sortedTotal = sortTotal( total );
+		total = combine( frequency1, frequency2 );
+		sortedTotal = sortTotal( total );
+	}
+	else {
+		frequency1 = getFrequency( c[0] );
+		frequency2 = getFrequency( c[1] );
+		frequency3 = getFrequency( c[2] );
+	
+		total = combine( frequency1, frequency2 );
+		total = combine( total, frequency3 );
+		sortedTotal = sortTotal( total );
+	}
+	
 
 	createTableHead();
 
@@ -545,8 +559,6 @@ function topTenButton() {
 function originalTable() {
 	box.removeChild( returnButton );
 	table.deleteRow(1);
-
-
 
 	for( var i = 0; i < 10; i++ ) {
 		var tr = table.insertRow();
@@ -630,7 +642,7 @@ function clickRow() {
 }
 
 function getFrequency( cluster ) {
-	patternRefs = cluster.split( "-", cluster.length - 1 );
+	patternRefs = cluster.split( "-" );
 	var pat = [];
 	frequency = new Map();
 	for( var i = 0; i < patternRefs.length; i++ ) {
@@ -717,6 +729,11 @@ function reVisualise( ef1, ef2, ef3 ) {
 		}
 	}
 	patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
+
+	for( var i = table.rows.length - 1; i > 0; i-- ) {
+		table.deleteRow(i);
+	}
+	frequencyTable( dataset );
 	
 	var w = 500;
 	var h = 500;
@@ -783,6 +800,62 @@ function reVisualise( ef1, ef2, ef3 ) {
 		})
 		.on("mouseout", function() {
 			d3.select("#tooltip").classed("hidden", true);
+		})
+		.on("click", function(d) {
+			dataset = clusRef.get( d );
+			console.log( dataset );
+
+			if( dataset.length !== 0 ) {
+				currentLevel = 0;
+				for( var j = 0; j < dataset.length; j++ ) {
+					var clusLength = dataset[j].split( "-" ).length;
+					currentLevel += clusLength;
+				}
+				patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
+			
+				var circle = svg.selectAll("circle")
+						.data(dataset);
+
+				circle.exit().attr("r", 0).remove();
+
+				circle.enter().append("circle")
+					.transition()
+					.duration(2000)
+					.ease("circle")
+					.attr("cx", function(d, i) {
+						return xScale( i );
+					})
+					.attr("cy", function(d, i) {
+						return h / 2;
+					})
+					.attr("r", function(d) {
+						return rScale((d.length - 1) / 2);
+					});
+
+				circle.transition()
+					.delay( function(d, i) {
+						return i * 100;
+					})
+					.duration(2000)
+					.ease("circle")
+					.attr("cx", function(d, i) {
+					return xScale( i );
+				})
+				.attr("cy", function(d, i) {
+					return h / 2;
+				})
+				.attr("r", function(d) {
+					return rScale((d.length - 1) / 2);
+				});
+
+				for( var i = table.rows.length - 1; i > 0; i-- ) {
+					table.deleteRow(i);
+				}
+				frequencyTable( dataset );
+			}
+			else {
+				alert( "This cluster has no parents" );
+			}
 		});
 }
 
