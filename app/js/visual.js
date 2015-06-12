@@ -19,6 +19,9 @@ var level = [];
 //lists of entities and indexs
 var entity = new Map();
 
+//displays how high up the tree the user is
+var patternsPresent = document.getElementById( "patternsPresent" );
+
 //create table tag
 var table = document.createElement("table");
 var frequency1 = [];
@@ -376,13 +379,22 @@ function visualise( simTable ) {
 	var dataset = level[level.length - 1 ];
 	console.log( dataset );
 
+	var currentLevel = 0;
 	var largestClus = 0;
 	for( var j = 0; j < dataset.length; j++ ) {
-		if( dataset[j].length > largestClus ) {
-			largestClus = dataset[j].length;
+		var clusLength = dataset[j].split( "-" ).length;
+		currentLevel += clusLength;
+		if( clusLength > largestClus ) {
+			largestClus = clusLength;
 		}
 	}
-	largestClus = largestClus - ((largestClus - 1) / 2);
+
+	patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
+	var reset = document.createElement("button");
+	reset.addEventListener( "click", reVisualise );
+	t = document.createTextNode( "Reset" );
+	reset.appendChild( t );
+	document.getElementById( "patternCount" ).appendChild( reset );
 	
 	var w = 500;
 	var h = 500;
@@ -444,17 +456,41 @@ function visualise( simTable ) {
 		.on("click", function(d) {
 			dataset = clusRef.get( d );
 			console.log( dataset );
+
+			if( dataset.length !== 0 ) {
+				currentLevel = 0;
+				for( var j = 0; j < dataset.length; j++ ) {
+					var clusLength = dataset[j].split( "-" ).length;
+					currentLevel += clusLength;
+				}
+				patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
 			
-			var circle = svg.selectAll("circle")
-					.data(dataset);
+				var circle = svg.selectAll("circle")
+						.data(dataset);
 
-			circle.exit().attr("r", 0).remove();
+				circle.exit().attr("r", 0).remove();
 
-			circle.enter().append("circle")
-				.transition()
-				.duration(2000)
-				.ease("circle")
-				.attr("cx", function(d, i) {
+				circle.enter().append("circle")
+					.transition()
+					.duration(2000)
+					.ease("circle")
+					.attr("cx", function(d, i) {
+						return xScale( i );
+					})
+					.attr("cy", function(d, i) {
+						return h / 2;
+					})
+					.attr("r", function(d) {
+						return rScale((d.length - 1) / 2);
+					});
+
+				circle.transition()
+					.delay( function(d, i) {
+						return i * 100;
+					})
+					.duration(2000)
+					.ease("circle")
+					.attr("cx", function(d, i) {
 					return xScale( i );
 				})
 				.attr("cy", function(d, i) {
@@ -463,22 +499,11 @@ function visualise( simTable ) {
 				.attr("r", function(d) {
 					return rScale((d.length - 1) / 2);
 				});
-
-			circle.transition()
-				.delay( function(d, i) {
-					return i * 100;
-				})
-				.duration(2000)
-				.ease("circle")
-				.attr("cx", function(d, i) {
-				return xScale( i );
-			})
-			.attr("cy", function(d, i) {
-				return h / 2;
-			})
-			.attr("r", function(d) {
-				return rScale((d.length - 1) / 2);
-			});
+			}
+			else {
+				alert( "This cluster has no parents" );
+			}
+			
 		});
 }
 
@@ -682,13 +707,16 @@ function reVisualise( ef1, ef2, ef3 ) {
 	var dataset = level[level.length - 1 ];
 	console.log( dataset );
 
+	var currentLevel = 0;
 	var largestClus = 0;
 	for( var j = 0; j < dataset.length; j++ ) {
-		if( dataset[j].length > largestClus ) {
-			largestClus = dataset[j].length;
+		var clusLength = dataset[j].split( "-" ).length;
+		currentLevel += clusLength;
+		if( clusLength > largestClus ) {
+			largestClus = clusLength;
 		}
 	}
-	largestClus = largestClus - ((largestClus - 1) / 2);
+	patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
 	
 	var w = 500;
 	var h = 500;
