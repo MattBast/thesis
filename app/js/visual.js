@@ -393,12 +393,7 @@ function visualise( simTable ) {
 		}
 	}
 
-	patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
-	var reset = document.createElement("button");
-	reset.addEventListener( "click", resetClusters );
-	t = document.createTextNode( "Reset" );
-	reset.appendChild( t );
-	document.getElementById( "patternCount" ).appendChild( reset );
+	resetButtonBox( currentLevel );	
 	
 	var w = 500;
 	var h = 500;
@@ -521,6 +516,15 @@ function visualise( simTable ) {
 				alert( "This cluster has no parents" );
 			}
 		});
+}
+
+function resetButtonBox( currentLevel ) {
+	patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
+	var reset = document.createElement("button");
+	reset.addEventListener( "click", resetClusters );
+	t = document.createTextNode( "Reset" );
+	reset.appendChild( t );
+	document.getElementById( "patternCount" ).appendChild( reset );
 }
 
 function frequencyTable( c ) {
@@ -887,7 +891,6 @@ function reVisualise( ef1, ef2, ef3, ef4 ) {
 
 function resetClusters() {
 	dataset = level[level.length - 1 ]; 
-	console.log( "Tried to reVisualise" );
 	reVisualise( 0, 0, 0, 0 );
 }
 
