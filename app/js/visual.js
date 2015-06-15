@@ -460,19 +460,12 @@ function visualise( simTable ) {
 		.on("click", function(d) {
 			//get parents of clicked cluster
 			var tmp = clusRef.get( d );
-			console.log( tmp );
 			//get grandparents of clicked cluster
 			dataset = [];
-			if( clusRef.get( tmp[0] ) === undefined ) {
-				dataset = [];
-			}
-			else {
+			if( clusRef.get( tmp[0] ) !== undefined ) {
 				dataset = dataset.concat( clusRef.get( tmp[0] ) );
 			}
-			if( clusRef.get( tmp[0] ) === undefined ) {
-				dataset = [];
-			}
-			else {
+			if( clusRef.get( tmp[1] ) !== undefined ) {
 				dataset = dataset.concat( clusRef.get( tmp[1] ) ); 
 			}
 			console.log( dataset );
@@ -830,8 +823,12 @@ function reVisualise( ef1, ef2, ef3, ef4 ) {
 			var tmp = clusRef.get( d );
 			//get grandparents of clicked cluster
 			dataset = [];
-			dataset += clusRef.get( tmp[0] );
-			dataset += clusRef.get( tmp[1] ); 
+			if( clusRef.get( tmp[0] ) !== undefined ) {
+				dataset = dataset.concat( clusRef.get( tmp[0] ) );
+			}
+			if( clusRef.get( tmp[1] ) !== undefined ) {
+				dataset = dataset.concat( clusRef.get( tmp[1] ) ); 
+			}
 			console.log( dataset );
 
 			if( dataset.length !== 0 ) {
@@ -859,7 +856,8 @@ function reVisualise( ef1, ef2, ef3, ef4 ) {
 					})
 					.attr("r", function(d) {
 						return rScale((d.length - 1) / 2);
-					});
+					})
+					.style("fill", "black");
 
 				circle.transition()
 					.delay( function(d, i) {
@@ -875,7 +873,8 @@ function reVisualise( ef1, ef2, ef3, ef4 ) {
 				})
 				.attr("r", function(d) {
 					return rScale((d.length - 1) / 2);
-				});
+				})
+				.style("fill", "black");
 
 				clearTable();
 				frequencyTable( dataset );
