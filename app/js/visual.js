@@ -463,8 +463,18 @@ function visualise( simTable ) {
 			console.log( tmp );
 			//get grandparents of clicked cluster
 			dataset = [];
-			dataset = dataset.concat( clusRef.get( tmp[0] ) );
-			dataset = dataset.concat( clusRef.get( tmp[1] ) ); 
+			if( clusRef.get( tmp[0] ) === undefined ) {
+				dataset = [];
+			}
+			else {
+				dataset = dataset.concat( clusRef.get( tmp[0] ) );
+			}
+			if( clusRef.get( tmp[0] ) === undefined ) {
+				dataset = [];
+			}
+			else {
+				dataset = dataset.concat( clusRef.get( tmp[1] ) ); 
+			}
 			console.log( dataset );
 
 			if( dataset.length !== 0 ) {
