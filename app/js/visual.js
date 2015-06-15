@@ -528,7 +528,6 @@ function resetButtonBox( currentLevel ) {
 }
 
 function frequencyTable( c ) {
-
 	if( c.length === 2 ) {
 		frequency1 = getFrequency( c[0] );
 		frequency2 = getFrequency( c[1] );
@@ -602,8 +601,6 @@ function createTableHead() {
 function search() {
 	topTenButton();
 	clearTable();
-	table = document.createElement("table");
-	createTableHead();
 
 	var entity = document.getElementById( "textInput" ).value;
 
@@ -620,10 +617,9 @@ function search() {
 			column2.appendChild(document.createTextNode( sortedTotal[i].frequency ));
 			column2.style.border = "1px solid black";
 
-			//tr.addEventListener( "click", clickRow );
+			tr.addEventListener( "click", clickRow );
 		}
 	}
-	document.body.appendChild( table );
 }
 
 function clearTable() {
@@ -638,9 +634,6 @@ function clickRow() {
 	for( var i = 0; i < rows.length; i++ ) {
 		rows[i].style.backgroundColor = "";
 	}
-
-	//change colour of the selected row
-	this.style.backgroundColor = "#98bf21";
 
 	var ef1 = frequency1.get( this.cells[0].innerHTML );
 	var ef2 = frequency2.get( this.cells[0].innerHTML );
@@ -657,6 +650,9 @@ function clickRow() {
 	ef2 = Math.round( (ef2 * 100) / parseInt( this.cells[1].innerHTML ) );
 	ef3 = Math.round( (ef3 * 100) / parseInt( this.cells[1].innerHTML ) );
 	ef4 = Math.round( (ef4 * 100) / parseInt( this.cells[1].innerHTML ) );
+
+	//change colour of the selected row
+	this.style.backgroundColor = "#98bf21";
 
 	reVisualise( ef1, ef2, ef3, ef4 );
 }
@@ -748,11 +744,6 @@ function reVisualise( ef1, ef2, ef3, ef4 ) {
 		}
 	}
 	patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
-
-	for( var i = table.rows.length - 1; i > 0; i-- ) {
-		table.deleteRow(i);
-	}
-	frequencyTable( dataset );
 	
 	var w = 500;
 	var h = 500;
