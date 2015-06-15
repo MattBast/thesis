@@ -14,7 +14,8 @@ var clusRef = new Map(); //<-- references the parents of a cluster
 var priorityQueue = []; //<-- orders patterns/clusters by similarity
 
 //each element represents a level in the hierarchical clustering
-var level = []; 
+var level = [];
+var dataset = []; 
 
 //lists of entities and indexs
 var entity = new Map();
@@ -379,7 +380,7 @@ function stopSpin() {
 }
 
 function visualise( simTable ) {
-	var dataset = level[level.length - 1 ];
+	dataset = level[level.length - 1 ];
 	console.log( dataset );
 
 	var currentLevel = 0;
@@ -394,7 +395,7 @@ function visualise( simTable ) {
 
 	patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
 	var reset = document.createElement("button");
-	reset.addEventListener( "click", reVisualise );
+	reset.addEventListener( "click", resetClusters );
 	t = document.createTextNode( "Reset" );
 	reset.appendChild( t );
 	document.getElementById( "patternCount" ).appendChild( reset );
@@ -731,7 +732,6 @@ function reVisualise( ef1, ef2, ef3, ef4 ) {
 	var clusterVis = document.getElementById( "clusterVis" );
 	visual.removeChild( clusterVis );
 
-	var dataset = level[level.length - 1 ];
 	console.log( dataset );
 
 	var currentLevel = 0;
@@ -883,6 +883,12 @@ function reVisualise( ef1, ef2, ef3, ef4 ) {
 				alert( "This cluster has no parents" );
 			}
 		});
+}
+
+function resetClusters() {
+	dataset = level[level.length - 1 ]; 
+	console.log( "Tried to reVisualise" );
+	reVisualise( 0, 0, 0, 0 );
 }
 
 Array.prototype.contains = function(obj) {
