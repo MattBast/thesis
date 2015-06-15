@@ -27,6 +27,7 @@ var table = document.createElement("table");
 var frequency1 = [];
 var frequency2 = [];
 var frequency3 = [];
+var frequency4 = [];
 var total = new Map();
 
 //table search bar
@@ -123,7 +124,7 @@ function main() {
 	console.log( "Finished building simTable" );
 
 	//keep clustering the patterns until there are only three clusters
-	while( level[level.length - 1].length > 3 ) {
+	while( level[level.length - 1].length > 4 ) {
 		simTable = addCluster( simTable );
 	}
 
@@ -403,12 +404,12 @@ function visualise( simTable ) {
 	var padding = 20;
 
 	var xScale = d3.scale.linear()
-				.domain([ 0, 2 ])
+				.domain([ 0, 3 ])
 				.range([ w / 4, w - (w / 4)]);
 
 	var rScale = d3.scale.linear()
 				.domain([ 0, largestClus ])
-				.range([25, 75]);
+				.range([10, 50]);
 
 	var svg = d3.select("#visual")
 				.append("svg")
@@ -434,7 +435,8 @@ function visualise( simTable ) {
 			var frequency;
 			if( i === 0 ) { frequency = frequency1; }
 			else if( i === 1 ) { frequency = frequency2; }
-			else { frequency = frequency3; }
+			else if( i === 2 ) { frequency = frequency3; }
+			else { frequency = frequency4; }
 
 			var topThree = "";
 			var count = 0;
@@ -456,7 +458,13 @@ function visualise( simTable ) {
 			d3.select("#tooltip").classed("hidden", true);
 		})
 		.on("click", function(d) {
-			dataset = clusRef.get( d );
+			//get parents of clicked cluster
+			var tmp = clusRef.get( d );
+			console.log( tmp );
+			//get grandparents of clicked cluster
+			dataset = [];
+			dataset = dataset.concat( clusRef.get( tmp[0] ) );
+			dataset = dataset.concat( clusRef.get( tmp[1] ) ); 
 			console.log( dataset );
 
 			if( dataset.length !== 0 ) {
@@ -524,9 +532,11 @@ function frequencyTable( c ) {
 		frequency1 = getFrequency( c[0] );
 		frequency2 = getFrequency( c[1] );
 		frequency3 = getFrequency( c[2] );
+		frequency4 = getFrequency( c[3] );
 	
 		total = combine( frequency1, frequency2 );
 		total = combine( total, frequency3 );
+		total = combine( total, frequency4 );
 		sortedTotal = sortTotal( total );
 	}
 
@@ -627,17 +637,20 @@ function clickRow() {
 	var ef1 = frequency1.get( this.cells[0].innerHTML );
 	var ef2 = frequency2.get( this.cells[0].innerHTML );
 	var ef3 = frequency3.get( this.cells[0].innerHTML );
+	var ef4 = frequency4.get( this.cells[0].innerHTML );
 
 	if( ef1 === undefined ) { ef1 = 0; }
 	if( ef2 === undefined ) { ef2 = 0; }
 	if( ef3 === undefined ) { ef3 = 0; }
+	if( ef4 === undefined ) { ef4 = 0; }
 			
 	//convert ratio to percentage
 	ef1 = Math.round( (ef1 * 100) / parseInt( this.cells[1].innerHTML ) );
 	ef2 = Math.round( (ef2 * 100) / parseInt( this.cells[1].innerHTML ) );
 	ef3 = Math.round( (ef3 * 100) / parseInt( this.cells[1].innerHTML ) );
+	ef4 = Math.round( (ef4 * 100) / parseInt( this.cells[1].innerHTML ) );
 
-	reVisualise( ef1, ef2, ef3 );
+	reVisualise( ef1, ef2, ef3, ef4 );
 }
 
 function getFrequency( cluster ) {
@@ -709,7 +722,7 @@ function findFrequency( cluster, entity ) {
 	return 0;
 }
 
-function reVisualise( ef1, ef2, ef3 ) {
+function reVisualise( ef1, ef2, ef3, ef4 ) {
 	//remove previous visual
 	var visual = document.getElementById( "visual" );
 	var clusterVis = document.getElementById( "clusterVis" );
@@ -739,12 +752,12 @@ function reVisualise( ef1, ef2, ef3 ) {
 	var padding = 20;
 
 	var xScale = d3.scale.linear()
-				.domain([ 0, 2 ])
+				.domain([ 0, 3 ])
 				.range([ w / 4, w - (w / 4)]);
 
 	var rScale = d3.scale.linear()
 				.domain([ 0, largestClus ])
-				.range([25, 75]);
+				.range([10, 50]);
 
 	var colourScale = d3.scale.linear()
 						.domain([ 0, 100 ])
@@ -772,14 +785,16 @@ function reVisualise( ef1, ef2, ef3 ) {
 		.style("fill", function(d,i) {
 			if( i === 0 ) { return d3.rgb( colourScale(ef1), 0, 0 ); }
 			else if( i === 1 ) { return d3.rgb( colourScale(ef2), 0, 0 ); }
-			else { return d3.rgb( colourScale(ef3), 0, 0 ); }
+			else if( i === 2 ) { return d3.rgb( colourScale(ef3), 0, 0 ); }
+			else { return d3.rgb( colourScale(ef4), 0, 0 ); }
 		})
 		.on("mouseover", function(d, i) {
 			var yPos = parseFloat(d3.select("svg").attr("y"));
 			var frequency;
 			if( i === 0 ) { frequency = frequency1; }
 			else if( i === 1 ) { frequency = frequency2; }
-			else { frequency = frequency3; }
+			else if( i === 2 ) { frequency = frequency3; }
+			else { frequency = frequency4; }
 
 			var topThree = "";
 			var count = 0;
@@ -801,7 +816,12 @@ function reVisualise( ef1, ef2, ef3 ) {
 			d3.select("#tooltip").classed("hidden", true);
 		})
 		.on("click", function(d) {
-			dataset = clusRef.get( d );
+			//get parents of clicked cluster
+			var tmp = clusRef.get( d );
+			//get grandparents of clicked cluster
+			dataset = [];
+			dataset += clusRef.get( tmp[0] );
+			dataset += clusRef.get( tmp[1] ); 
 			console.log( dataset );
 
 			if( dataset.length !== 0 ) {
