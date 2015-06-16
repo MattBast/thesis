@@ -131,7 +131,7 @@ function main() {
 
 	console.log( "Got to top of tree" );
 	stopSpin();
-	visualise( simTable );
+	visualise( true );
 
 	createTableHead();
 	frequencyTable( level[level.length - 1] );
@@ -379,7 +379,7 @@ function stopSpin() {
 	document.getElementById("spinner").style.display = "none";
 }
 
-function visualise( simTable ) {
+function visualise( resetBox ) {
 	dataset = level[level.length - 1 ];
 	console.log( dataset );
 
@@ -393,7 +393,9 @@ function visualise( simTable ) {
 		}
 	}
 
-	resetButtonBox( currentLevel );	
+	if( resetBox === true ) {
+		resetButtonBox( currentLevel );	
+	}
 	
 	var w = 500;
 	var h = 500;
@@ -853,15 +855,15 @@ function reVisualise( entity, totalFrequency, ef1, ef2, ef3, ef4 ) {
 					.duration(2000)
 					.ease("circle")
 					.attr("cx", function(d, i) {
-					return xScale( i );
-				})
-				.attr("cy", function(d, i) {
-					return h / 2;
-				})
-				.attr("r", function(d) {
-					return rScale((d.length - 1) / 2);
-				})
-				.style("fill", "black");
+						return xScale( i );
+					})
+					.attr("cy", function(d, i) {
+						return h / 2;
+					})
+					.attr("r", function(d) {
+						return rScale((d.length - 1) / 2);
+					})
+					.style("fill", "black");
 
 				clearTable();
 				frequencyTable( dataset );
@@ -874,7 +876,18 @@ function reVisualise( entity, totalFrequency, ef1, ef2, ef3, ef4 ) {
 
 function resetClusters() {
 	dataset = level[level.length - 1 ]; 
-	reVisualise( 0, 0, 0, 0 );
+
+	//remove previous visual
+	var visual = document.getElementById( "visual" );
+	var clusterVis = document.getElementById( "clusterVis" );
+	visual.removeChild( clusterVis );
+
+	//back to original frequency table
+	clearTable();
+	frequencyTable( level[level.length - 1] );
+
+	//original visualisation
+	visualise( false );
 }
 
 Array.prototype.contains = function(obj) {
