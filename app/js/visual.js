@@ -444,7 +444,7 @@ function visualise( simTable ) {
 
 			d3.select("#tooltip")
 				.style("left", 0)
-				.style("top", yPos + "px")
+				.style("top", (yPos + 20) + "px")
 				.select("#value")
 				.text( topThree );
 
@@ -640,21 +640,17 @@ function clickRow() {
 	var ef3 = frequency3.get( this.cells[0].innerHTML );
 	var ef4 = frequency4.get( this.cells[0].innerHTML );
 
-	if( ef1 === undefined ) { ef1 = 0; }
-	if( ef2 === undefined ) { ef2 = 0; }
-	if( ef3 === undefined ) { ef3 = 0; }
-	if( ef4 === undefined ) { ef4 = 0; }
-			
-	//convert ratio to percentage
-	ef1 = Math.round( (ef1 * 100) / parseInt( this.cells[1].innerHTML ) );
-	ef2 = Math.round( (ef2 * 100) / parseInt( this.cells[1].innerHTML ) );
-	ef3 = Math.round( (ef3 * 100) / parseInt( this.cells[1].innerHTML ) );
-	ef4 = Math.round( (ef4 * 100) / parseInt( this.cells[1].innerHTML ) );
-
 	//change colour of the selected row
 	this.style.backgroundColor = "#98bf21";
 
-	reVisualise( ef1, ef2, ef3, ef4 );
+	reVisualise( this.cells[0].innerHTML, this.cells[1].innerHTML, ef1, ef2, ef3, ef4 );
+}
+
+function getPercentage( ef, tf ) {
+	//ef = entity frequency, tf = total frequency
+	if( ef === undefined ) { ef = 0; }
+	ef = Math.round( (ef * 100) / parseInt( tf ) );
+	return ef;
 }
 
 function getFrequency( cluster ) {
@@ -726,13 +722,11 @@ function findFrequency( cluster, entity ) {
 	return 0;
 }
 
-function reVisualise( ef1, ef2, ef3, ef4 ) {
+function reVisualise( entity, totalFrequency, ef1, ef2, ef3, ef4 ) {
 	//remove previous visual
 	var visual = document.getElementById( "visual" );
 	var clusterVis = document.getElementById( "clusterVis" );
 	visual.removeChild( clusterVis );
-
-	console.log( dataset );
 
 	var currentLevel = 0;
 	var largestClus = 0;
@@ -745,6 +739,12 @@ function reVisualise( ef1, ef2, ef3, ef4 ) {
 	}
 	patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
 	
+	//convert ratio to percentage, efp = entity frequency percentage
+	var efp1 = getPercentage( ef1, totalFrequency );
+	var efp2 = getPercentage( ef2, totalFrequency );
+	var efp3 = getPercentage( ef3, totalFrequency );
+	var efp4 = getPercentage( ef4, totalFrequency );
+
 	var w = 500;
 	var h = 500;
 	var padding = 20;
@@ -781,32 +781,24 @@ function reVisualise( ef1, ef2, ef3, ef4 ) {
 			return rScale((d.length - 1) / 2);
 		})
 		.style("fill", function(d,i) {
-			if( i === 0 ) { return d3.rgb( colourScale(ef1), 0, 0 ); }
-			else if( i === 1 ) { return d3.rgb( colourScale(ef2), 0, 0 ); }
-			else if( i === 2 ) { return d3.rgb( colourScale(ef3), 0, 0 ); }
-			else { return d3.rgb( colourScale(ef4), 0, 0 ); }
+			if( i === 0 ) { return d3.rgb( colourScale(efp1), 0, 0 ); }
+			else if( i === 1 ) { return d3.rgb( colourScale(efp2), 0, 0 ); }
+			else if( i === 2 ) { return d3.rgb( colourScale(efp3), 0, 0 ); }
+			else { return d3.rgb( colourScale(efp4), 0, 0 ); }
 		})
 		.on("mouseover", function(d, i) {
 			var yPos = parseFloat(d3.select("svg").attr("y"));
 			var frequency;
-			if( i === 0 ) { frequency = frequency1; }
-			else if( i === 1 ) { frequency = frequency2; }
-			else if( i === 2 ) { frequency = frequency3; }
-			else { frequency = frequency4; }
-
-			var topThree = "";
-			var count = 0;
-			for( var key of frequency.keys() ) {
-				count++;
-				topThree += key + " " + frequency.get( key ) + " "; 
-				if( count === 3 ) { break; }
-			}
+			if( i === 0 ) { frequency = ef1; }
+			else if( i === 1 ) { frequency = ef2; }
+			else if( i === 2 ) { frequency = ef3; }
+			else { frequency = ef4; }
 
 			d3.select("#tooltip")
 				.style("left", 0)
 				.style("top", yPos + "px")
 				.select("#value")
-				.text( topThree );
+				.text( entity + " " + frequency );
 
 			d3.select("#tooltip").classed("hidden", false);
 		})
