@@ -10,20 +10,36 @@ var degrees = 0;
 var interval;
 
 var patterns = [];
+var clusRef = new Map(); //<-- references the parents of a cluster
+var priorityQueue = []; //<-- orders patterns/clusters by similarity
+
+//each element represents a level in the hierarchical clustering
 var level = [];
+var dataset = []; 
+
+//lists of entities and indexs
+var entity = new Map();
+
+//displays how high up the tree the user is
+var patternsPresent = document.getElementById( "patternsPresent" );
 
 //create table tag
 var table = document.createElement("table");
 var frequency1 = [];
 var frequency2 = [];
 var frequency3 = [];
-var total = [];
+var frequency4 = [];
+var total = new Map();
 
 //table search bar
 var box = document.getElementById( "searchBar" );
 var returnButton = document.createElement( "button" );
 
+//for timing the program
+var d = new Date();
+
 function upload() {
+	console.log( d.getMinutes() + " " + d.getSeconds() );
 	if( fileInput.files.length > 0 ) {
 
 		var file = fileInput.files[0];
@@ -43,209 +59,283 @@ function readFile( file, reader ) {
 
 		var array = reader.result.split( " " );
 
-		var row = {
-			index : "",
-			interestingness : "",
-			entity1 : "",
-			entity2 : ""
-		};
-		var count = -1;
+		var map = new Map();
 
-		//find a row in file and fill in object with its data
+		var count = 1;
+
+		//find a pattern in file. Store each entity as a key, value
 		for( var i = 0; i < array.length; i++ ) {
-			if( array[i].indexOf( "." ) != -1 && !isNaN( array[i] ) ) {
-				 
-				count++; //<-- End of pattern.
-				row.index = count.toString();
-				patterns.push( JSON.stringify( row ) );
+			if( array[i].indexOf( "." ) != -1 && !isNaN( array[i] ) ) { 
+				var pat = new Map(); //<-- pattern
+				pat.set( 0, array[i] ); //<-- interestingness
+				patterns.push( pat );
 
-				row.interestingness = array[i] + " "; //<-- Start of new pattern.
-				row.entity1 = "";
-				row.entity2 = ""; 
 			}
-			else if( array[i].indexOf( "twitter_id" ) != -1 ) {
-				row.entity1 += array[i] + " ";
-			}
-			else {
-				row.entity2 += array[i] + " ";
+			if( array[i].indexOf( "." ) != -1 && isNaN( array[i] ) ) {
+				if( !map.has( array[i] ) ) {
+					map.set( array[i], count );
+					pat.set( count, array[i] );
+					count++;
+				}
+				else {
+					pat.set( map.get( array[i] ), array[i] );
+				}
 			}
 		}
-		//drawRow( 1 );
-		initCluster();
+		keyValueSwap( map );
+		console.log( "Finished reading" );
+		patterns = sparseMatrix();
+		main();
 
 	});
 	reader.readAsText( file );
 }
 
-function initCluster() {
-	var patRef = []; //<-- pattern reference
-
-	for( var i = 1; i < 10; i++ ) { //<-- loop through patterns
-		patRef.push( JSON.parse( patterns[i] ).index + "." );
+function keyValueSwap( map ) {
+	var count = 0;
+	for( var key of map.keys() ) {
+		entity.set( count, key );
+		count++;
 	}
-
-	level.push( patRef );
-	var simTable = buildSimTable( patRef );
-	addCluster( simTable );
 }
 
-function buildSimTable( patRef ) {
-	var simTable = [];
-	for( var i = 0; i < patRef.length; i++ ) { //<-- loop through patterns
-		var similar = []; //<-- an array recording how similar patterns are
+function sparseMatrix() {
+	var newPats = new Map(); //<-- new patterns
 
-		for( var j = 0; j < patRef.length; j++ ) { //<-- loop through patterns
-			if( j === i ) { 
-				 similar.push( 0 );
+	for( var i = 0; i < patterns.length; i++ ) {
+		var e = []; //<-- new array of entities in pattern
+		for( var key of entity.keys() ) {
+			if( patterns[i].has(key) ) {
+				e.push(1);
 			}
 			else {
-				similar.push( similarity( patterns[i], patterns[j] ) );
+				e.push(0);
+			}
+		}
+		newPats.set( i, e );
+	}
+
+	return newPats;
+}
+
+function main() {
+	initClusters();
+	console.log( "Completed initial clustering" );
+	var simTable = buildSimTable();
+	console.log( "Finished building simTable" );
+
+	//keep clustering the patterns until there are only three clusters
+	while( level[level.length - 1].length > 4 ) {
+		simTable = addCluster( simTable );
+	}
+
+	console.log( "Got to top of tree" );
+	stopSpin();
+	visualise( true );
+
+	createTableHead();
+	frequencyTable( level[level.length - 1] );
+	d = new Date();
+	console.log( d.getMinutes() + " " + d.getSeconds() );
+}
+
+function initClusters() { 
+	var clusters = [];
+	var parents = [];
+	for( var i = 1; i < 21; i++ ) { 
+		clusters.push( i.toString() );
+		clusRef.set( i.toString(), parents );
+	}
+	level.push( clusters );
+}
+
+function buildSimTable() {
+	var simTable = new Map(); //<-- records how similar patterns are
+	for( var i = 0; i < 20; i++ ) { 
+		for( var j = i; j < 20; j++ ) { 
+			var iKey = (i + 1).toString();
+			var jKey = (j + 1).toString();
+			if( j === i ) { 
+				simTable.set( iKey + "+" + jKey, 0 );
+				priorityQueue.push( iKey + "+" + jKey );
+			}
+			else {
+				simTable.set( iKey + "+" + jKey,
+					similarity( patterns.get(i), patterns.get(j) ) );
+				priorityQueue = addToQueue( priorityQueue, simTable,
+					iKey + "+" + jKey );
 			}	
 		}
-		simTable.push( similar );
 	}
 	return simTable;
 }
 
 function similarity( p1, p2 ) {
-	p1 = JSON.parse( p1 );
-	p2 = JSON.parse( p2 );
+	var matchEnt = 0; //<-- intersection
+	var difEnt = 0; //<-- union
 
-	var similarity = ( intersection( p1, p2 ) / union( p1, p2 ) );
+	for( var i = 0; i < p1.length; i++ ) {
+		if( p1[i] === 1 && p2[i] === 1 ) {
+			matchEnt++;
+			difEnt--;
+		}
+		if( p1[i] === 1 ) {
+			difEnt++;
+		}
+		if( p2[i] === 1 ) {
+			difEnt++;
+		}
+	}
+
+	var similarity = matchEnt / difEnt;
 	return similarity;
 }
 
-function intersection( p1, p2 ) {
-	var entities1 = p1.entity1.split( " " );
-	var matchEnt = 0; //<-- Number of matching entities found
-
-	for( var i = 0; i < entities1.length; i++ ) {
-		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
-			matchEnt++;
+function addToQueue( queue, simTable, newSim ) {
+	for( var i = 0; i < queue.length; i++ ) {
+		if( simTable.get( newSim ) > simTable.get( queue[i] ) ) {
+			queue.splice( i, 0, newSim );
+			return queue;
 		}
 	}
-	return matchEnt;
-}
-
-function union( p1, p2 ) {
-	var entities1 = p1.entity1.split( " " );
-	var entities2 = p2.entity2.split( " " );
-	var difEnt = entities1.length + entities2.length;
-
-	for( var i = 0; i < entities1.length; i++ ) {
-		if( p2.entity1.indexOf( entities1[i] ) != -1 ) {
-			difEnt--;
-		}
-	}
-	return difEnt;
+	queue.push( newSim );
+	return queue;
 }
 
 function addCluster( simTable ) {
-	var clusters = level[level.length - 1]
-	var simClus = [0,0]; //<-- similar clusters
-	var largestSim = 0;
-	for( var i = 0; i < simTable.length; i++ ) {
-		for( var j = 0; j < simTable[i].length; j++ ) {
-			if( i !== j && simTable[i][j] > largestSim ) {
-				largestSim = simTable[i][j];
-				simClus = [i,j];
-			}
+	var clusters = level[level.length - 1];
+	var simClus = priorityQueue[0].split( "+" );
+	simTable.delete( simClus[0] + "+" + simClus[1] );
+
+	//new cluster and its parents
+	var newCluster = simClus[0] + "-" + simClus[1];
+	clusRef.set( newCluster, simClus );
+
+	clusters= updateClusters( clusters, simClus );
+	clusters.push( newCluster );
+	
+	simTable = updateSimTable( simTable, simClus, clusters );
+	
+	return simTable;
+}
+
+function updateClusters( clusters, simClus ) {
+	for( var i = 0; i < clusters.length; i++ ) {
+		if( clusters[i] === simClus[0] || clusters[i] === simClus[1] ) {
+			clusters.splice( i, 1 );
+			i--;
+		}
+	}
+	return clusters;
+}
+
+function updateSimTable( simTable, simClus, clusters ) {
+	var tmp1 = [];
+	var tmp2 = [];
+
+	simTable = removeSamePats( simTable, simClus );
+
+	for( var j = 0; j < clusters.length; j++ ) {
+		var object = {
+			key : "",
+			value : 0
+		};
+		if( simTable.has( clusters[j] + "+" + simClus[0] ) ) {
+			object.key = clusters[j] + "+" + simClus[0];
+			object.value = simTable.get( object.key );
+			tmp1.push( object );
+			simTable.delete( object.key );
+		}
+		if( simTable.has( simClus[0] + "+" +  clusters[j] ) ) {
+			object.key = simClus[0] + "+" +  clusters[j];
+			object.value = simTable.get( object.key );
+			tmp1.push( object );
+			simTable.delete( object.key );
+		}
+		if( simTable.has( clusters[j] + "+" + simClus[1] ) ) {
+			object.key = clusters[j] + "+" + simClus[1];
+			object.value = simTable.get( object.key );
+			tmp2.push( object );
+			simTable.delete( object.key );
+		}
+		if( simTable.has( simClus[1] + "+" +  clusters[j] ) ) {
+			object.key = simClus[1] + "+" +  clusters[j];
+			object.value = simTable.get( object.key );
+			tmp2.push( object );
+			simTable.delete( object.key );
 		}
 	}
 
-	var newCluster = clusters[simClus[0]] + clusters[simClus[1]];
-
-	if( simClus[0] < simClus[1] ) {
-		simClus.swap( 0, 1 );
-	}
-	clusters.splice( simClus[0], 1 );
-	clusters.splice( simClus[1], 1 );
-	clusters.push( newCluster );
-
-	simTable = updateSimTable( simTable, simClus, newCluster );
+	var newClusSims = compareNewClus( simClus, tmp1, tmp2 );
+	simTable = updateTableAndQueue( simTable, newClusSims );
 	
-	if( clusters.length <= 3 ) {
-		console.log( "Got to top of tree" );
-		stopSpin();
-		visualise( level );
-		frequencyTable();
-	}
-	else {
-		level.push( clusters );
-		addCluster( simTable );
-	}
+	level.push( clusters );
+	return simTable;
 }
 
-function updateSimTable( simTable, simClus, newCluster ) {
-	if( simClus[0] < simClus[1] ) {
-		simClus.swap( 0, 1 );
+function removeSamePats( simTable, simClus ) {
+	//remove comparisons where a pattern is compared to itself
+	if( simTable.has( simClus[0] + "+" +  simClus[0] ) ) {
+		simTable.delete( simClus[0] + "+" +  simClus[0] );
 	}
-
-	var similar = [];
-	if( linkage[1].checked ) {
-		similar = complete( simClus, simTable );
+	if( simTable.has( simClus[1] + "+" +  simClus[1] ) ) {
+		simTable.delete( simClus[1] + "+" +  simClus[1] );
 	}
-	else if( linkage[2].checked ) {
-		similar = average( simClus, simTable );
-	}
-	else {
-		similar = single( simClus, simTable );
-	}
-
-	//remove rows representing clustered patterns
-	simTable.splice( simClus[0], 1 );
-	simTable.splice( simClus[1], 1 );
-
-	//remove columns representing clustered patterns
-	for( var j = 0; j < simTable.length; j++ ) {
-		simTable[j].splice( simClus[0], 1 );
-		simTable[j].splice( simClus[1], 1 );
-		simTable[j].push( similar[j] );
-	}
-
-	simTable.push( similar );
 
 	return simTable;
 }
 
-function single( simClus, simTable ) {
-	var similar = [];
-	for( var i = 0; i < simTable[simClus[0]].length; i++ ) {
-		if( simTable[simClus[1]][i] !== 0 && simTable[simClus[0]][i] > simTable[simClus[1]][i] ) {
-			similar.push( simTable[simClus[0]][i] );
+function compareNewClus( simClus, tmp1, tmp2 ) {
+	var newClusSims = new Map();
+	var best = 0;
+	for( var i = 0; i < tmp1.length; i++ ) {
+		var clus = tmp1[i].key.split( "+" );
+		var ref = "";
+		if( clus[0] !== simClus[0] && clus[0] !== simClus[1] ) {
+			ref = clus[0];
 		}
-		if( simTable[simClus[0]][i] !== 0 && simTable[simClus[1]][i] > simTable[simClus[0]][i] ) {
-			similar.push( simTable[simClus[1]][i] );
+		else {
+			ref = clus[1];
 		}
+
+		var newKey = ref + "+" + simClus[0] + "-" + simClus[1];
+		best = mostSimilar( tmp1[i].value, tmp2[i].value );
+		newClusSims.set( newKey, best );
 	}
-	similar.push( 0 );
-	return similar;
+	return newClusSims;
 }
 
-function complete( simClus, simTable ) {
-	var similar = [];
-	for( var i = 0; i < simTable[simClus[0]].length; i++ ) {
-		if( simTable[simClus[0]][i] !== 0 && simTable[simClus[0]][i] < simTable[simClus[1]][i] ) {
-			similar.push( simTable[simClus[0]][i] );
-		}
-		if( simTable[simClus[1]][i] !== 0 && simTable[simClus[1]][i] < simTable[simClus[0]][i] ) {
-			similar.push( simTable[simClus[1]][i] );
+function mostSimilar( num1, num2 ) {
+	var best = 0;
 
-		}
+	if( linkage[1].checked ) { //<-- complete linkage
+		best = Math.min( num1, num2 );
 	}
-	similar.push( 0 );
-	return similar;
+	else if( linkage[2].checked ) { //<-- average linkage
+		best = mean( num1, num2 );
+	}
+	else { //<-- single linkage
+		best = Math.max( num1, num2 );
+	}
+
+	return best;
 }
 
-function average( simClus, simTable ) {
-	var similar = [];
-	for( var i = 0; i < simTable[simClus[0]].length; i++ ) {
-		if( simTable[simClus[0]][i] !== 0 && simTable[simClus[1]][i] !== 0 ) {
-			similar.push( mean( simTable[simClus[0]][i], simTable[simClus[1]][i] ) );
+function updateTableAndQueue( simTable, newClusSims ) {
+	//add new clusters to simTable and priorityQueue
+	for( var key of newClusSims.keys() ) {
+		simTable.set( key, newClusSims.get( key ) );
+		priorityQueue = addToQueue( priorityQueue, simTable, key );
+	}
+
+	//take out redundant clusters from priorityQueue
+	for( var c = 0; c < priorityQueue.length; c++ ) {
+		if( simTable.has( priorityQueue[c] ) === false ) {
+			priorityQueue.splice( c, 1 );
+			c--;
 		}
 	}
-	similar.push( 0 );
-	return similar;
+	return simTable;
 }
 
 function mean( num1, num2 ) {
@@ -276,10 +366,10 @@ function spin() {
 
 	ctx.beginPath();
 	ctx.lineWidth = 10;
-	ctx.strokeStyle = "black";
+	ctx.strokeStyle = "#98bf21";
 	ctx.rotate(degrees*Math.PI/180);
 	ctx.translate(-250, -250); //<-- put it back
-	ctx.arc(250,250,50,0,1.5*Math.PI);
+	ctx.arc(250,250,25,0,1.5*Math.PI);
 	ctx.stroke();
 	ctx.restore();
 }
@@ -289,18 +379,22 @@ function stopSpin() {
 	document.getElementById("spinner").style.display = "none";
 }
 
-function visualise( level ) {
-	var clusters = level[level.length - 1];
-	var dataset = [];
-	for( var i = 0; i < clusters.length; i++ ) {
-		dataset.push( clusters[i].split( ".", clusters[i].length - 1 ) );
-	}
+function visualise( resetBox ) {
+	dataset = level[level.length - 1 ];
+	console.log( dataset );
 
+	var currentLevel = 0;
 	var largestClus = 0;
 	for( var j = 0; j < dataset.length; j++ ) {
-		if( dataset[j].length > largestClus ) {
-			largestClus = dataset[j].length;
+		var clusLength = dataset[j].split( "-" ).length;
+		currentLevel += clusLength;
+		if( clusLength > largestClus ) {
+			largestClus = clusLength;
 		}
+	}
+
+	if( resetBox === true ) {
+		resetButtonBox( currentLevel );	
 	}
 	
 	var w = 500;
@@ -308,86 +402,162 @@ function visualise( level ) {
 	var padding = 20;
 
 	var xScale = d3.scale.linear()
-				.domain([ 0, w ])
-				.range([padding, w - padding * 2]);
-
-	var yScale = d3.scale.linear()
-				.domain([ 0, h ])
-				.range([0, 2]);
+				.domain([ 0, 3 ])
+				.range([ w / 4, w - (w / 4)]);
 
 	var rScale = d3.scale.linear()
 				.domain([ 0, largestClus ])
-				.range([padding,dataset.length - padding]);
+				.range([10, 50]);
 
 	var svg = d3.select("#visual")
 				.append("svg")
 				.attr("width", w)
 				.attr("height", h)
 				.attr("id", "clusterVis");
-	/*
-	svg.append("line")
-		.attr("x1", w - padding)
-		.attr("y1", 0 + padding)
-		.attr("x2", w - padding)
-		.attr("y2", h - padding)
-		.attr("stroke-width", 2)
-		.attr("stroke", "black");
-	*/
+	
 	svg.selectAll("circle")
 		.data(dataset)
 		.enter()
 		.append("circle")
 		.attr("cx", function(d, i) {
-			return xScale(i * (w / dataset.length) );
+			return xScale( i );
 		})
 		.attr("cy", function(d, i) {
 			return h / 2;
 		})
 		.attr("r", function(d) {
-			return (d.length) * 10;
+			return rScale((d.length - 1) / 2);
 		})
 		.on("mouseover", function(d, i) {
 			var yPos = parseFloat(d3.select("svg").attr("y"));
-			var frequencyArray = [];
-			if( i === 0 ) { frequencyArray = frequency1; }
-			else if( i === 1 ) { frequencyArray = frequency2; }
-			else { frequencyArray = frequency3; }
+			var frequency;
+			if( i === 0 ) { frequency = frequency1; }
+			else if( i === 1 ) { frequency = frequency2; }
+			else if( i === 2 ) { frequency = frequency3; }
+			else { frequency = frequency4; }
+
+			var topThree = "";
+			var count = 0;
+			for( var key of frequency.keys() ) {
+				count++;
+				topThree += key + " " + frequency.get( key ) + " "; 
+				if( count === 3 ) { break; }
+			}
 
 			d3.select("#tooltip")
 				.style("left", 0)
-				.style("top", yPos + "px")
+				.style("top", (yPos + 20) + "px")
 				.select("#value")
-				.text( frequencyArray[0].pattern + " " + frequencyArray[0].frequency + " " +
-				frequencyArray[1].pattern + " " + frequencyArray[1].frequency + " " +
-				frequencyArray[2].pattern + " " + frequencyArray[2].frequency );
+				.text( topThree );
 
 			d3.select("#tooltip").classed("hidden", false);
 		})
 		.on("mouseout", function() {
 			d3.select("#tooltip").classed("hidden", true);
+		})
+		.on("click", function(d) {
+			//get parents of clicked cluster
+			var tmp = clusRef.get( d );
+			//get grandparents of clicked cluster
+			dataset = [];
+			if( clusRef.get( tmp[0] ) !== undefined ) {
+				dataset = dataset.concat( clusRef.get( tmp[0] ) );
+			}
+			if( clusRef.get( tmp[1] ) !== undefined ) {
+				dataset = dataset.concat( clusRef.get( tmp[1] ) ); 
+			}
+			console.log( dataset );
+
+			if( dataset.length !== 0 ) {
+				currentLevel = 0;
+				for( var j = 0; j < dataset.length; j++ ) {
+					var clusLength = dataset[j].split( "-" ).length;
+					currentLevel += clusLength;
+				}
+				patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
+			
+				var circle = svg.selectAll("circle")
+						.data(dataset);
+
+				circle.exit().attr("r", 0).remove();
+
+				circle.enter().append("circle")
+					.transition()
+					.duration(2000)
+					.ease("circle")
+					.attr("cx", function(d, i) {
+						return xScale( i );
+					})
+					.attr("cy", function(d, i) {
+						return h / 2;
+					})
+					.attr("r", function(d) {
+						return rScale((d.length - 1) / 2);
+					});
+
+				circle.transition()
+					.delay( function(d, i) {
+						return i * 100;
+					})
+					.duration(2000)
+					.ease("circle")
+					.attr("cx", function(d, i) {
+					return xScale( i );
+				})
+				.attr("cy", function(d, i) {
+					return h / 2;
+				})
+				.attr("r", function(d) {
+					return rScale((d.length - 1) / 2);
+				});
+
+				clearTable();
+				frequencyTable( dataset );
+			}
+			else {
+				alert( "This cluster has no parents" );
+			}
 		});
 }
 
-function frequencyTable() {
-	var c = level[level.length - 1];
-	frequency1 = frequencyArray( c[0] );
-	frequency2 = frequencyArray( c[1] );
-	frequency3 = frequencyArray( c[2] );
+function resetButtonBox( currentLevel ) {
+	patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
+	var reset = document.createElement("button");
+	reset.addEventListener( "click", resetClusters );
+	t = document.createTextNode( "Reset" );
+	reset.appendChild( t );
+	document.getElementById( "patternCount" ).appendChild( reset );
+}
 
-	total = combine( frequency1, frequency2 );
-	total = combine( total, frequency3 );
-
-	createTableHead();
+function frequencyTable( c ) {
+	if( c.length === 2 ) {
+		frequency1 = getFrequency( c[0] );
+		frequency2 = getFrequency( c[1] );
+	
+		total = combine( frequency1, frequency2 );
+		sortedTotal = sortTotal( total );
+	}
+	else {
+		frequency1 = getFrequency( c[0] );
+		frequency2 = getFrequency( c[1] );
+		frequency3 = getFrequency( c[2] );
+		frequency4 = getFrequency( c[3] );
+	
+		total = combine( frequency1, frequency2 );
+		total = combine( total, frequency3 );
+		total = combine( total, frequency4 );
+		sortedTotal = sortTotal( total );
+	}
 
 	for( var i = 0; i < 10; i++ ) {
 		var tr = table.insertRow();
 
 		var column1 = tr.insertCell();
-		column1.appendChild(document.createTextNode( total[i].pattern ));
+		column1.appendChild(document.createTextNode( sortedTotal[i].pattern ));
 		column1.style.border = "1px solid black";
 
 		var column2 = tr.insertCell();
-		column2.appendChild(document.createTextNode( total[i].frequency ));
+		column2.appendChild(document.createTextNode( sortedTotal[i].frequency ));
 		column2.style.border = "1px solid black";
 
 		tr.addEventListener( "click", clickRow );
@@ -404,22 +574,21 @@ function topTenButton() {
 
 function originalTable() {
 	box.removeChild( returnButton );
-	clearTable();
+	table.deleteRow(1);
 
 	for( var i = 0; i < 10; i++ ) {
 		var tr = table.insertRow();
 
 		var column1 = tr.insertCell();
-		column1.appendChild(document.createTextNode( total[i].pattern ));
+		column1.appendChild(document.createTextNode( sortedTotal[i].pattern ));
 		column1.style.border = "1px solid black";
 
 		var column2 = tr.insertCell();
-		column2.appendChild(document.createTextNode( total[i].frequency ));
+		column2.appendChild(document.createTextNode( sortedTotal[i].frequency ));
 		column2.style.border = "1px solid black";
 
 		tr.addEventListener( "click", clickRow );
 	}
-	document.body.appendChild( table );
 }
 
 function createTableHead() {
@@ -434,32 +603,31 @@ function createTableHead() {
 function search() {
 	topTenButton();
 	clearTable();
-	table = document.createElement("table");
-	createTableHead();
 
 	var entity = document.getElementById( "textInput" ).value;
 
-	for( var i = 0; i < total.length; i++ ) {
-		var row = total[i].pattern;
+	for( var i = 0; i < sortedTotal.length; i++ ) {
+		var row = sortedTotal[i].pattern;
 		if( row.indexOf( entity ) != -1 ) {
 			var tr = table.insertRow();
 
 			var column1 = tr.insertCell();
-			column1.appendChild(document.createTextNode( total[i].pattern ));
+			column1.appendChild(document.createTextNode( sortedTotal[i].pattern ));
 			column1.style.border = "1px solid black";
 
 			var column2 = tr.insertCell();
-			column2.appendChild(document.createTextNode( total[i].frequency ));
+			column2.appendChild(document.createTextNode( sortedTotal[i].frequency ));
 			column2.style.border = "1px solid black";
 
 			tr.addEventListener( "click", clickRow );
 		}
 	}
-	document.body.appendChild( table );
 }
 
 function clearTable() {
-	document.body.removeChild( table );
+	for( var i = table.rows.length - 1; i > 0; i-- ) {
+		table.deleteRow(i);
+	}
 }
 
 function clickRow() {
@@ -469,80 +637,82 @@ function clickRow() {
 		rows[i].style.backgroundColor = "";
 	}
 
+	var ef1 = frequency1.get( this.cells[0].innerHTML );
+	var ef2 = frequency2.get( this.cells[0].innerHTML );
+	var ef3 = frequency3.get( this.cells[0].innerHTML );
+	var ef4 = frequency4.get( this.cells[0].innerHTML );
+
 	//change colour of the selected row
 	this.style.backgroundColor = "#98bf21";
 
-	var ef1 = findFrequency( frequency1, this.cells[0].innerHTML );
-	var ef2 = findFrequency( frequency2, this.cells[0].innerHTML );
-	var ef3 = findFrequency( frequency3, this.cells[0].innerHTML );
-			
-	//convert ratio to percentage
-	ef1 = Math.round( (ef1 * 100) / parseInt( this.cells[1].innerHTML ) );
-	ef2 = Math.round( (ef2 * 100) / parseInt( this.cells[1].innerHTML ) );
-	ef3 = Math.round( (ef3 * 100) / parseInt( this.cells[1].innerHTML ) );
-
-	reVisualise( ef1, ef2, ef3 );
+	reVisualise( this.cells[0].innerHTML, this.cells[1].innerHTML, ef1, ef2, ef3, ef4 );
 }
 
-function frequencyArray( cluster ) {
-	patternRefs = cluster.split( ".", cluster.length - 1 );
-	clusPats = ""; //<--cluster patterns
+function getPercentage( ef, tf ) {
+	//ef = entity frequency, tf = total frequency
+	if( ef === undefined ) { ef = 0; }
+	ef = Math.round( (ef * 100) / parseInt( tf ) );
+	return ef;
+}
+
+function getFrequency( cluster ) {
+	patternRefs = cluster.split( "-" );
+	var pat = [];
+	frequency = new Map();
 	for( var i = 0; i < patternRefs.length; i++ ) {
-		if( patternRefs[i] !== "" ) {
-			clusPats += JSON.parse( patterns[parseInt( patternRefs[i] )] ).entity1;
-		}
-	}
+		pat = patterns.get( parseInt(patternRefs[i]) );
+		for( var j = 0; j < pat.length; j++ ) {
 
-	var entities = clusPats.split( " " );
-	var frequencyCount = [];
-	while( entities.length !== 0 ) {
-
-		var patFrequency = {
-			pattern : entities[0],
-			frequency : 1
-		};
-		for( var j = 1; j < entities.length; j++ ) {
-			if( entities[j] === entities[0] ) {
-				patFrequency.frequency++;
-				entities.splice( j, 1 );
-				j--;
+			if( pat[j] === 1 && frequency.has( entity.get(j) ) ) {
+				frequency.set( entity.get(j), frequency.get( entity.get(j) ) + 1 );
 			}
+			if( pat[j] === 1 && !frequency.has( entity.get(j) ) ) {
+				frequency.set( entity.get(j), 1 );
+			}
+			
 		}
-		entities.splice( 0, 1 );
-		frequencyCount.push( patFrequency );
 	}
-	return frequencyCount;
+	return frequency;
 }
 
 function combine( f1, f2 ) {
-	var total = [];
-
-	for( var i = 0; i < f1.length; i++ ) {
-		var shared = false;
-		var patFrequency = {
-			pattern : f1[i].pattern,
-			frequency : f1[i].frequency
-		};
-		for( var j = 0; j < f2.length; j++ ) {
-			if( f2[j].pattern === f1[i].pattern ) {
-				shared = true;
-				patFrequency.frequency += f2[j].frequency;
-				total.push( patFrequency );
-			}
+	var total = new Map();
+	var checked = [];
+	for( var key of f1.keys() ) {
+		if( f2.has( key ) ) {
+			total.set( key, f1.get( key ) + f2.get( key ) );
+			checked.push( key );
 		}
-		if( !shared ) { total.push( patFrequency ); }
 	}
 
-	for( var c = 0; c < f2.length; c++ ) {
-		var shared = false;
-		for( var d = 0; d < total.length; d++ ) {
-			if( total[d].pattern === f2[c].pattern ) {
-				shared = true;
-			}
+	for( var key of f2.keys() ) {
+		if( !checked.contains( key ) && f1.has( key ) ) {
+			total.set( key, f2.get( key ) );
 		}
-		if( !shared ) { total.push( f2[c] ); }
 	}
 	return total;
+}
+
+function sortTotal( total ) {
+	var sortedTotal = [];
+	for( var key of total.keys() ) {
+		var entity = {
+			pattern : key,
+			frequency : total.get( key )
+		};
+		var inserted = false;
+		for( var i = 0; i < sortedTotal.length; i++ ) {
+			if( total.get( key ) > sortedTotal[i].frequency ) {
+				sortedTotal.splice( i, 0, entity );
+				inserted = true;
+				break;
+			}
+		}
+		if( inserted === false ) {
+			sortedTotal.push( entity );
+		}
+	}
+	return sortedTotal;
 }
 
 function findFrequency( cluster, entity ) {
@@ -554,40 +724,40 @@ function findFrequency( cluster, entity ) {
 	return 0;
 }
 
-function reVisualise( ef1, ef2, ef3 ) {
+function reVisualise( entity, totalFrequency, ef1, ef2, ef3, ef4 ) {
 	//remove previous visual
 	var visual = document.getElementById( "visual" );
 	var clusterVis = document.getElementById( "clusterVis" );
 	visual.removeChild( clusterVis );
 
-	var clusters = level[level.length - 1];
-	var dataset = [];
-	for( var i = 0; i < clusters.length; i++ ) {
-		dataset.push( clusters[i].split( ".", clusters[i].length - 1 ) );
-	}
-
+	var currentLevel = 0;
 	var largestClus = 0;
 	for( var j = 0; j < dataset.length; j++ ) {
-		if( dataset[j].length > largestClus ) {
-			largestClus = dataset[j].length;
+		var clusLength = dataset[j].split( "-" ).length;
+		currentLevel += clusLength;
+		if( clusLength > largestClus ) {
+			largestClus = clusLength;
 		}
 	}
+	patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
 	
+	//convert ratio to percentage, efp = entity frequency percentage
+	var efp1 = getPercentage( ef1, totalFrequency );
+	var efp2 = getPercentage( ef2, totalFrequency );
+	var efp3 = getPercentage( ef3, totalFrequency );
+	var efp4 = getPercentage( ef4, totalFrequency );
+
 	var w = 500;
 	var h = 500;
 	var padding = 20;
 
 	var xScale = d3.scale.linear()
-				.domain([ 0, w ])
-				.range([padding, w - padding * 2]);
-
-	var yScale = d3.scale.linear()
-				.domain([ 0, h ])
-				.range([0, 2]);
+				.domain([ 0, 3 ])
+				.range([ w / 4, w - (w / 4)]);
 
 	var rScale = d3.scale.linear()
 				.domain([ 0, largestClus ])
-				.range([padding,dataset.length - padding]);
+				.range([10, 50]);
 
 	var colourScale = d3.scale.linear()
 						.domain([ 0, 100 ])
@@ -598,53 +768,126 @@ function reVisualise( ef1, ef2, ef3 ) {
 				.attr("width", w)
 				.attr("height", h)
 				.attr("id", "clusterVis");
-	/*
-	svg.append("line")
-		.attr("x1", w - padding)
-		.attr("y1", 0 + padding)
-		.attr("x2", w - padding)
-		.attr("y2", h - padding)
-		.attr("stroke-width", 2)
-		.attr("stroke", "black");
-	*/
+	
 	svg.selectAll("circle")
 		.data(dataset)
 		.enter()
 		.append("circle")
 		.attr("cx", function(d, i) {
-			return xScale(i * (w / dataset.length) );
+			return xScale( i );
 		})
 		.attr("cy", function(d, i) {
 			return h / 2;
 		})
 		.attr("r", function(d) {
-			return (d.length) * 10;
+			return rScale((d.length - 1) / 2);
 		})
 		.style("fill", function(d,i) {
-			if( i === 0 ) { return d3.rgb( colourScale(ef1), 0, 0 ); }
-			else if( i === 1 ) { return d3.rgb( colourScale(ef2), 0, 0 ); }
-			else { return d3.rgb( colourScale(ef3), 0, 0 ); }
+			if( i === 0 ) { return d3.rgb( colourScale(efp1), 0, 0 ); }
+			else if( i === 1 ) { return d3.rgb( colourScale(efp2), 0, 0 ); }
+			else if( i === 2 ) { return d3.rgb( colourScale(efp3), 0, 0 ); }
+			else { return d3.rgb( colourScale(efp4), 0, 0 ); }
 		})
 		.on("mouseover", function(d, i) {
 			var yPos = parseFloat(d3.select("svg").attr("y"));
-			var frequencyArray = [];
-			if( i === 0 ) { frequencyArray = frequency1; }
-			else if( i === 1 ) { frequencyArray = frequency2; }
-			else { frequencyArray = frequency3; }
+			var frequency;
+			if( i === 0 ) { frequency = ef1; }
+			else if( i === 1 ) { frequency = ef2; }
+			else if( i === 2 ) { frequency = ef3; }
+			else { frequency = ef4; }
 
 			d3.select("#tooltip")
 				.style("left", 0)
 				.style("top", yPos + "px")
 				.select("#value")
-				.text( frequencyArray[0].pattern + " " + frequencyArray[0].frequency + " " +
-				frequencyArray[1].pattern + " " + frequencyArray[1].frequency + " " +
-				frequencyArray[2].pattern + " " + frequencyArray[2].frequency );
+				.text( entity + " " + frequency );
 
 			d3.select("#tooltip").classed("hidden", false);
 		})
 		.on("mouseout", function() {
 			d3.select("#tooltip").classed("hidden", true);
+		})
+		.on("click", function(d) {
+			//get parents of clicked cluster
+			var tmp = clusRef.get( d );
+			//get grandparents of clicked cluster
+			dataset = [];
+			if( clusRef.get( tmp[0] ) !== undefined ) {
+				dataset = dataset.concat( clusRef.get( tmp[0] ) );
+			}
+			if( clusRef.get( tmp[1] ) !== undefined ) {
+				dataset = dataset.concat( clusRef.get( tmp[1] ) ); 
+			}
+			console.log( dataset );
+
+			if( dataset.length !== 0 ) {
+				currentLevel = 0;
+				for( var j = 0; j < dataset.length; j++ ) {
+					var clusLength = dataset[j].split( "-" ).length;
+					currentLevel += clusLength;
+				}
+				patternsPresent.innerHTML = "Patterns Present: " + currentLevel;
+			
+				var circle = svg.selectAll("circle")
+						.data(dataset);
+
+				circle.exit().attr("r", 0).remove();
+
+				circle.enter().append("circle")
+					.transition()
+					.duration(2000)
+					.ease("circle")
+					.attr("cx", function(d, i) {
+						return xScale( i );
+					})
+					.attr("cy", function(d, i) {
+						return h / 2;
+					})
+					.attr("r", function(d) {
+						return rScale((d.length - 1) / 2);
+					})
+					.style("fill", "black");
+
+				circle.transition()
+					.delay( function(d, i) {
+						return i * 100;
+					})
+					.duration(2000)
+					.ease("circle")
+					.attr("cx", function(d, i) {
+						return xScale( i );
+					})
+					.attr("cy", function(d, i) {
+						return h / 2;
+					})
+					.attr("r", function(d) {
+						return rScale((d.length - 1) / 2);
+					})
+					.style("fill", "black");
+
+				clearTable();
+				frequencyTable( dataset );
+			}
+			else {
+				alert( "This cluster has no parents" );
+			}
 		});
+}
+
+function resetClusters() {
+	dataset = level[level.length - 1 ]; 
+
+	//remove previous visual
+	var visual = document.getElementById( "visual" );
+	var clusterVis = document.getElementById( "clusterVis" );
+	visual.removeChild( clusterVis );
+
+	//back to original frequency table
+	clearTable();
+	frequencyTable( level[level.length - 1] );
+
+	//original visualisation
+	visualise( false );
 }
 
 Array.prototype.contains = function(obj) {
