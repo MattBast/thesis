@@ -6,7 +6,7 @@ var linkage = document.getElementsByName("linkage");
 
 var patterns = [];
 var clusRef = new Map(); //<-- references the parents of a cluster
-var clusJoinedWith = new Map(); //<-- the Jaccard similarity between two patterns
+var clusSim = new Map(); //<-- the Jaccard similarity between two patterns
 var priorityQueue = []; //<-- orders patterns/clusters by similarity
 
 //each element represents a level in the hierarchical clustering
@@ -132,8 +132,9 @@ function buildSimTable() {
 				priorityQueue.push( iKey + "+" + jKey );
 			}
 			else {
-				simTable.set( iKey + "+" + jKey,
-					similarity( patterns.get(i), patterns.get(j) ) );
+				var sim = similarity( patterns.get(i), patterns.get(j) );
+				simTable.set( iKey + "+" + jKey, sim );
+				clusSim.set( iKey + "+" + jKey, sim );
 				priorityQueue = addToQueue( priorityQueue, simTable,
 					iKey + "+" + jKey );
 			}	
@@ -182,9 +183,6 @@ function addCluster( simTable ) {
 	//new cluster and its parents
 	var newCluster = simClus[0] + "-" + simClus[1];
 	clusRef.set( newCluster, simClus );
-
-	//record the clusters been joined 
-	clusJoinedWith.set( simClus[0], simClus[1] );
 
 	clusters= updateClusters( clusters, simClus );
 	clusters.push( newCluster );
@@ -300,6 +298,7 @@ function updateTableAndQueue( simTable, newClusSims ) {
 	//add new clusters to simTable and priorityQueue
 	for( var key of newClusSims.keys() ) {
 		simTable.set( key, newClusSims.get( key ) );
+		clusSim.set( key, newClusSims.get( key ) ); 
 		priorityQueue = addToQueue( priorityQueue, simTable, key );
 	}
 
@@ -320,9 +319,9 @@ function mean( num1, num2 ) {
 }
 
 function visualise( resetBox ) {
-	var nodes = getNodes( level[ level.length - 1 ] );
-	var edges = getEdges( nodes );
-	dataset = { nodes, edges };
+	var n = getNodes( level[ level.length - 1 ] );
+	var e = getEdges( n );
+	dataset = { nodes: n, edges: e };
 	console.log( dataset );
 	/*
 	var currentLevel = 0;
@@ -338,32 +337,35 @@ function visualise( resetBox ) {
 
 	var w = 500;
 	var h = 500;
-	var colors = d3.scale.category10();
 
-	var svg = d3.select("body")
-				.append("svg")
-				.attr("width", w)
-				.attr("height", h);
-	
 	var force = d3.layout.force()
 					.nodes(dataset.nodes)
 					.links(dataset.edges)
 					.size([w, h])
-					.linkDistance([50])
+					.linkDistance([100])
 					.charge([-100])
 					.start();
 
-	var edges = svg.selectAll("line")
+	var colors = d3.scale.category10();
+
+	var svg = d3.select("#visual")
+				.append("svg")
+				.attr("width", w)
+				.attr("height", h);
+
+	var links = svg.selectAll("line")
 					.data(dataset.edges)
 					.enter()
 					.append("line")
-					.style("stroke", "#ccc")
-					.style("stroke-width", 1);
+					.attr("class", "link")
+					.style("stroke", "#000000")
+					.style("stroke-width", 3);
 
 	var nodes = svg.selectAll("circle")
 					.data(dataset.nodes)
 					.enter()
 					.append("circle")
+					.attr("class", "node")
 					.attr("r", 10)
 					.style("fill", function(d, i) {
 						return colors(i);
@@ -371,7 +373,7 @@ function visualise( resetBox ) {
 					.call(force.drag);
 
 	force.on("tick", function() {
-		edges.attr("x1", function(d) { return d.source.x; } )
+		links.attr("x1", function(d) { return d.source.x; } )
 			 .attr("y1", function(d) { return d.source.y; } )
 			 .attr("x2", function(d) { return d.source.x; } )
 			 .attr("y2", function(d) { return d.source.y; } );
@@ -398,18 +400,12 @@ function getEdges( nodes ) {
 	var edge;
 	var edges = [];
 	for( var i = 0; i < nodes.length; i++ ) {
-		if( isEven( i ) ) {
-			edge = { source: i, target: i + 1 };
-		}
-		else {
-			edge = { source: i, target: i - 1 };
-		}
-		edges.push( edge );
+		for( var j = 0; j < nodes.length; j++ ) {
+			if( clusSim.has( nodes[i].id + "+" + nodes[j].id ) ) {
+				edge = { source: i, target: j };
+				edges.push( edge );
+			}
+		}	
 	}
 	return edges;
-}
-
-function isEven( number ) {
-	if( number % 2 === 0 ) { return true; }
-	else { return false; }
 }
