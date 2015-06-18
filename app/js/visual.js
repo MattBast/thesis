@@ -336,7 +336,7 @@ function visualise( c, resetBox ) {
 	var n = getNodes( level[ level.length - 1 ] );
 	var e = getEdges( n );
 	dataset = { nodes: n, edges: e };
-	console.log( dataset );
+
 	/*
 	var currentLevel = 0;
 	var largestClus = 0;
@@ -351,6 +351,10 @@ function visualise( c, resetBox ) {
 
 	var w = 500;
 	var h = 500;
+
+	var colourScale = d3.scale.linear()
+						.domain([0, 100])
+						.range([0, 255]);
 
 	var force = d3.layout.force()
 					.nodes(dataset.nodes)
@@ -449,7 +453,11 @@ function visualise( c, resetBox ) {
 				.enter()
 				.append("tr")
 				.on("click", function(d, i) {
-					
+					var rowPattern = d.pattern;
+					var totalFrequency = d.frequency;
+					console.log( rowPattern );
+					console.log( totalFrequency );
+
 					//de-highlight all rows
 					d3.selectAll("tr")
 						.classed("highlight", false);
@@ -459,7 +467,13 @@ function visualise( c, resetBox ) {
 						.classed("highlight", true);
 
 					nodes.transition()
-						.style("stroke", "red")
+						.style("stroke", function(d, i) {
+							var frequency = getFrequency( d.id );
+							var ef = frequency.get( rowPattern ); //<-- entity frequency
+							var efp = getPercentage( ef, totalFrequency ); //<-- ef percentage
+							efp = Math.round( efp );
+							return d3.rgb( colourScale( efp ), 0, 0 );
+						})
 						.style("stroke-width", 3);
 				});
 
@@ -518,13 +532,11 @@ function getFrequency( cluster ) {
 	return frequency;
 }
 
-function createTableHead() {
-	var header = table.createTHead();
-	var row = header.insertRow(0);
-	var head1 = row.insertCell(0);
-	var head2 = row.insertCell(1);
-	head1.innerHTML = "<b>Entity name</b>";
-	head2.innerHTML = "<b>Frequency</b>";
+function getPercentage( ef, tf ) {
+	//ef = entity frequency, tf = total frequency
+	if( ef === undefined ) { ef = 0; }
+	ef = Math.round( (ef * 100) / parseInt( tf ) );
+	return ef;
 }
 
 function frequencyTable( c ) {
