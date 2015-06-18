@@ -119,10 +119,10 @@ function main() {
 	}
 
 	console.log( "Got to top of tree" );
-	visualise( false );
+	visualise( level[ level.length - 2], false );
 
-	createTableHead();
-	frequencyTable( level[ level.length - 2] );
+	//createTableHead();
+	//frequencyTable( level[ level.length - 2] );
 }
 
 function initClusters() { 
@@ -332,7 +332,7 @@ function mean( num1, num2 ) {
 	return total;
 }
 
-function visualise( resetBox ) {
+function visualise( c, resetBox ) {
 	var n = getNodes( level[ level.length - 1 ] );
 	var e = getEdges( n );
 	dataset = { nodes: n, edges: e };
@@ -403,6 +403,7 @@ function visualise( resetBox ) {
 						d3.select("#tooltip").classed("hidden", true);
 					})
 					.style("fill", "#ccc")
+					.style("stroke", "#000000")
 					.call(force.drag);
 
 	nodes.append("text")
@@ -419,6 +420,55 @@ function visualise( resetBox ) {
 		nodes.attr("cx", function(d) { return d.x; } )
 			 .attr("cy", function(d) { return d.y; } );
 	});
+
+	//create table
+	for( var j = 0; j < c.length; j++ ) {
+		total = combine( total, getFrequency( c[j] ) );
+	}
+	sortedTotal = sortTotal( total );
+
+	var tableHeads = [
+		{ head: "Pattern"}, 
+		{ head: "Frequency" }
+	];
+
+	var table = d3.select("body")
+					.append("table");
+	var thead = table.append("thead");
+	var tbody = table.append("tbody");
+
+	var th = table.selectAll("th")
+				.data( tableHeads )
+				.enter()
+				.append("th");
+
+	th.append("td").html(function(d) { return d.head; } );
+
+	var tr = table.selectAll("tr")
+				.data( sortedTotal )
+				.enter()
+				.append("tr")
+				.on("click", function(d, i) {
+					
+					//de-highlight all rows
+					d3.selectAll("tr")
+						.classed("highlight", false);
+
+					//highlight selected row
+					d3.select(this)
+						.classed("highlight", true);
+
+					nodes.transition()
+						.style("stroke-width", 3)
+						.style("stroke", "FF0000");
+				});
+
+	tr.append("td")
+		.attr("class", "pattern")
+		.html(function(d) { return d.pattern; } );
+	tr.append("td")
+		.attr("class", "frequency")
+		.html(function(d) { return d.frequency; } );
 }
 
 function getNodes( c ) {
@@ -505,11 +555,21 @@ function frequencyTable( c ) {
 				.enter()
 				.append("tr")
 				.on("click", function(d, i) {
+					
+					//de-highlight all rows
 					d3.selectAll("tr")
 						.classed("highlight", false);
 
+					//highlight selected row
 					d3.select(this)
 						.classed("highlight", true);
+
+					var nodes = d3.selectAll(".node")
+									.attr("stroke-width", 3)
+									.attr("stroke", "FF0000");
+
+					console.log( nodes );
+
 				});
 
 	tr.append("td")
@@ -612,24 +672,6 @@ function originalTable() {
 
 		tr.addEventListener( "click", clickRow );
 	}
-}
-
-function clickRow() {
-	//clear the colour of all rows
-	var rows = table.rows;
-	for( var i = 0; i < rows.length; i++ ) {
-		rows[i].style.backgroundColor = "";
-	}
-
-	//change colour of the selected row
-	this.style.backgroundColor = "#98bf21";
-
-	console.log( this.cells[0].innerHTML + " was clicked" );
-
-	d3.select(".node").transition()
-			.duration(1000)
-			.ease()
-			.style("stroke", "#FF0000");
 }
 
 Array.prototype.contains = function(obj) {
