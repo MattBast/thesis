@@ -459,8 +459,8 @@ function visualise( c, resetBox ) {
 						.classed("highlight", true);
 
 					nodes.transition()
-						.style("stroke-width", 3)
-						.style("stroke", "FF0000");
+						.style("stroke", "red")
+						.style("stroke-width", 3);
 				});
 
 	tr.append("td")
