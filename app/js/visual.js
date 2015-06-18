@@ -16,6 +16,17 @@ var dataset = [];
 //lists of entities and indexs
 var entity = new Map();
 
+//displays how high up the tree the user is
+var patternsPresent = document.getElementById( "patternsPresent" );
+
+//create table tag
+var table = document.createElement("table");
+var total = new Map();
+
+//table search bar
+var box = document.getElementById( "searchBar" );
+var returnButton = document.createElement( "button" );
+
 function upload() {
 	if( fileInput.files.length > 0 ) {
 
@@ -109,6 +120,9 @@ function main() {
 
 	console.log( "Got to top of tree" );
 	visualise( false );
+
+	createTableHead();
+	frequencyTable( level[ level.length - 2] );
 }
 
 function initClusters() { 
@@ -346,8 +360,6 @@ function visualise( resetBox ) {
 					.charge([-100])
 					.start();
 
-	var colors = d3.scale.category10();
-
 	var svg = d3.select("#visual")
 				.append("svg")
 				.attr("width", w)
@@ -367,10 +379,36 @@ function visualise( resetBox ) {
 					.append("circle")
 					.attr("class", "node")
 					.attr("r", 10)
-					.style("fill", function(d, i) {
-						return colors(i);
+					.on("mouseover", function(d, i) {
+						var yPos = parseFloat(d3.select("svg").attr("y"));
+						var frequency = getFrequency( d.id );
+
+						var topThree = "";
+						var count = 0;
+						for( var key of frequency.keys() ) {
+							count++;
+							topThree += key + " " + frequency.get( key ) + " "; 
+							if( count === 3 ) { break; }
+						}
+
+						d3.select("#tooltip")
+							.style("left", 0)
+							.style("top", (yPos + 20) + "px")
+							.select("#value")
+							.text( topThree );
+
+						d3.select("#tooltip").classed("hidden", false);
 					})
+					.on("mouseout", function() {
+						d3.select("#tooltip").classed("hidden", true);
+					})
+					.style("fill", "#ccc")
 					.call(force.drag);
+
+	nodes.append("text")
+			.attr("dx", 12)
+			.attr("dy", ".35em")
+			.text( function(d) { return d.id; } );
 
 	force.on("tick", function() {
 		links.attr("x1", function(d) { return d.source.x; } )
@@ -408,4 +446,209 @@ function getEdges( nodes ) {
 		}	
 	}
 	return edges;
+}
+
+function getFrequency( cluster ) {
+	var patternRefs = cluster.split( "-" );
+	var pat = [];
+	frequency = new Map();
+	for( var i = 0; i < patternRefs.length; i++ ) {
+		pat = patterns.get( parseInt(patternRefs[i]) );
+		for( var j = 0; j < pat.length; j++ ) {
+
+			if( pat[j] === 1 && frequency.has( entity.get(j) ) ) {
+				frequency.set( entity.get(j), frequency.get( entity.get(j) ) + 1 );
+			}
+			if( pat[j] === 1 && !frequency.has( entity.get(j) ) ) {
+				frequency.set( entity.get(j), 1 );
+			}
+			
+		}
+	}
+	return frequency;
+}
+
+function createTableHead() {
+	var header = table.createTHead();
+	var row = header.insertRow(0);
+	var head1 = row.insertCell(0);
+	var head2 = row.insertCell(1);
+	head1.innerHTML = "<b>Entity name</b>";
+	head2.innerHTML = "<b>Frequency</b>";
+}
+
+function frequencyTable( c ) {
+	for( var j = 0; j < c.length; j++ ) {
+		total = combine( total, getFrequency( c[j] ) );
+	}
+	sortedTotal = sortTotal( total );
+
+	var tableHeads = [
+		{ head: "Pattern"}, 
+		{ head: "Frequency" }
+	];
+
+	var table = d3.select("body")
+					.append("table");
+	var thead = table.append("thead");
+	var tbody = table.append("tbody");
+
+	var th = table.selectAll("th")
+				.data( tableHeads )
+				.enter()
+				.append("th");
+
+	th.append("td").html(function(d) { return d.head; } );
+
+	var tr = table.selectAll("tr")
+				.data( sortedTotal )
+				.enter()
+				.append("tr")
+				.on("click", function(d, i) {
+					d3.selectAll("tr")
+						.classed("highlight", false);
+
+					d3.select(this)
+						.classed("highlight", true);
+				});
+
+	tr.append("td")
+		.attr("class", "pattern")
+		.html(function(d) { return d.pattern; } );
+	tr.append("td")
+		.attr("class", "frequency")
+		.html(function(d) { return d.frequency; } );
+}
+
+function combine( f1, f2 ) {
+	var total = new Map();
+	var checked = [];
+	for( var key of f2.keys() ) {
+		if( f1.has( key ) ) {
+			total.set( key, f1.get( key ) + f2.get( key ) );
+			checked.push( key );
+		}
+		else {
+			total.set( key, f2.get( key ) );
+		}
+	}
+
+	return total;
+}
+
+function sortTotal( total ) {
+	var sortedTotal = [];
+	for( var key of total.keys() ) {
+		var entity = {
+			pattern : key,
+			frequency : total.get( key )
+		};
+		var inserted = false;
+		for( var i = 0; i < sortedTotal.length; i++ ) {
+			if( total.get( key ) > sortedTotal[i].frequency ) {
+				sortedTotal.splice( i, 0, entity );
+				inserted = true;
+				break;
+			}
+		}
+		if( inserted === false ) {
+			sortedTotal.push( entity );
+		}
+	}
+	return sortedTotal;
+}
+
+function search() {
+	topTenButton();
+	clearTable();
+
+	var entity = document.getElementById( "textInput" ).value;
+
+	for( var i = 0; i < sortedTotal.length; i++ ) {
+		var row = sortedTotal[i].pattern;
+		if( row.indexOf( entity ) != -1 ) {
+			var tr = table.insertRow();
+
+			var column1 = tr.insertCell();
+			column1.appendChild(document.createTextNode( sortedTotal[i].pattern ));
+			column1.style.border = "1px solid black";
+
+			var column2 = tr.insertCell();
+			column2.appendChild(document.createTextNode( sortedTotal[i].frequency ));
+			column2.style.border = "1px solid black";
+
+			tr.addEventListener( "click", clickRow );
+		}
+	}
+}
+
+function clearTable() {
+	for( var i = table.rows.length - 1; i > 0; i-- ) {
+		table.deleteRow(i);
+	}
+}
+
+function topTenButton() {
+	returnButton.addEventListener( "click", originalTable );
+	t = document.createTextNode( "Top 10" );
+	returnButton.appendChild( t );
+	box.appendChild( returnButton );
+}
+
+function originalTable() {
+	box.removeChild( returnButton );
+	table.deleteRow(1);
+
+	for( var i = 0; i < 10; i++ ) {
+		var tr = table.insertRow();
+
+		var column1 = tr.insertCell();
+		column1.appendChild(document.createTextNode( sortedTotal[i].pattern ));
+		column1.style.border = "1px solid black";
+
+		var column2 = tr.insertCell();
+		column2.appendChild(document.createTextNode( sortedTotal[i].frequency ));
+		column2.style.border = "1px solid black";
+
+		tr.addEventListener( "click", clickRow );
+	}
+}
+
+function clickRow() {
+	//clear the colour of all rows
+	var rows = table.rows;
+	for( var i = 0; i < rows.length; i++ ) {
+		rows[i].style.backgroundColor = "";
+	}
+
+	//change colour of the selected row
+	this.style.backgroundColor = "#98bf21";
+
+	console.log( this.cells[0].innerHTML + " was clicked" );
+
+	d3.select(".node").transition()
+			.duration(1000)
+			.ease()
+			.style("stroke", "#FF0000");
+}
+
+Array.prototype.contains = function(obj) {
+    var i = this.length + 1;
+    while (i--) {
+        if (this[i] == obj) {
+            return true;
+        }
+    }
+    return false;
+}
+
+Array.prototype.max = function() {
+	return Math.max.apply( Math, this );
+}
+
+Array.prototype.swap = function (x,y) {
+  var tmp = this[x];
+  this[x] = this[y];
+  this[y] = tmp;
+  return this;
 }

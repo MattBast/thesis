@@ -71,6 +71,14 @@ table {
 }
 
 .link {
-	stroke: #aaa;
-  	stroke-width: 1.5px;
+	stroke: #000000;
+}
+
+tr {
+	transition: 0.5s;
+	-webkit-transition: 0.5s;
+}
+
+tr.highlight {
+	background-color: #98bf21;
 }
