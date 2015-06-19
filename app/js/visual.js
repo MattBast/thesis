@@ -338,24 +338,23 @@ function visualise( c, resetBox ) {
 	dataset = { nodes: n, edges: e };
 	console.log( dataset );
 
-	/*
-	var currentLevel = 0;
 	var largestClus = 0;
-	for( var j = 0; j < dataset.length; j++ ) {
-		var clusLength = dataset[j].split( "-" ).length;
-		currentLevel += clusLength;
+	for( var j = 0; j < n.length; j++ ) {
+		var clusLength = n[j].id.split( "-" ).length;
 		if( clusLength > largestClus ) {
 			largestClus = clusLength;
 		}
 	}
-	*/
+	
+	var w = 500, h = 500;
 
-	var w = 500;
-	var h = 500;
+	var rScale = d3.scale.linear()
+				.domain([ 0, largestClus ])
+				.range([10, 50]);
 
 	var colourScale = d3.scale.linear()
 						.domain([0, 100])
-						.range([0, 255]);
+						.range([100, 255]);
 
 	var distScale = d3.scale.linear()
 						.domain([0, 1])
@@ -390,7 +389,10 @@ function visualise( c, resetBox ) {
 					.enter()
 					.append("circle")
 					.attr("class", "node")
-					.attr("r", 10)
+					.attr("r", function(d) {
+						var length = d.id.split( "-" ).length;
+						return rScale( length );
+					})
 					.on("mouseover", function(d, i) {
 						var yPos = parseFloat(d3.select("svg").attr("y"));
 						var frequency = getFrequency( d.id );
@@ -478,7 +480,7 @@ function visualise( c, resetBox ) {
 							var ef = frequency.get( rowPattern ); //<-- entity frequency
 							var efp = getPercentage( ef, totalFrequency ); //<-- ef percentage
 							efp = Math.round( efp );
-							return d3.rgb( colourScale( efp ), 0, 0 );
+							return d3.rgb( colourScale( efp ), 50, 50 );
 						})
 						.style("stroke-width", 3);
 
