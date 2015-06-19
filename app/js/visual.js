@@ -336,6 +336,7 @@ function visualise( c, resetBox ) {
 	var n = getNodes( level[ level.length - 1 ] );
 	var e = getEdges( n );
 	dataset = { nodes: n, edges: e };
+	console.log( dataset );
 
 	/*
 	var currentLevel = 0;
@@ -356,12 +357,18 @@ function visualise( c, resetBox ) {
 						.domain([0, 100])
 						.range([0, 255]);
 
+	var distScale = d3.scale.linear()
+						.domain([0, 1])
+						.range([0, 100]);
+
 	//create force directed layout
 	var force = d3.layout.force()
 					.nodes(dataset.nodes)
 					.links(dataset.edges)
 					.size([w, h])
-					.linkDistance([100])
+					.linkDistance(function(d) {
+						return distScale(d.value);
+					})
 					.charge([-100])
 					.start();
 
@@ -521,7 +528,7 @@ function getEdges( nodes ) {
 	for( var i = 0; i < nodes.length; i++ ) {
 		for( var j = 0; j < nodes.length; j++ ) {
 			if( clusSim.has( nodes[i].id + "+" + nodes[j].id ) ) {
-				edge = { source: i, target: j };
+				edge = { source: i, target: j, value: clusSim.get( nodes[i].id + "+" + nodes[j].id ) };
 				edges.push( edge );
 			}
 		}	
