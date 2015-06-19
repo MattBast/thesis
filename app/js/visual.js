@@ -356,6 +356,7 @@ function visualise( c, resetBox ) {
 						.domain([0, 100])
 						.range([0, 255]);
 
+	//create force directed layout
 	var force = d3.layout.force()
 					.nodes(dataset.nodes)
 					.links(dataset.edges)
@@ -455,8 +456,6 @@ function visualise( c, resetBox ) {
 				.on("click", function(d, i) {
 					var rowPattern = d.pattern;
 					var totalFrequency = d.frequency;
-					console.log( rowPattern );
-					console.log( totalFrequency );
 
 					//de-highlight all rows
 					d3.selectAll("tr")
@@ -475,6 +474,24 @@ function visualise( c, resetBox ) {
 							return d3.rgb( colourScale( efp ), 0, 0 );
 						})
 						.style("stroke-width", 3);
+
+					nodes.on("mouseover", function(d, i) {
+							var yPos = parseFloat(d3.select("svg").attr("y"));
+							var frequency = getFrequency( d.id );
+
+							var patternFrequency = frequency.get( rowPattern );
+
+							d3.select("#tooltip")
+								.style("left", 0)
+								.style("top", (yPos + 20) + "px")
+								.select("#value")
+								.text( rowPattern + " " + patternFrequency );
+
+							d3.select("#tooltip").classed("hidden", false);
+						})
+						.on("mouseout", function() {
+							d3.select("#tooltip").classed("hidden", true);
+						});
 				});
 
 	tr.append("td")
