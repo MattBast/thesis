@@ -109,3 +109,7 @@ tr:hover {
 tr.highlight:hover {
 	background-color: #98bf21;
 }
+
+#topTenButton.hidden {
+	display: none;
+}

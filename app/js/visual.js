@@ -24,7 +24,6 @@ var total = new Map();
 
 //table search bar
 var box = document.getElementById( "searchBar" );
-var returnButton = document.createElement( "button" );
 
 function upload() {
 	if( fileInput.files.length > 0 ) {
@@ -477,7 +476,7 @@ function visualise( c, resetBox ) {
 
 	d3.select("#searchButton")
 		.on("click", function() {
-			topTenButton();
+			d3.select("#topTenButton").classed("hidden", false);
 			var patKey = document.getElementById( "textInput" ).value;
 
 			var entities = [];
@@ -551,7 +550,68 @@ function visualise( c, resetBox ) {
 				.html(function(d) { return d.frequency; } );
 		});
 
-	d3.select()
+	d3.select("#topTenButton")
+		.on("click", function() {
+			d3.select("#topTenButton").classed("hidden", true);
+			d3.select( "table" ).remove();
+
+			var table = d3.select("body")
+							.append("table");
+
+			createTableHead( table );
+
+			var tr = table.selectAll("tr")
+						.data( sortedTotal )
+						.enter()
+						.append("tr")
+						.on("click", function(d, i) {
+							var rowPattern = d.pattern;
+							var totalFrequency = d.frequency;
+
+							//de-highlight all rows
+							d3.selectAll("tr")
+								.classed("highlight", false);
+
+							//highlight selected row
+							d3.select(this)
+								.classed("highlight", true);
+
+							nodes.transition()
+								.style("stroke", function(d, i) {
+									var frequency = getFrequency( d.id );
+									var ef = frequency.get( rowPattern ); //<-- entity frequency
+									var efp = getPercentage( ef, totalFrequency ); //<-- ef percentage
+									efp = Math.round( efp );
+									return d3.rgb( colourScale( efp ), 50, 50 );
+								})
+								.style("stroke-width", 3);
+
+							nodes.on("mouseover", function(d, i) {
+									var yPos = parseFloat(d3.select("svg").attr("y"));
+									var frequency = getFrequency( d.id );
+
+									var patternFrequency = frequency.get( rowPattern );
+
+									d3.select("#tooltip")
+										.style("left", 0)
+										.style("top", (yPos + 20) + "px")
+										.select("#value")
+										.text( rowPattern + " " + patternFrequency );
+
+										d3.select("#tooltip").classed("hidden", false);
+									})
+									.on("mouseout", function() {
+										d3.select("#tooltip").classed("hidden", true);
+									});
+				});
+
+	tr.append("td")
+		.attr("class", "pattern")
+		.html(function(d) { return d.pattern; } );
+	tr.append("td")
+		.attr("class", "frequency")
+		.html(function(d) { return d.frequency; } );
+		})
 }
 
 function getNodes( c ) {
@@ -700,37 +760,6 @@ function createTableHead( table ) {
 
 	th.append("td").html(function(d) { return d.head; } );
 }
-
-//--------------- unused functions -------------------
-
-
-function topTenButton() {
-	returnButton.addEventListener( "click", originalTable );
-	t = document.createTextNode( "Top 10" );
-	returnButton.appendChild( t );
-	box.appendChild( returnButton );
-}
-
-function originalTable() {
-	box.removeChild( returnButton );
-	table.deleteRow(1);
-
-	for( var i = 0; i < 10; i++ ) {
-		var tr = table.insertRow();
-
-		var column1 = tr.insertCell();
-		column1.appendChild(document.createTextNode( sortedTotal[i].pattern ));
-		column1.style.border = "1px solid black";
-
-		var column2 = tr.insertCell();
-		column2.appendChild(document.createTextNode( sortedTotal[i].frequency ));
-		column2.style.border = "1px solid black";
-
-		tr.addEventListener( "click", clickRow );
-	}
-}
-
-//---------------------------------------------------
 
 Array.prototype.contains = function(obj) {
     var i = this.length + 1;
