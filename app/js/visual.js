@@ -112,7 +112,7 @@ function main() {
 	console.log( "Finished building simTable" );
 
 	//keep clustering the patterns until there are only three clusters
-	while( level[level.length - 1].length > 4 ) {
+	while( level[level.length - 1].length > 1 ) {
 		simTable = addCluster( simTable );
 	}
 
