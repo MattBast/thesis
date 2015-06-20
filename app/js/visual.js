@@ -116,8 +116,8 @@ function main() {
 		simTable = addCluster( simTable );
 	}
 
-	console.log( "Got to top of tree" );
-	visualise( level[ level.length - 2], false );
+	console.log( "Finished clustering" );
+	visualise( level[ level.length - 2] );
 
 	//createTableHead();
 	//frequencyTable( level[ level.length - 2] );
@@ -330,7 +330,7 @@ function mean( num1, num2 ) {
 	return total;
 }
 
-function visualise( c, resetBox ) {
+function visualise( c ) {
 	var n = getNodes( level[ level.length - 1 ] );
 	var e = getEdges( n );
 	dataset = { nodes: n, edges: e };
@@ -343,6 +343,8 @@ function visualise( c, resetBox ) {
 			largestClus = clusLength;
 		}
 	}
+
+	resetButtonBox( n );
 	
 	var w = 500, h = 500;
 
@@ -357,6 +359,8 @@ function visualise( c, resetBox ) {
 	var distScale = d3.scale.linear()
 						.domain([0, 1])
 						.range([0, 200]);
+
+	var colours = d3.scale.category10();
 
 	//create force directed layout
 	var force = d3.layout.force()
@@ -396,7 +400,9 @@ function visualise( c, resetBox ) {
 						d3.select("#tooltip").classed("hidden", true);
 					})
 					.on("click", clickNode )
-					.style("fill", "#ccc")
+					.style("fill", function(d, i) {
+						return colours(i);
+					})
 					.style("stroke", "#000000")
 					//.call(force.drag);
 
@@ -639,6 +645,14 @@ function getEdges( nodes ) {
 		}	
 	}
 	return edges;
+}
+
+function resetButtonBox( nodes ) {
+	var numPats = 0;
+	for( var i = 0; i < nodes.length; i++ ) {
+		numPats += nodes[i].id.split( "-" ).length;
+	}
+	patternsPresent.innerHTML = "Patterns present: " + numPats;
 }
 
 function hover( d, i ) {
