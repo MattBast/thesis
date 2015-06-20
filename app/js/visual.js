@@ -20,7 +20,6 @@ var entity = new Map();
 var patternsPresent = document.getElementById( "patternsPresent" );
 
 //create table tag
-var table = document.createElement("table");
 var total = new Map();
 
 //table search bar
@@ -358,7 +357,7 @@ function visualise( c, resetBox ) {
 
 	var distScale = d3.scale.linear()
 						.domain([0, 1])
-						.range([0, 100]);
+						.range([0, 200]);
 
 	//create force directed layout
 	var force = d3.layout.force()
@@ -393,37 +392,14 @@ function visualise( c, resetBox ) {
 						var length = d.id.split( "-" ).length;
 						return rScale( length );
 					})
-					.on("mouseover", function(d, i) {
-						var yPos = parseFloat(d3.select("svg").attr("y"));
-						var frequency = getFrequency( d.id );
-
-						var topThree = "";
-						var count = 0;
-						for( var key of frequency.keys() ) {
-							count++;
-							topThree += key + " " + frequency.get( key ) + " "; 
-							if( count === 3 ) { break; }
-						}
-
-						d3.select("#tooltip")
-							.style("left", 0)
-							.style("top", (yPos + 20) + "px")
-							.select("#value")
-							.text( topThree );
-
-						d3.select("#tooltip").classed("hidden", false);
-					})
+					.on("mouseover", hover )
 					.on("mouseout", function() {
 						d3.select("#tooltip").classed("hidden", true);
 					})
+					.on("click", clickNode )
 					.style("fill", "#ccc")
 					.style("stroke", "#000000")
-					.call(force.drag);
-
-	nodes.append("text")
-			.attr("dx", 12)
-			.attr("dy", ".35em")
-			.text( function(d) { return d.id; } );
+					//.call(force.drag);
 
 	force.on("tick", function() {
 		links.attr("x1", function(d) { return d.source.x; } )
@@ -440,23 +416,12 @@ function visualise( c, resetBox ) {
 		total = combine( total, getFrequency( c[j] ) );
 	}
 	sortedTotal = sortTotal( total );
-
-	var tableHeads = [
-		{ head: "Pattern"}, 
-		{ head: "Frequency" }
-	];
+	sortedTotal = sortedTotal.splice( 0, 10 );
 
 	var table = d3.select("body")
 					.append("table");
-	var thead = table.append("thead");
-	var tbody = table.append("tbody");
 
-	var th = table.selectAll("th")
-				.data( tableHeads )
-				.enter()
-				.append("th");
-
-	th.append("td").html(function(d) { return d.head; } );
+	createTableHead( table );
 
 	var tr = table.selectAll("tr")
 				.data( sortedTotal )
@@ -509,6 +474,84 @@ function visualise( c, resetBox ) {
 	tr.append("td")
 		.attr("class", "frequency")
 		.html(function(d) { return d.frequency; } );
+
+	d3.select("#searchButton")
+		.on("click", function() {
+			topTenButton();
+			var patKey = document.getElementById( "textInput" ).value;
+
+			var entities = [];
+			for( var value of entity.values() ) {
+				if( value.indexOf( patKey ) != -1 ) {
+					var e = {
+						pattern : value,
+						frequency : total.get( value )
+					};
+					entities.push( e );
+				}
+			}
+
+			d3.select( "table" ).remove();
+
+			var table = d3.select("body")
+					.append("table");
+
+			createTableHead( table );
+
+			var tr = table.selectAll("tr")
+				.data( entities )
+				.enter()
+				.append("tr")
+				.on("click", function(d, i) {
+					var rowPattern = d.pattern;
+					var totalFrequency = d.frequency;
+
+					//de-highlight all rows
+					d3.selectAll("tr")
+						.classed("highlight", false);
+
+					//highlight selected row
+					d3.select(this)
+						.classed("highlight", true);
+
+					nodes.transition()
+						.style("stroke", function(d, i) {
+							var frequency = getFrequency( d.id );
+							var ef = frequency.get( rowPattern ); //<-- entity frequency
+							var efp = getPercentage( ef, totalFrequency ); //<-- ef percentage
+							efp = Math.round( efp );
+							return d3.rgb( colourScale( efp ), 50, 50 );
+						})
+						.style("stroke-width", 3);
+
+					nodes.on("mouseover", function(d, i) {
+							var yPos = parseFloat(d3.select("svg").attr("y"));
+							var frequency = getFrequency( d.id );
+
+							var patternFrequency = frequency.get( rowPattern );
+
+							d3.select("#tooltip")
+								.style("left", 0)
+								.style("top", (yPos + 20) + "px")
+								.select("#value")
+								.text( rowPattern + " " + patternFrequency );
+
+							d3.select("#tooltip").classed("hidden", false);
+						})
+						.on("mouseout", function() {
+							d3.select("#tooltip").classed("hidden", true);
+						});
+				});
+
+			tr.append("td")
+				.attr("class", "pattern")
+				.html(function(d) { return d.pattern; } );
+			tr.append("td")
+				.attr("class", "frequency")
+				.html(function(d) { return d.frequency; } );
+		});
+
+	d3.select()
 }
 
 function getNodes( c ) {
@@ -538,6 +581,47 @@ function getEdges( nodes ) {
 	return edges;
 }
 
+function hover( d, i ) {
+	var yPos = parseFloat(d3.select("svg").attr("y"));
+	var frequency = getFrequency( d.id );
+
+	var topThree = "";
+	var count = 0;
+	for( var key of frequency.keys() ) {
+		count++;
+		topThree += key + " " + frequency.get( key ) + " "; 
+		if( count === 3 ) { break; }
+	}
+
+	d3.select("#tooltip")
+		.style("left", 0)
+		.style("top", (yPos + 20) + "px")
+		.select("#value")
+		.text( topThree );
+
+	d3.select("#tooltip").classed("hidden", false);
+}
+
+function clickNode() {
+	var yPos = parseFloat(d3.select("svg").attr("y"));
+	var text = "";
+	for( var key of frequency.keys() ) {
+		text += key + " " + frequency.get( key ) + " "; 
+	}
+
+	d3.select("#tooltip2")
+		.style("left", 500 + "px")
+		.style("top", (yPos + 20) + "px")
+		.select("#value2")
+		.on("click", function() {
+			d3.select("#tooltip2")
+				.classed("hidden", true);
+		})
+		.text( text );
+
+	d3.select("#tooltip2").classed("hidden", false);
+}
+
 function getFrequency( cluster ) {
 	var patternRefs = cluster.split( "-" );
 	var pat = [];
@@ -563,59 +647,6 @@ function getPercentage( ef, tf ) {
 	if( ef === undefined ) { ef = 0; }
 	ef = Math.round( (ef * 100) / parseInt( tf ) );
 	return ef;
-}
-
-function frequencyTable( c ) {
-	for( var j = 0; j < c.length; j++ ) {
-		total = combine( total, getFrequency( c[j] ) );
-	}
-	sortedTotal = sortTotal( total );
-
-	var tableHeads = [
-		{ head: "Pattern"}, 
-		{ head: "Frequency" }
-	];
-
-	var table = d3.select("body")
-					.append("table");
-	var thead = table.append("thead");
-	var tbody = table.append("tbody");
-
-	var th = table.selectAll("th")
-				.data( tableHeads )
-				.enter()
-				.append("th");
-
-	th.append("td").html(function(d) { return d.head; } );
-
-	var tr = table.selectAll("tr")
-				.data( sortedTotal )
-				.enter()
-				.append("tr")
-				.on("click", function(d, i) {
-					
-					//de-highlight all rows
-					d3.selectAll("tr")
-						.classed("highlight", false);
-
-					//highlight selected row
-					d3.select(this)
-						.classed("highlight", true);
-
-					var nodes = d3.selectAll(".node")
-									.attr("stroke-width", 3)
-									.attr("stroke", "FF0000");
-
-					console.log( nodes );
-
-				});
-
-	tr.append("td")
-		.attr("class", "pattern")
-		.html(function(d) { return d.pattern; } );
-	tr.append("td")
-		.attr("class", "frequency")
-		.html(function(d) { return d.frequency; } );
 }
 
 function combine( f1, f2 ) {
@@ -656,35 +687,22 @@ function sortTotal( total ) {
 	return sortedTotal;
 }
 
-function search() {
-	topTenButton();
-	clearTable();
+function createTableHead( table ) {
+	var tableHeads = [
+		{ head: "Pattern"}, 
+		{ head: "Frequency" }
+	];
 
-	var entity = document.getElementById( "textInput" ).value;
+	var th = table.selectAll("th")
+				.data( tableHeads )
+				.enter()
+				.append("th");
 
-	for( var i = 0; i < sortedTotal.length; i++ ) {
-		var row = sortedTotal[i].pattern;
-		if( row.indexOf( entity ) != -1 ) {
-			var tr = table.insertRow();
-
-			var column1 = tr.insertCell();
-			column1.appendChild(document.createTextNode( sortedTotal[i].pattern ));
-			column1.style.border = "1px solid black";
-
-			var column2 = tr.insertCell();
-			column2.appendChild(document.createTextNode( sortedTotal[i].frequency ));
-			column2.style.border = "1px solid black";
-
-			tr.addEventListener( "click", clickRow );
-		}
-	}
+	th.append("td").html(function(d) { return d.head; } );
 }
 
-function clearTable() {
-	for( var i = table.rows.length - 1; i > 0; i-- ) {
-		table.deleteRow(i);
-	}
-}
+//--------------- unused functions -------------------
+
 
 function topTenButton() {
 	returnButton.addEventListener( "click", originalTable );
@@ -711,6 +729,8 @@ function originalTable() {
 		tr.addEventListener( "click", clickRow );
 	}
 }
+
+//---------------------------------------------------
 
 Array.prototype.contains = function(obj) {
     var i = this.length + 1;

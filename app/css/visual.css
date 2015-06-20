@@ -44,7 +44,26 @@ table {
 	pointer-events: none;
 }
 
+#tooltip2 {
+	position: absolute;
+	width: 250px;
+	height: 500px;
+	padding: 10px;
+	background-color: white;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+	-moz-box-shadow: 4px 4px 4px 10px rgba(0, 0, 0, 0.4);
+	box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+	overflow: scroll; 
+}
+
 #tooltip.hidden {
+	display: none;
+}
+
+#tooltip2.hidden {
 	display: none;
 }
 
@@ -80,5 +99,13 @@ tr {
 }
 
 tr.highlight {
+	background-color: #98bf21;
+}
+
+tr:hover {
+	background-color: #7A991A;
+}
+
+tr.highlight:hover {
 	background-color: #98bf21;
 }
