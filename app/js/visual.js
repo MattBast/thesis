@@ -117,10 +117,7 @@ function main() {
 	}
 
 	console.log( "Finished clustering" );
-	visualise( level[ level.length - 2] );
-
-	//createTableHead();
-	//frequencyTable( level[ level.length - 2] );
+	visualise( level[ level.length - 8] );
 }
 
 function initClusters() { 
@@ -188,7 +185,8 @@ function addToQueue( queue, simTable, newSim ) {
 }
 
 function addCluster( simTable ) {
-	var clusters = level[level.length - 1];
+	var clusters = [];
+	clusters = clusters.concat( level[level.length - 1] );
 	var simClus = priorityQueue[0].split( "+" );
 	simTable.delete( simClus[0] + "+" + simClus[1] );
 
@@ -331,10 +329,9 @@ function mean( num1, num2 ) {
 }
 
 function visualise( c ) {
-	var n = getNodes( level[ level.length - 1 ] );
+	var n = getNodes( c );
 	var e = getEdges( n );
 	dataset = { nodes: n, edges: e };
-	console.log( dataset );
 
 	var largestClus = 0;
 	for( var j = 0; j < n.length; j++ ) {
@@ -404,7 +401,7 @@ function visualise( c ) {
 						return colours(i);
 					})
 					.style("stroke", "#000000")
-					//.call(force.drag);
+					.call(force.drag);
 
 	force.on("tick", function() {
 		links.attr("x1", function(d) { return d.source.x; } )
@@ -624,10 +621,7 @@ function getNodes( c ) {
 	var node;
 	var nodes = [];
 	for( var i = 0; i < c.length; i++ ) {
-		var parents = clusRef.get( c[i] );
-		node = { id: parents[0] };
-		nodes.push( node );
-		node = { id: parents[1] };
+		node = { id: c[i] };
 		nodes.push( node );
 	}
 	return nodes;
