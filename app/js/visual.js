@@ -403,6 +403,8 @@ function visualise( c ) {
 					.style("stroke", "#000000")
 					.call(force.drag);
 
+	breakNode( nodes, dataset );
+
 	force.on("tick", function() {
 		links.attr("x1", function(d) { return d.source.x; } )
 			 .attr("y1", function(d) { return d.source.y; } )
@@ -454,7 +456,6 @@ function visualise( c ) {
 					nodes.on("mouseover", function(d, i) {
 							var yPos = parseFloat(d3.select("svg").attr("y"));
 							var frequency = getFrequency( d.id );
-
 							var patternFrequency = frequency.get( rowPattern );
 
 							d3.select("#tooltip")
@@ -688,6 +689,38 @@ function clickNode() {
 		.text( text );
 
 	d3.select("#tooltip2").classed("hidden", false);
+}
+
+function breakNode( nodes, dataset ) {
+	nodes.on("dblclick", function(d, i) {
+		var n = [];
+		for( var c = 0; c < dataset.nodes.length; c++ ) {
+			n.push( dataset.nodes[c].id );
+		}
+		var parents = clusRef.get( d.id );
+
+		if( parents.length === 0 ) {
+			alert( "This node has no parents" );
+		}
+		else {
+			//cut out old node from datset.nodes
+			for( var i = 0; i < n.length; i++ ) {
+				if( n[i] === d.id ) {
+					n.splice( i, 1 );
+				}
+			}
+			console.log( n );
+
+			//add parents to nodes array
+			for( var j = 0; j < parents.length; j++ ) {
+				n.push( parents[j] );
+			}
+			console.log( n );
+			dataset.nodes = getNodes( n );
+			dataset.edges = getEdges( dataset.nodes );
+			console.log( dataset );
+		}
+	});
 }
 
 function getFrequency( cluster ) {
