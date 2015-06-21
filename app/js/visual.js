@@ -709,16 +709,16 @@ function breakNode( nodes, dataset ) {
 					n.splice( i, 1 );
 				}
 			}
-			console.log( n );
 
 			//add parents to nodes array
-			for( var j = 0; j < parents.length; j++ ) {
-				n.push( parents[j] );
-			}
-			console.log( n );
+			n.push( parents[0] );
+			n.push( parents[1] );
+
+			//create new dataset
 			dataset.nodes = getNodes( n );
 			dataset.edges = getEdges( dataset.nodes );
 			console.log( dataset );
+
 		}
 	});
 }
