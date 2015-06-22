@@ -380,7 +380,7 @@ function visualise( c ) {
 					.enter()
 					.append("line")
 					.attr("class", "link")
-					.style("stroke", "#000000")
+					.style("stroke", d3.rgb( 0, 0, 0 ) )
 					.style("stroke-width", 3);
 
 	var nodes = svg.selectAll("circle")
@@ -452,6 +452,32 @@ function visualise( c ) {
 					.charge([-100])
 					.start();
 
+			//recreate surviving links and nodes
+			svg.selectAll("line")
+					.data(dataset.edges)
+					.attr("class", "link")
+					.style("stroke", "#000000")
+					.style("stroke-width", 3);
+
+			svg.selectAll("circle")
+					.data(dataset.nodes)
+					.attr("class", "node")
+					.attr("r", function(d) {
+						var length = d.id.split( "-" ).length;
+						return rScale( length );
+					})
+					.on("mouseover", hover )
+					.on("mouseout", function() {
+						d3.select("#tooltip").classed("hidden", true);
+					})
+					.on("click", clickNode )
+					.style("fill", function(d, i) {
+						return colours(i);
+					})
+					.style("stroke", "#000000")
+					.call(force.drag);
+
+			//create new links and nodes where needed
 			svg.selectAll("line")
 					.data(dataset.edges)
 					.enter()
@@ -477,7 +503,8 @@ function visualise( c ) {
 					.style("fill", function(d, i) {
 						return colours(i);
 					})
-					.style("stroke", "#000000");
+					.style("stroke", "#000000")
+					.call(force.drag);
 
 			force.on("tick", function() {
 				links.attr("x1", function(d) { return d.source.x; } )
