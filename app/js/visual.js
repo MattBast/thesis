@@ -454,12 +454,16 @@ function visualise( c ) {
 
 			svg.selectAll("line")
 					.data(dataset.edges)
+					.enter()
+					.append("line")
 					.attr("class", "link")
 					.style("stroke", "#000000")
 					.style("stroke-width", 3);
 
 			svg.selectAll("circle")
 					.data(dataset.nodes)
+					.enter()
+					.append("circle")
 					.attr("class", "node")
 					.attr("r", function(d) {
 						var length = d.id.split( "-" ).length;
@@ -487,7 +491,7 @@ function visualise( c ) {
 		}
 	});
 
-	//create table
+	//----------------- create table -----------------------
 	for( var j = 0; j < c.length; j++ ) {
 		total = combine( total, getFrequency( c[j] ) );
 	}
@@ -541,6 +545,9 @@ function visualise( c ) {
 						.on("mouseout", function() {
 							d3.select("#tooltip").classed("hidden", true);
 						});
+
+						//deselect row button
+						d3.select("#deselect").classed("hidden", false);
 				});
 
 	tr.append("td")
@@ -615,7 +622,10 @@ function visualise( c ) {
 						})
 						.on("mouseout", function() {
 							d3.select("#tooltip").classed("hidden", true);
-						});
+					});
+
+					//deselect row button
+					d3.select("#deselect").classed("hidden", false);
 				});
 
 			tr.append("td")
@@ -663,31 +673,51 @@ function visualise( c ) {
 								.style("stroke-width", 3);
 
 							nodes.on("mouseover", function(d, i) {
-									var yPos = parseFloat(d3.select("svg").attr("y"));
-									var frequency = getFrequency( d.id );
+								var yPos = parseFloat(d3.select("svg").attr("y"));
+								var frequency = getFrequency( d.id );
 
-									var patternFrequency = frequency.get( rowPattern );
+								var patternFrequency = frequency.get( rowPattern );
 
-									d3.select("#tooltip")
-										.style("left", 0)
-										.style("top", (yPos + 20) + "px")
-										.select("#value")
-										.text( rowPattern + " " + patternFrequency );
+								d3.select("#tooltip")
+									.style("left", 0)
+									.style("top", (yPos + 20) + "px")
+									.select("#value")
+									.text( rowPattern + " " + patternFrequency );
 
-										d3.select("#tooltip").classed("hidden", false);
-									})
-									.on("mouseout", function() {
-										d3.select("#tooltip").classed("hidden", true);
-									});
+									d3.select("#tooltip").classed("hidden", false);
+								})
+								.on("mouseout", function() {
+									d3.select("#tooltip").classed("hidden", true);
+								});
+
+							//deselect row button
+							d3.select("#deselect").classed("hidden", false);
 				});
 
-	tr.append("td")
-		.attr("class", "pattern")
-		.html(function(d) { return d.pattern; } );
-	tr.append("td")
-		.attr("class", "frequency")
-		.html(function(d) { return d.frequency; } );
+			tr.append("td")
+				.attr("class", "pattern")
+				.html(function(d) { return d.pattern; } );
+			tr.append("td")
+				.attr("class", "frequency")
+				.html(function(d) { return d.frequency; } );
 		})
+
+	d3.select("#deselect")
+		.on("click", function() {
+			d3.select("#deselect").classed("hidden", true);
+
+			//de-highlight all rows
+			d3.selectAll("tr")
+				.classed("highlight", false);
+
+			//reset colour of nodes stroke
+			nodes.transition()
+				.style("stroke", d3.rgb( 0, 0, 0 ) )
+				.style("stroke-width", 1);
+
+			//reset tooltip to top ten
+			nodes.on("mouseover", hover);
+		});
 }
 
 function getNodes( c ) {

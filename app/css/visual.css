@@ -11,6 +11,10 @@ div {
 	margin-top: 2%;
 }
 
+#patternCount {
+	margin-top: 2%;
+}
+
 #searchBar {
 	margin-top: 2%;
 	margin-bottom: 2%;
@@ -81,6 +85,7 @@ table {
 	margin-right: 15%;
 	width: 70%;
 	height: 50%;
+	z-index: -1;
 }
 
 .node {
@@ -111,5 +116,9 @@ tr.highlight:hover {
 }
 
 #topTenButton.hidden {
+	display: none;
+}
+
+#deselect.hidden {
 	display: none;
 }
