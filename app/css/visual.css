@@ -88,14 +88,15 @@ table {
 	z-index: -1;
 }
 
-.node {
-  fill: #000;
-  stroke: #000000;
-  stroke-width: 1.5px;
+.link {
+	stroke: #000;
+	stroke-width: 1.5px;
 }
 
-.link {
-	stroke: #000000;
+.node {
+  	fill: #000;
+  	stroke: #000000;
+  	stroke-width: 1.5px;
 }
 
 tr {

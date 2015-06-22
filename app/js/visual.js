@@ -25,6 +25,9 @@ var total = new Map();
 //table search bar
 var box = document.getElementById( "searchBar" );
 
+//force diagram components
+var nodes = [], links = [];
+
 function upload() {
 	if( fileInput.files.length > 0 ) {
 
@@ -375,46 +378,40 @@ function visualise( c ) {
 				.attr("width", w)
 				.attr("height", h);
 
-	var links = svg.selectAll("line")
-					.data(dataset.edges)
-					.enter()
-					.append("line")
-					.attr("class", "link")
-					.style("stroke", d3.rgb( 0, 0, 0 ) )
-					.style("stroke-width", 3);
+	links = svg.selectAll(".link")
+				.data(dataset.edges)
+				.enter()
+				.append("line")
+				.attr("class", "link")
+				.style("stroke", "#000")
+				.style("stroke-width", 3);
 
-	var nodes = svg.selectAll("circle")
-					.data(dataset.nodes)
-					.enter()
-					.append("circle")
-					.attr("class", "node")
-					.attr("r", function(d) {
-						var length = d.id.split( "-" ).length;
-						return rScale( length );
-					})
-					.on("mouseover", hover )
-					.on("mouseout", function() {
-						d3.select("#tooltip").classed("hidden", true);
-					})
-					.on("click", clickNode )
-					.style("fill", function(d, i) {
-						return colours(i);
-					})
-					.style("stroke", "#000000")
-					.call(force.drag);
+	nodes = svg.selectAll("circle")
+				.data(dataset.nodes)
+				.enter()
+				.append("circle")
+				.attr("class", "node")
+				.attr("r", function(d) {
+					var length = d.id.split( "-" ).length;
+					return rScale( length );
+				})
+				.on("mouseover", hover )
+				.on("mouseout", function() {
+					d3.select("#tooltip").classed("hidden", true);
+				})
+				.on("click", clickNode )
+				.style("fill", function(d, i) {
+					return colours(i);
+				})
+				.style("stroke", "#000000")
+				.call(force.drag);
 
-	force.on("tick", function() {
-		links.attr("x1", function(d) { return d.source.x; } )
-			 .attr("y1", function(d) { return d.source.y; } )
-			 .attr("x2", function(d) { return d.source.x; } )
-			 .attr("y2", function(d) { return d.source.y; } );
-
-		nodes.attr("cx", function(d) { return d.x; } )
-			 .attr("cy", function(d) { return d.y; } );
-	});
+	force.on("tick", tick );
 
 	//break a node in two
 	nodes.on("dblclick", function(d, i) {
+		var splitColor = colours(i);
+
 		var n = [];
 		for( var c = 0; c < dataset.nodes.length; c++ ) {
 			n.push( dataset.nodes[c].id );
@@ -431,10 +428,6 @@ function visualise( c ) {
 					n.splice( i, 1 );
 				}
 			}
-
-			//add parents to nodes array
-			n.push( parents[0] );
-			n.push( parents[1] );
 
 			//create new dataset
 			dataset.nodes = getNodes( n );
@@ -471,11 +464,12 @@ function visualise( c ) {
 						d3.select("#tooltip").classed("hidden", true);
 					})
 					.on("click", clickNode )
-					.style("fill", function(d, i) {
-						return colours(i);
-					})
 					.style("stroke", "#000000")
 					.call(force.drag);
+
+			//add parents to nodes array
+			n.push( parents[0] );
+			n.push( parents[1] );
 
 			//create new links and nodes where needed
 			svg.selectAll("line")
@@ -500,21 +494,11 @@ function visualise( c ) {
 						d3.select("#tooltip").classed("hidden", true);
 					})
 					.on("click", clickNode )
-					.style("fill", function(d, i) {
-						return colours(i);
-					})
+					.style("fill", splitColor)
 					.style("stroke", "#000000")
 					.call(force.drag);
 
-			force.on("tick", function() {
-				links.attr("x1", function(d) { return d.source.x; } )
-				 	.attr("y1", function(d) { return d.source.y; } )
-				 	.attr("x2", function(d) { return d.source.x; } )
-			 		.attr("y2", function(d) { return d.source.y; } );
-	
-				nodes.attr("cx", function(d) { return d.x; } )
-					 .attr("cy", function(d) { return d.y; } );
-			});
+			force.on("tick", tick );
 		}
 	});
 
@@ -769,6 +753,16 @@ function getEdges( nodes ) {
 		}	
 	}
 	return edges;
+}
+
+function tick() {
+	links.attr("x1", function(d) { return d.source.x; } )
+		.attr("y1", function(d) { return d.source.y; } )
+		.attr("x2", function(d) { return d.source.x; } )
+		.attr("y2", function(d) { return d.source.y; } );
+	
+	nodes.attr("cx", function(d) { return d.x; } )
+		.attr("cy", function(d) { return d.y; } );
 }
 
 function resetButtonBox( nodes ) {
