@@ -11,6 +11,10 @@ div {
 	margin-top: 2%;
 }
 
+#patternCount {
+	margin-top: 2%;
+}
+
 #searchBar {
 	margin-top: 2%;
 	margin-bottom: 2%;
@@ -44,7 +48,26 @@ table {
 	pointer-events: none;
 }
 
+#tooltip2 {
+	position: absolute;
+	width: 250px;
+	height: 500px;
+	padding: 10px;
+	background-color: white;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+	-moz-box-shadow: 4px 4px 4px 10px rgba(0, 0, 0, 0.4);
+	box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+	overflow: scroll; 
+}
+
 #tooltip.hidden {
+	display: none;
+}
+
+#tooltip2.hidden {
 	display: none;
 }
 
@@ -62,4 +85,41 @@ table {
 	margin-right: 15%;
 	width: 70%;
 	height: 50%;
+	z-index: -1;
+}
+
+.link {
+	stroke: #000;
+	stroke-width: 1.5px;
+}
+
+.node {
+  	fill: #000;
+  	stroke: #000000;
+  	stroke-width: 1.5px;
+}
+
+tr {
+	transition: 0.5s;
+	-webkit-transition: 0.5s;
+}
+
+tr.highlight {
+	background-color: #98bf21;
+}
+
+tr:hover {
+	background-color: #7A991A;
+}
+
+tr.highlight:hover {
+	background-color: #98bf21;
+}
+
+#topTenButton.hidden {
+	display: none;
+}
+
+#deselect.hidden {
+	display: none;
 }
