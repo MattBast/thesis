@@ -27,6 +27,11 @@ var box = document.getElementById( "searchBar" );
 
 //force diagram components
 var nodes = [], links = [];
+var w = 500, h = 500;
+var svg = d3.select("#visual")
+			.append("svg")
+			.attr("width", w)
+			.attr("height", h);
 
 function upload() {
 	if( fileInput.files.length > 0 ) {
@@ -331,36 +336,24 @@ function mean( num1, num2 ) {
 	return total;
 }
 
-function visualise( c ) {
-	var n = getNodes( c );
+function visualise( clusters ) {
+	var n = getNodes( clusters );
 	var e = getEdges( n );
 	dataset = { nodes: n, edges: e };
 
-	var largestClus = 0;
-	for( var j = 0; j < n.length; j++ ) {
-		var clusLength = n[j].id.split( "-" ).length;
-		if( clusLength > largestClus ) {
-			largestClus = clusLength;
-		}
-	}
+	var largestClus = getLargestCluster( n );
 
 	resetButtonBox( n );
 	
-	var w = 500, h = 500;
-
+	//determines size of nodes
 	var rScale = d3.scale.linear()
 				.domain([ 0, largestClus ])
 				.range([10, 50]);
 
-	var colourScale = d3.scale.linear()
-						.domain([0, 100])
-						.range([100, 255]);
-
+	//scales Jaccard similarity to new distance measure
 	var distScale = d3.scale.linear()
 						.domain([0, 1])
 						.range([0, 200]);
-
-	var colours = d3.scale.category10();
 
 	//create force directed layout
 	var force = d3.layout.force()
@@ -373,287 +366,43 @@ function visualise( c ) {
 					.charge([-100])
 					.start();
 
-	var svg = d3.select("#visual")
-				.append("svg")
-				.attr("width", w)
-				.attr("height", h);
+	//draw a line for every element in edges array
+	links = drawLinks( dataset.edges );
 
-	links = svg.selectAll(".link")
-				.data(dataset.edges)
-				.enter()
-				.append("line")
-				.attr("class", "link")
-				.style("stroke", "#000")
-				.style("stroke-width", 3);
+	//draw a node for every element in nodes array
+	nodes = drawNodes( dataset.nodes, rScale );
 
-	nodes = svg.selectAll("circle")
-				.data(dataset.nodes)
-				.enter()
-				.append("circle")
-				.attr("class", "node")
-				.attr("r", function(d) {
-					var length = d.id.split( "-" ).length;
-					return rScale( length );
-				})
-				.on("mouseover", hover )
-				.on("mouseout", function() {
-					d3.select("#tooltip").classed("hidden", true);
-				})
-				.on("click", clickNode )
-				.style("fill", function(d, i) {
-					return colours(i);
-				})
-				.style("stroke", "#000000")
-				.call(force.drag);
-
-	force.on("tick", tick );
-
-	//break a node in two
-	nodes.on("dblclick", function(d, i) {
-		var splitColor = colours(i);
-
-		var n = [];
-		for( var c = 0; c < dataset.nodes.length; c++ ) {
-			n.push( dataset.nodes[c].id );
-		}
-		var parents = clusRef.get( d.id );
-
-		if( parents.length === 0 ) {
-			alert( "This node has no parents" );
-		}
-		else {
-			//cut out old node from datset.nodes
-			for( var i = 0; i < n.length; i++ ) {
-				if( n[i] === d.id ) {
-					n.splice( i, 1 );
-				}
-			}
-
-			//create new dataset
-			dataset.nodes = getNodes( n );
-			dataset.edges = getEdges( dataset.nodes );
-			console.log( dataset );
-
-			//create force directed layout
-			var force = d3.layout.force()
-					.nodes(dataset.nodes)
-					.links(dataset.edges)
-					.size([w, h])
-					.linkDistance(function(d) {
-						return distScale(d.value);
-					})
-					.charge([-100])
-					.start();
-
-			//recreate surviving links and nodes
-			svg.selectAll("line")
-					.data(dataset.edges)
-					.attr("class", "link")
-					.style("stroke", "#000000")
-					.style("stroke-width", 3);
-
-			svg.selectAll("circle")
-					.data(dataset.nodes)
-					.attr("class", "node")
-					.attr("r", function(d) {
-						var length = d.id.split( "-" ).length;
-						return rScale( length );
-					})
-					.on("mouseover", hover )
-					.on("mouseout", function() {
-						d3.select("#tooltip").classed("hidden", true);
-					})
-					.on("click", clickNode )
-					.style("stroke", "#000000")
-					.call(force.drag);
-
-			//add parents to nodes array
-			n.push( parents[0] );
-			n.push( parents[1] );
-
-			//create new links and nodes where needed
-			svg.selectAll("line")
-					.data(dataset.edges)
-					.enter()
-					.append("line")
-					.attr("class", "link")
-					.style("stroke", "#000000")
-					.style("stroke-width", 3);
-
-			svg.selectAll("circle")
-					.data(dataset.nodes)
-					.enter()
-					.append("circle")
-					.attr("class", "node")
-					.attr("r", function(d) {
-						var length = d.id.split( "-" ).length;
-						return rScale( length );
-					})
-					.on("mouseover", hover )
-					.on("mouseout", function() {
-						d3.select("#tooltip").classed("hidden", true);
-					})
-					.on("click", clickNode )
-					.style("fill", splitColor)
-					.style("stroke", "#000000")
-					.call(force.drag);
-
-			force.on("tick", tick );
-		}
-	});
-
+	//calculates x and y coordinates of every element
+	force.on("tick", tick ); 
+	
 	//----------------- create table -----------------------
-	for( var j = 0; j < c.length; j++ ) {
-		total = combine( total, getFrequency( c[j] ) );
-	}
-	sortedTotal = sortTotal( total );
+	var sortedTotal = getSortedTotal( clusters );
 	sortedTotal = sortedTotal.splice( 0, 10 );
 
-	var table = d3.select("body")
-					.append("table");
+	var table = d3.select("body").append("table");
 
 	createTableHead( table );
 
+	//create rows for the table
 	var tr = table.selectAll("tr")
 				.data( sortedTotal )
 				.enter()
 				.append("tr")
-				.on("click", function(d, i) {
-					var rowPattern = d.pattern;
-					var totalFrequency = d.frequency;
+				.on("click", clickRow );
 
-					//de-highlight all rows
-					d3.selectAll("tr")
-						.classed("highlight", false);
+	//put data in the cells on each row of the table
+	putDataInRows( tr );
 
-					//highlight selected row
-					d3.select(this)
-						.classed("highlight", true);
+	//search table for entities
+	d3.select("#searchButton").on("click", searchTable );
 
-					nodes.transition()
-						.style("stroke", function(d, i) {
-							var frequency = getFrequency( d.id );
-							var ef = frequency.get( rowPattern ); //<-- entity frequency
-							var efp = getPercentage( ef, totalFrequency ); //<-- ef percentage
-							efp = Math.round( efp );
-							return d3.rgb( colourScale( efp ), 50, 50 );
-						})
-						.style("stroke-width", 3);
-
-					nodes.on("mouseover", function(d, i) {
-							var yPos = parseFloat(d3.select("svg").attr("y"));
-							var frequency = getFrequency( d.id );
-							var patternFrequency = frequency.get( rowPattern );
-
-							d3.select("#tooltip")
-								.style("left", 0)
-								.style("top", (yPos + 20) + "px")
-								.select("#value")
-								.text( rowPattern + " " + patternFrequency );
-
-							d3.select("#tooltip").classed("hidden", false);
-						})
-						.on("mouseout", function() {
-							d3.select("#tooltip").classed("hidden", true);
-						});
-
-						//deselect row button
-						d3.select("#deselect").classed("hidden", false);
-				});
-
-	tr.append("td")
-		.attr("class", "pattern")
-		.html(function(d) { return d.pattern; } );
-	tr.append("td")
-		.attr("class", "frequency")
-		.html(function(d) { return d.frequency; } );
-
-	d3.select("#searchButton")
-		.on("click", function() {
-			d3.select("#topTenButton").classed("hidden", false);
-			var patKey = document.getElementById( "textInput" ).value;
-
-			var entities = [];
-			for( var value of entity.values() ) {
-				if( value.indexOf( patKey ) != -1 ) {
-					var e = {
-						pattern : value,
-						frequency : total.get( value )
-					};
-					entities.push( e );
-				}
-			}
-
-			d3.select( "table" ).remove();
-
-			var table = d3.select("body")
-					.append("table");
-
-			createTableHead( table );
-
-			var tr = table.selectAll("tr")
-				.data( entities )
-				.enter()
-				.append("tr")
-				.on("click", function(d, i) {
-					var rowPattern = d.pattern;
-					var totalFrequency = d.frequency;
-
-					//de-highlight all rows
-					d3.selectAll("tr")
-						.classed("highlight", false);
-
-					//highlight selected row
-					d3.select(this)
-						.classed("highlight", true);
-
-					nodes.transition()
-						.style("stroke", function(d, i) {
-							var frequency = getFrequency( d.id );
-							var ef = frequency.get( rowPattern ); //<-- entity frequency
-							var efp = getPercentage( ef, totalFrequency ); //<-- ef percentage
-							efp = Math.round( efp );
-							return d3.rgb( colourScale( efp ), 50, 50 );
-						})
-						.style("stroke-width", 3);
-
-					nodes.on("mouseover", function(d, i) {
-							var yPos = parseFloat(d3.select("svg").attr("y"));
-							var frequency = getFrequency( d.id );
-
-							var patternFrequency = frequency.get( rowPattern );
-
-							d3.select("#tooltip")
-								.style("left", 0)
-								.style("top", (yPos + 20) + "px")
-								.select("#value")
-								.text( rowPattern + " " + patternFrequency );
-
-							d3.select("#tooltip").classed("hidden", false);
-						})
-						.on("mouseout", function() {
-							d3.select("#tooltip").classed("hidden", true);
-					});
-
-					//deselect row button
-					d3.select("#deselect").classed("hidden", false);
-				});
-
-			tr.append("td")
-				.attr("class", "pattern")
-				.html(function(d) { return d.pattern; } );
-			tr.append("td")
-				.attr("class", "frequency")
-				.html(function(d) { return d.frequency; } );
-		});
-
+	//return table to original state
 	d3.select("#topTenButton")
 		.on("click", function() {
 			d3.select("#topTenButton").classed("hidden", true);
 			d3.select( "table" ).remove();
 
-			var table = d3.select("body")
-							.append("table");
+			table = d3.select("body").append("table");
 
 			createTableHead( table );
 
@@ -661,74 +410,15 @@ function visualise( c ) {
 						.data( sortedTotal )
 						.enter()
 						.append("tr")
-						.on("click", function(d, i) {
-							var rowPattern = d.pattern;
-							var totalFrequency = d.frequency;
+						.on("click", clickRow );
 
-							//de-highlight all rows
-							d3.selectAll("tr")
-								.classed("highlight", false);
-
-							//highlight selected row
-							d3.select(this)
-								.classed("highlight", true);
-
-							nodes.transition()
-								.style("stroke", function(d, i) {
-									var frequency = getFrequency( d.id );
-									var ef = frequency.get( rowPattern ); //<-- entity frequency
-									var efp = getPercentage( ef, totalFrequency ); //<-- ef percentage
-									efp = Math.round( efp );
-									return d3.rgb( colourScale( efp ), 50, 50 );
-								})
-								.style("stroke-width", 3);
-
-							nodes.on("mouseover", function(d, i) {
-								var yPos = parseFloat(d3.select("svg").attr("y"));
-								var frequency = getFrequency( d.id );
-
-								var patternFrequency = frequency.get( rowPattern );
-
-								d3.select("#tooltip")
-									.style("left", 0)
-									.style("top", (yPos + 20) + "px")
-									.select("#value")
-									.text( rowPattern + " " + patternFrequency );
-
-									d3.select("#tooltip").classed("hidden", false);
-								})
-								.on("mouseout", function() {
-									d3.select("#tooltip").classed("hidden", true);
-								});
-
-							//deselect row button
-							d3.select("#deselect").classed("hidden", false);
-				});
-
-			tr.append("td")
-				.attr("class", "pattern")
-				.html(function(d) { return d.pattern; } );
-			tr.append("td")
-				.attr("class", "frequency")
-				.html(function(d) { return d.frequency; } );
+			//put data in the cells on each row of the table
+			putDataInRows( tr );
 		})
 
+	//deselect rows and return nodes stroke to black
 	d3.select("#deselect")
-		.on("click", function() {
-			d3.select("#deselect").classed("hidden", true);
-
-			//de-highlight all rows
-			d3.selectAll("tr")
-				.classed("highlight", false);
-
-			//reset colour of nodes stroke
-			nodes.transition()
-				.style("stroke", d3.rgb( 0, 0, 0 ) )
-				.style("stroke-width", 1);
-
-			//reset tooltip to top ten
-			nodes.on("mouseover", hover);
-		});
+		.on("click", deselectRows );
 }
 
 function getNodes( c ) {
@@ -755,14 +445,15 @@ function getEdges( nodes ) {
 	return edges;
 }
 
-function tick() {
-	links.attr("x1", function(d) { return d.source.x; } )
-		.attr("y1", function(d) { return d.source.y; } )
-		.attr("x2", function(d) { return d.source.x; } )
-		.attr("y2", function(d) { return d.source.y; } );
-	
-	nodes.attr("cx", function(d) { return d.x; } )
-		.attr("cy", function(d) { return d.y; } );
+function getLargestCluster( nodes ) {
+	var largestClus = 0;
+		for( var j = 0; j < nodes.length; j++ ) {
+			var clusLength = nodes[j].id.split( "-" ).length;
+			if( clusLength > largestClus ) {
+				largestClus = clusLength;
+		}
+	}
+	return largestClus;
 }
 
 function resetButtonBox( nodes ) {
@@ -771,6 +462,38 @@ function resetButtonBox( nodes ) {
 		numPats += nodes[i].id.split( "-" ).length;
 	}
 	patternsPresent.innerHTML = "Patterns present: " + numPats;
+}
+
+function drawLinks( dataEdges ) {
+	var links = svg.selectAll(".link")
+		.data(dataEdges)
+		.enter()
+		.append("line")
+		.attr("class", "link");
+
+	return links;
+}
+
+function drawNodes( dataNodes, rScale ) {
+	var colours = d3.scale.category10(); //<-- array on hex colours
+
+	var nodes = svg.selectAll(".node")
+				.data(dataNodes)
+				.enter()
+				.append("circle")
+				.attr("class", "node")
+				.attr("r", function(d) {
+					var length = d.id.split( "-" ).length;
+					return rScale( length );
+				})
+				.on("mouseover", hover )
+				.on("mouseout", hideTooltip )
+				.on("click", clickNode )
+				.style("fill", function(d, i) {
+					return colours(i);
+				});
+
+	return nodes;
 }
 
 function hover( d, i ) {
@@ -794,6 +517,10 @@ function hover( d, i ) {
 	d3.select("#tooltip").classed("hidden", false);
 }
 
+function hideTooltip() {
+	d3.select("#tooltip").classed("hidden", true);
+}
+
 function clickNode() {
 	var yPos = parseFloat(d3.select("svg").attr("y"));
 	var text = "";
@@ -812,6 +539,24 @@ function clickNode() {
 		.text( text );
 
 	d3.select("#tooltip2").classed("hidden", false);
+}
+
+function tick() {
+	links.attr("x1", function(d) { return d.source.x; } )
+		.attr("y1", function(d) { return d.source.y; } )
+		.attr("x2", function(d) { return d.source.x; } )
+		.attr("y2", function(d) { return d.source.y; } );
+	
+	nodes.attr("cx", function(d) { return d.x; } )
+		.attr("cy", function(d) { return d.y; } );
+}
+
+function getSortedTotal( clusters ) {
+	for( var j = 0; j < clusters.length; j++ ) {
+		total = combine( total, getFrequency( clusters[j] ) );
+	}
+	var sortedTotal = sortTotal( total );
+	return sortedTotal;
 }
 
 function getFrequency( cluster ) {
@@ -881,7 +626,7 @@ function sortTotal( total ) {
 
 function createTableHead( table ) {
 	var tableHeads = [
-		{ head: "Pattern"}, 
+		{ head: "Entity"}, 
 		{ head: "Frequency" }
 	];
 
@@ -891,6 +636,108 @@ function createTableHead( table ) {
 				.append("th");
 
 	th.append("td").html(function(d) { return d.head; } );
+}
+
+function clickRow(d, i) {
+	//determines intensity of red
+	var colourScale = d3.scale.linear()
+		.domain([0, 100])
+		.range([100, 255]);
+
+	var rowPattern = d.pattern;
+	var totalFrequency = d.frequency;
+
+	//de-highlight all rows
+	d3.selectAll("tr").classed("highlight", false);
+
+	//highlight selected row
+	d3.select(this).classed("highlight", true);
+
+	nodes.transition()
+		.style("stroke", function(d, i) {
+			var frequency = getFrequency( d.id );
+			var ef = frequency.get( rowPattern ); //<-- entity frequency
+			var efp = getPercentage( ef, totalFrequency ); //<-- ef percentage
+			efp = Math.round( efp );
+			return d3.rgb( colourScale( efp ), 50, 50 );
+		})
+		.style("stroke-width", 3);
+
+	nodes.on("mouseover", function(d, i) {
+		var yPos = parseFloat(d3.select("svg").attr("y"));
+		var frequency = getFrequency( d.id );
+
+	var patternFrequency = frequency.get( rowPattern );
+
+	d3.select("#tooltip")
+		.style("left", 0)
+		.style("top", (yPos + 20) + "px")
+		.select("#value")
+		.text( rowPattern + " " + patternFrequency );
+
+		d3.select("#tooltip").classed("hidden", false);
+	})
+	.on("mouseout", function() {
+		d3.select("#tooltip").classed("hidden", true);
+	});
+
+	//deselect row button
+	d3.select("#deselect").classed("hidden", false);
+}
+
+function putDataInRows( tr ) {
+	tr.append("td")
+		.attr("class", "pattern")
+		.html(function(d) { return d.pattern; } );
+	tr.append("td")
+		.attr("class", "frequency")
+		.html(function(d) { return d.frequency; } );
+}
+
+function searchTable() {
+	d3.select("#topTenButton").classed("hidden", false);
+	var patKey = document.getElementById( "textInput" ).value;
+
+	var entities = [];
+	for( var value of entity.values() ) {
+		if( value.indexOf( patKey ) != -1 ) {
+			var e = {
+				pattern : value,
+				frequency : total.get( value )
+			};
+			entities.push( e );
+		}
+	}
+
+	d3.select( "table" ).remove();
+
+	table = d3.select("body").append("table");
+
+	createTableHead( table );
+
+	var tr = table.selectAll("tr")
+		.data( entities )
+		.enter()
+		.append("tr")
+		.on("click", clickRow );
+
+	//put data in the cells on each row of the table
+	putDataInRows( tr );
+}
+
+function deselectRows() {
+	d3.select("#deselect").classed("hidden", true);
+
+	//de-highlight all rows
+	d3.selectAll("tr").classed("highlight", false);
+
+	//reset colour of nodes stroke
+	nodes.transition()
+		.style("stroke", d3.rgb( 0, 0, 0 ) )
+		.style("stroke-width", 1);
+
+	//reset tooltip to top ten
+	nodes.on("mouseover", hover);
 }
 
 Array.prototype.contains = function(obj) {
