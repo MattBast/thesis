@@ -27,11 +27,26 @@ var box = document.getElementById( "searchBar" );
 
 //force diagram components
 var nodes = [], links = [];
-var w = 500, h = 500;
+var visDiv = document.getElementById("visual");
+var w = visDiv.clientWidth, h = 500;
 var svg = d3.select("#visual")
 			.append("svg")
 			.attr("width", w)
 			.attr("height", h);
+
+//the classes of the buttons corresponding to the node groupings
+var buttons = [ 
+		"one",
+		"two",
+		"three",
+		"four",
+		"five",
+		"six",
+		"seven",
+		"eight",
+		"nine",
+		"ten"
+	];
 
 function upload() {
 	if( fileInput.files.length > 0 ) {
@@ -337,6 +352,8 @@ function mean( num1, num2 ) {
 }
 
 function visualise( clusters ) {
+	groupButtons();
+
 	var n = getNodes( clusters );
 	var e = getEdges( n );
 	dataset = { nodes: n, edges: e };
@@ -421,6 +438,38 @@ function visualise( clusters ) {
 		.on("click", deselectRows );
 }
 
+function groupButtons() {
+	var colours = d3.scale.category10(); //<-- array on hex colours
+	var circle = svg.selectAll("circle");
+
+	circle.data(buttons)
+		.enter()
+		.append("circle")
+		.attr("r", 8)
+		.attr("cx", function(d, i) {
+			return (w - 20) - (i * 20);
+		})
+		.attr("cy", 20 )
+		.attr("class", function(d) {
+			return d;
+		})
+		.on("mouseover", function(d, i) {
+			var buttonClass = buttons[i];
+
+			d3.selectAll("." + buttonClass)
+				.style("stroke-width", 5)
+				.style("stroke", "#FFCC00");
+
+		})
+		.on("mouseout", function(d, i) {
+			var buttonClass = buttons[i];
+
+			d3.selectAll("." + buttonClass)
+				.style("stroke-width", 1.5)
+				.style("stroke", "#000000");
+		});
+}
+
 function getNodes( c ) {
 	var node;
 	var nodes = [];
@@ -481,17 +530,16 @@ function drawNodes( dataNodes, rScale ) {
 				.data(dataNodes)
 				.enter()
 				.append("circle")
-				.attr("class", "node")
+				.attr("class", function(d, i) {
+					return buttons[i];
+				})
 				.attr("r", function(d) {
 					var length = d.id.split( "-" ).length;
 					return rScale( length );
 				})
 				.on("mouseover", hover )
 				.on("mouseout", hideTooltip )
-				.on("click", clickNode )
-				.style("fill", function(d, i) {
-					return colours(i);
-				});
+				.on("click", clickNode );
 
 	return nodes;
 }
