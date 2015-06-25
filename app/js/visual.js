@@ -364,14 +364,16 @@ function getNumOfGroups() {
 }
 
 function visualise( clusters ) {
-	groupButtons();
-
+	//build dataset
 	var originalNodes = getNodes( clusters );
 	var n = getMoreNodes( originalNodes );
 	var e = getEdges( n );
 	dataset = { nodes: n, edges: e };
 
 	var largestClus = getLargestCluster( n );
+
+	//for highlighting and selecting colour groups of nodes
+	groupButtons( dataset, largestClus ); 
 
 	resetButtonBox( n );
 	
@@ -451,7 +453,7 @@ function visualise( clusters ) {
 		.on("click", deselectRows );
 }
 
-function groupButtons() {
+function groupButtons( dataset, largestClus ) {
 	var colours = d3.scale.category10(); //<-- array on hex colours
 	var circle = svg.selectAll("circle");
 
@@ -480,6 +482,23 @@ function groupButtons() {
 			d3.selectAll("." + buttonClass)
 				.style("stroke-width", 1.5)
 				.style("stroke", "#000000");
+		})
+		.on("click", function(d) {
+			dataset = { nodes: [], edges: [] };
+
+			nodes = nodes.data( dataset.nodes );
+			links = links.data( dataset.edges );
+
+			nodes.exit().remove();
+			links.exit().remove();
+
+			dataset = newDataset( dataset, d );
+
+			nodes = nodes.data( dataset.nodes );
+			links = links.data( dataset.edges );
+
+			nodes.enter().append("circle");
+			links.enter().append("line");
 		});
 }
 
@@ -538,6 +557,20 @@ function getEdges( nodes ) {
 		}	
 	}
 	return edges;
+}
+
+function newDataset( oldDataset, clickedClass ) {
+	var node;
+	var newDataset = { nodes: [], edges: [] };
+	var oldNodes = oldDataset.nodes;
+	for( var i = 0; i < oldNodes.length; i++ ) {
+		if( oldNodes[i].class === clickedClass ) {
+			node = { id: oldNodes[i].id, class: oldNodes[i].class }
+			newDataset.nodes.push( node );
+		}
+	}
+	newDataset.edges = getEdges( newDataset.nodes );
+	return newDataset;
 }
 
 function getLargestCluster( nodes ) {
