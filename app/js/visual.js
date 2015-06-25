@@ -146,7 +146,7 @@ function main() {
 function initClusters() { 
 	var clusters = [];
 	var parents = [];
-	for( var i = 1; i < 21; i++ ) { 
+	for( var i = 1; i < 51; i++ ) { 
 		clusters.push( i.toString() );
 		clusRef.set( i.toString(), parents );
 	}
@@ -155,8 +155,8 @@ function initClusters() {
 
 function buildSimTable() {
 	var simTable = new Map(); //<-- records how similar patterns are
-	for( var i = 0; i < 20; i++ ) { 
-		for( var j = i; j < 20; j++ ) { 
+	for( var i = 0; i < 50; i++ ) { 
+		for( var j = i; j < 50; j++ ) { 
 			var iKey = (i + 1).toString();
 			var jKey = (j + 1).toString();
 			if( j === i ) { 
@@ -354,8 +354,10 @@ function mean( num1, num2 ) {
 function visualise( clusters ) {
 	groupButtons();
 
-	var n = getNodes( clusters );
+	var originalNodes = getNodes( clusters );
+	var n = getMoreNodes( originalNodes );
 	var e = getEdges( n );
+	console.log( e );
 	dataset = { nodes: n, edges: e };
 
 	var largestClus = getLargestCluster( n );
@@ -365,12 +367,12 @@ function visualise( clusters ) {
 	//determines size of nodes
 	var rScale = d3.scale.linear()
 				.domain([ 0, largestClus ])
-				.range([10, 50]);
+				.range([5, 20]);
 
 	//scales Jaccard similarity to new distance measure
 	var distScale = d3.scale.linear()
 						.domain([0, 1])
-						.range([0, 200]);
+						.range([10, 100]);
 
 	//create force directed layout
 	var force = d3.layout.force()
@@ -380,7 +382,7 @@ function visualise( clusters ) {
 					.linkDistance(function(d) {
 						return distScale(d.value);
 					})
-					.charge([-100])
+					.charge([-400])
 					.start();
 
 	//draw a line for every element in edges array
@@ -474,10 +476,43 @@ function getNodes( c ) {
 	var node;
 	var nodes = [];
 	for( var i = 0; i < c.length; i++ ) {
-		node = { id: c[i] };
+		node = { id: c[i], class: buttons[i] };
 		nodes.push( node );
 	}
 	return nodes;
+}
+
+function getMoreNodes( originalNodes ) {
+	var node;
+	var newNodes = [];
+	var parents = [];
+	while( newNodes.length < 20 ) {
+		for( var i = 0; i < originalNodes.length; i++ ) {
+			var onePat = 0; //<-- count how many patterns have no parents
+			parents = clusRef.get( originalNodes[i].id );
+
+			//if a cluster contains more than one pattern, get its parents
+			if( parents.length !== 0 ) {
+				node = { id: parents[0], class: originalNodes[i].class };
+				newNodes.push( node );
+				node = { id: parents[1], class: originalNodes[i].class };
+				newNodes.push( node );
+			}
+			//else just use the original cluster (of one pattern)
+			else {
+				onePat++;
+				node = { id: originalNodes[i].id, class: originalNodes[i].class };
+				newNodes.push( node );
+			}
+		
+		}
+
+		if( onePat === newNodes.length ) { break; }
+
+		originalNodes = newNodes;
+		if( newNodes.length < 20 ) { newNodes = []; }
+	}	
+	return newNodes;
 }
 
 function getEdges( nodes ) {
@@ -485,7 +520,7 @@ function getEdges( nodes ) {
 	var edges = [];
 	for( var i = 0; i < nodes.length; i++ ) {
 		for( var j = 0; j < nodes.length; j++ ) {
-			if( clusSim.has( nodes[i].id + "+" + nodes[j].id ) ) {
+			if( ( i !== j ) && ( clusSim.has( nodes[i].id + "+" + nodes[j].id ) ) ) {
 				edge = { source: i, target: j, value: clusSim.get( nodes[i].id + "+" + nodes[j].id ) };
 				edges.push( edge );
 			}
@@ -531,7 +566,7 @@ function drawNodes( dataNodes, rScale ) {
 				.enter()
 				.append("circle")
 				.attr("class", function(d, i) {
-					return buttons[i];
+					return d.class;
 				})
 				.attr("r", function(d) {
 					var length = d.id.split( "-" ).length;
@@ -709,7 +744,7 @@ function clickRow(d, i) {
 			efp = Math.round( efp );
 			return d3.rgb( colourScale( efp ), 50, 50 );
 		})
-		.style("stroke-width", 3);
+		.style("stroke-width", 5);
 
 	nodes.on("mouseover", function(d, i) {
 		var yPos = parseFloat(d3.select("svg").attr("y"));
