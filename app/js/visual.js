@@ -484,6 +484,7 @@ function groupButtons( dataset, largestClus ) {
 				.style("stroke", "#000000");
 		})
 		.on("click", function(d) {
+			/*
 			dataset = { nodes: [], edges: [] };
 
 			nodes = nodes.data( dataset.nodes );
@@ -491,14 +492,22 @@ function groupButtons( dataset, largestClus ) {
 
 			nodes.exit().remove();
 			links.exit().remove();
-
+			*/
 			dataset = newDataset( dataset, d );
+			console.log( dataset );
 
 			nodes = nodes.data( dataset.nodes );
 			links = links.data( dataset.edges );
 
+			nodes.attr("class", d);
+			links.attr("class", "link");
+
+			nodes.exit().remove();
+			links.exit().remove();
+			/*
 			nodes.enter().append("circle");
 			links.enter().append("line");
+			*/
 		});
 }
 
