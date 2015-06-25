@@ -26,6 +26,10 @@ input {
 	margin: 2%;
 }
 
+#groups {
+	width: 20px;
+}
+
 table {
 	width: 70%;
 	border: 1px solid black;

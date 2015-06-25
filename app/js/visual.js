@@ -139,8 +139,10 @@ function main() {
 		simTable = addCluster( simTable );
 	}
 
+	var numOfGroups = getNumOfGroups();
+
 	console.log( "Finished clustering" );
-	visualise( level[ level.length - 8] );
+	visualise( level[ level.length - numOfGroups ] );
 }
 
 function initClusters() { 
@@ -351,13 +353,22 @@ function mean( num1, num2 ) {
 	return total;
 }
 
+function getNumOfGroups() {
+	var input = document.getElementById( "groups" ).value;
+	if( input <= 10 ) {
+		return input
+	}
+	else {
+		return 10;
+	}
+}
+
 function visualise( clusters ) {
 	groupButtons();
 
 	var originalNodes = getNodes( clusters );
 	var n = getMoreNodes( originalNodes );
 	var e = getEdges( n );
-	console.log( e );
 	dataset = { nodes: n, edges: e };
 
 	var largestClus = getLargestCluster( n );
