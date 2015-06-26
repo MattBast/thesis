@@ -454,6 +454,11 @@ function visualise( clusters ) {
 }
 
 function groupButtons( dataset, largestClus ) {
+	//determines size of nodes
+	var rScale = d3.scale.linear()
+				.domain([ 0, largestClus ])
+				.range([5, 20]);
+
 	var colours = d3.scale.category10(); //<-- array on hex colours
 	var circle = svg.selectAll("circle");
 
@@ -484,26 +489,31 @@ function groupButtons( dataset, largestClus ) {
 				.style("stroke", "#000000");
 		})
 		.on("click", function(d) {
-			/*
-			dataset = { nodes: [], edges: [] };
-
-			nodes = nodes.data( dataset.nodes );
-			links = links.data( dataset.edges );
-
-			nodes.exit().remove();
-			links.exit().remove();
-			*/
 			dataset = newDataset( dataset, d );
-			console.log( dataset );
 
 			nodes = nodes.data( dataset.nodes );
 			links = links.data( dataset.edges );
 
-			nodes.attr("class", d);
+			//update nodes
+			nodes.transition().delay(500).duration(1000)
+				.attr("class", function(d, i) {
+					return d.class;
+				})
+				.attr("r", function(d) {
+					var length = d.id.split( "-" ).length;
+					return rScale( length );
+				});
+			//change data appearing in hover effect
+			nodes.on("mouseover", hover )
+				.on("mouseout", hideTooltip );
+
+			//update links
 			links.attr("class", "link");
 
+			//remove spare nodes and links
 			nodes.exit().remove();
 			links.exit().remove();
+
 			/*
 			nodes.enter().append("circle");
 			links.enter().append("line");
@@ -526,8 +536,9 @@ function getMoreNodes( originalNodes ) {
 	var newNodes = [];
 	var parents = [];
 	while( newNodes.length < 20 ) {
+		var onePat = 0; //<-- count how many patterns have no parents
+
 		for( var i = 0; i < originalNodes.length; i++ ) {
-			var onePat = 0; //<-- count how many patterns have no parents
 			parents = clusRef.get( originalNodes[i].id );
 
 			//if a cluster contains more than one pattern, get its parents
@@ -545,9 +556,10 @@ function getMoreNodes( originalNodes ) {
 			}
 		
 		}
+		//stop if there are less than twenty patterns in current set
+		if( onePat >= newNodes.length ) { break; }
 
-		if( onePat === newNodes.length ) { break; }
-
+		//prevents patterns turning up in newNodes more tha once
 		originalNodes = newNodes;
 		if( newNodes.length < 20 ) { newNodes = []; }
 	}	
@@ -570,14 +582,17 @@ function getEdges( nodes ) {
 
 function newDataset( oldDataset, clickedClass ) {
 	var node;
+	var count = 0;
 	var newDataset = { nodes: [], edges: [] };
 	var oldNodes = oldDataset.nodes;
 	for( var i = 0; i < oldNodes.length; i++ ) {
 		if( oldNodes[i].class === clickedClass ) {
-			node = { id: oldNodes[i].id, class: oldNodes[i].class }
+			node = { id: oldNodes[i].id, class: buttons[count] }
 			newDataset.nodes.push( node );
+			count++;
 		}
 	}
+	newDataset.nodes = getMoreNodes( newDataset.nodes );
 	newDataset.edges = getEdges( newDataset.nodes );
 	return newDataset;
 }
