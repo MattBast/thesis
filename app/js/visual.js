@@ -407,50 +407,7 @@ function visualise( clusters ) {
 	//calculates x and y coordinates of every element
 	force.on("tick", tick ); 
 	
-	//----------------- create table -----------------------
-	var sortedTotal = getSortedTotal( clusters );
-	sortedTotal = sortedTotal.splice( 0, 10 );
-
-	var table = d3.select("body").append("table");
-
-	createTableHead( table );
-
-	//create rows for the table
-	var tr = table.selectAll("tr")
-				.data( sortedTotal )
-				.enter()
-				.append("tr")
-				.on("click", clickRow );
-
-	//put data in the cells on each row of the table
-	putDataInRows( tr );
-
-	//search table for entities
-	d3.select("#searchButton").on("click", searchTable );
-
-	//return table to original state
-	d3.select("#topTenButton")
-		.on("click", function() {
-			d3.select("#topTenButton").classed("hidden", true);
-			d3.select( "table" ).remove();
-
-			table = d3.select("body").append("table");
-
-			createTableHead( table );
-
-			var tr = table.selectAll("tr")
-						.data( sortedTotal )
-						.enter()
-						.append("tr")
-						.on("click", clickRow );
-
-			//put data in the cells on each row of the table
-			putDataInRows( tr );
-		})
-
-	//deselect rows and return nodes stroke to black
-	d3.select("#deselect")
-		.on("click", deselectRows );
+	createTable( clusters );
 }
 
 function groupButtons( dataset, largestClus ) {
@@ -712,6 +669,52 @@ function tick() {
 	
 	nodes.attr("cx", function(d) { return d.x; } )
 		.attr("cy", function(d) { return d.y; } );
+}
+
+function createTable( clusters ) {
+	var sortedTotal = getSortedTotal( clusters );
+	sortedTotal = sortedTotal.splice( 0, 10 );
+
+	var table = d3.select("body").append("table");
+
+	createTableHead( table );
+
+	//create rows for the table
+	var tr = table.selectAll("tr")
+				.data( sortedTotal )
+				.enter()
+				.append("tr")
+				.on("click", clickRow );
+
+	//put data in the cells on each row of the table
+	putDataInRows( tr );
+
+	//search table for entities
+	d3.select("#searchButton").on("click", searchTable );
+
+	//return table to original state
+	d3.select("#topTenButton")
+		.on("click", function() {
+			d3.select("#topTenButton").classed("hidden", true);
+			d3.select( "table" ).remove();
+
+			table = d3.select("body").append("table");
+
+			createTableHead( table );
+
+			var tr = table.selectAll("tr")
+						.data( sortedTotal )
+						.enter()
+						.append("tr")
+						.on("click", clickRow );
+
+			//put data in the cells on each row of the table
+			putDataInRows( tr );
+		})
+
+	//deselect rows and return nodes stroke to black
+	d3.select("#deselect")
+		.on("click", deselectRows );
 }
 
 function getSortedTotal( clusters ) {
