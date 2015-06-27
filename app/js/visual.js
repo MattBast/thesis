@@ -490,8 +490,11 @@ function groupButtons( dataset, largestClus ) {
 		})
 		.on("click", function(d) {
 			dataset = newDataset( dataset, d );
-			//force.start();
 
+			force.nodes(dataset.nodes)
+				.links(dataset.edges)
+				.start();
+			
 			nodes = nodes.data( dataset.nodes );
 			links = links.data( dataset.edges );
 
@@ -514,6 +517,9 @@ function groupButtons( dataset, largestClus ) {
 			//change data appearing in hover effect
 			nodes.on("mouseover", hover )
 				.on("mouseout", hideTooltip );
+
+			//calculates x and y coordinates of every element
+			force.on("tick", tick ); 
 		});
 }
 
