@@ -489,8 +489,10 @@ function groupButtons( dataset, largestClus ) {
 				.style("stroke", "#000000");
 		})
 		.on("click", function(d) {
+			//get new data
 			dataset = newDataset( dataset, d );
 
+			//change data in layout
 			force.nodes(dataset.nodes)
 				.links(dataset.edges)
 				.start();
@@ -595,7 +597,13 @@ function newDataset( oldDataset, clickedClass ) {
 			count++;
 		}
 	}
+	//update how many patterns are present
+	resetButtonBox( newDataset.nodes );
+
+	//create groups of nodes
 	newDataset.nodes = getMoreNodes( newDataset.nodes );
+
+	//get the edges
 	newDataset.edges = getEdges( newDataset.nodes );
 	return newDataset;
 }
