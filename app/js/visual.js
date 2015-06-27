@@ -33,6 +33,7 @@ var svg = d3.select("#visual")
 			.append("svg")
 			.attr("width", w)
 			.attr("height", h);
+var force = d3.layout.force();
 
 //the classes of the buttons corresponding to the node groupings
 var buttons = [ 
@@ -388,15 +389,14 @@ function visualise( clusters ) {
 						.range([10, 100]);
 
 	//create force directed layout
-	var force = d3.layout.force()
-					.nodes(dataset.nodes)
-					.links(dataset.edges)
-					.size([w, h])
-					.linkDistance(function(d) {
-						return distScale(d.value);
-					})
-					.charge([-400])
-					.start();
+	force.nodes(dataset.nodes)
+		.links(dataset.edges)
+		.size([w, h])
+		.linkDistance(function(d) {
+			return distScale(d.value);
+		})
+		.charge([-400])
+		.start();
 
 	//draw a line for every element in edges array
 	links = drawLinks( dataset.edges );
@@ -490,9 +490,17 @@ function groupButtons( dataset, largestClus ) {
 		})
 		.on("click", function(d) {
 			dataset = newDataset( dataset, d );
+			//force.start();
 
 			nodes = nodes.data( dataset.nodes );
 			links = links.data( dataset.edges );
+
+			//remove spare nodes and links
+			nodes.exit().remove();
+			links.exit().remove();
+
+			//update links
+			links.attr("class", "link");
 
 			//update nodes
 			nodes.transition().delay(500).duration(1000)
@@ -506,18 +514,6 @@ function groupButtons( dataset, largestClus ) {
 			//change data appearing in hover effect
 			nodes.on("mouseover", hover )
 				.on("mouseout", hideTooltip );
-
-			//update links
-			links.attr("class", "link");
-
-			//remove spare nodes and links
-			nodes.exit().remove();
-			links.exit().remove();
-
-			/*
-			nodes.enter().append("circle");
-			links.enter().append("line");
-			*/
 		});
 }
 
