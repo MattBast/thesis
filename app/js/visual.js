@@ -516,7 +516,8 @@ function groupButtons( dataset, largestClus ) {
 				});
 			//change data appearing in hover effect
 			nodes.on("mouseover", hover )
-				.on("mouseout", hideTooltip );
+				.on("mouseout", hideTooltip )
+				.call(force.drag);
 
 			//calculates x and y coordinates of every element
 			force.on("tick", tick ); 
@@ -644,7 +645,8 @@ function drawNodes( dataNodes, rScale ) {
 				})
 				.on("mouseover", hover )
 				.on("mouseout", hideTooltip )
-				.on("click", clickNode );
+				.on("click", clickNode )
+				.call(force.drag);
 
 	return nodes;
 }
