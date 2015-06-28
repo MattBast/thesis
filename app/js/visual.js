@@ -596,6 +596,8 @@ function resetVis() {
 	nodes.exit().remove();
 	links.exit().remove();
 
+	total.clear();
+	d3.select( "table" ).remove();
 	visualise( level[ level.length - numOfGroups ] );
 }
 
