@@ -22,6 +22,9 @@ var patternsPresent = document.getElementById( "patternsPresent" );
 //create table tag
 var total = new Map();
 
+//how many colour groups the user wants
+var numOfGroups = getNumOfGroups();
+
 //table search bar
 var box = document.getElementById( "searchBar" );
 
@@ -140,8 +143,6 @@ function main() {
 		simTable = addCluster( simTable );
 	}
 
-	var numOfGroups = getNumOfGroups();
-
 	console.log( "Finished clustering" );
 	visualise( level[ level.length - numOfGroups ] );
 }
@@ -220,7 +221,7 @@ function addCluster( simTable ) {
 	var newCluster = simClus[0] + "-" + simClus[1];
 	clusRef.set( newCluster, simClus );
 
-	clusters= updateClusters( clusters, simClus );
+	clusters = updateClusters( clusters, simClus );
 	clusters.push( newCluster );
 	
 	simTable = updateSimTable( simTable, simClus, clusters );
@@ -480,6 +481,9 @@ function groupButtons( dataset, largestClus ) {
 
 			//calculates x and y coordinates of every element
 			force.on("tick", tick ); 
+
+			//update frequency table
+			updateTable( dataset.nodes );
 		});
 }
 
@@ -584,6 +588,17 @@ function resetButtonBox( nodes ) {
 	patternsPresent.innerHTML = "Patterns present: " + numPats;
 }
 
+function resetVis() {
+	//remove previous visualisation
+	dataset = { nodes: [], edges: [] };
+	nodes = nodes.data( dataset.nodes );
+	links = links.data( dataset.edges );
+	nodes.exit().remove();
+	links.exit().remove();
+
+	visualise( level[ level.length - numOfGroups ] );
+}
+
 function drawLinks( dataEdges ) {
 	var links = svg.selectAll(".link")
 		.data(dataEdges)
@@ -680,6 +695,62 @@ function createTable( clusters ) {
 	createTableHead( table );
 
 	//create rows for the table
+	var tr = table.selectAll("tr")
+				.data( sortedTotal )
+				.enter()
+				.append("tr")
+				.on("click", clickRow );
+
+	//put data in the cells on each row of the table
+	putDataInRows( tr );
+
+	//search table for entities
+	d3.select("#searchButton").on("click", searchTable );
+
+	//return table to original state
+	d3.select("#topTenButton")
+		.on("click", function() {
+			d3.select("#topTenButton").classed("hidden", true);
+			d3.select( "table" ).remove();
+
+			table = d3.select("body").append("table");
+
+			createTableHead( table );
+
+			var tr = table.selectAll("tr")
+						.data( sortedTotal )
+						.enter()
+						.append("tr")
+						.on("click", clickRow );
+
+			//put data in the cells on each row of the table
+			putDataInRows( tr );
+		})
+
+	//deselect rows and return nodes stroke to black
+	d3.select("#deselect")
+		.on("click", deselectRows );
+}
+
+function updateTable( dataNodes ) {
+	//convert dataset into just array of cluster references
+	var clusters = [];
+	for( var i = 0; i < dataNodes.length; i++ ) {
+		clusters.push( dataNodes[i].id );
+	}
+	
+	//create a sorted array of clusters
+	total.clear();
+	var sortedTotal = getSortedTotal( clusters );
+	sortedTotal = sortedTotal.splice( 0, 10 );
+
+	d3.select("#topTenButton").classed("hidden", true);
+	d3.select( "table" ).remove();
+
+	table = d3.select("body").append("table");
+
+	createTableHead( table );
+
 	var tr = table.selectAll("tr")
 				.data( sortedTotal )
 				.enter()
@@ -839,7 +910,14 @@ function clickRow(d, i) {
 		.style("left", 0)
 		.style("top", (yPos + 20) + "px")
 		.select("#value")
-		.text( rowPattern + " " + patternFrequency );
+		.text( function() {
+			if( patternFrequency === undefined ) {
+				return rowPattern + " 0";
+			}
+			else {
+				return rowPattern + " " + patternFrequency;
+			}
+		});
 
 		d3.select("#tooltip").classed("hidden", false);
 	})
