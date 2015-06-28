@@ -37,6 +37,7 @@ var svg = d3.select("#visual")
 			.attr("width", w)
 			.attr("height", h);
 var force = d3.layout.force();
+var marker; //<-- tells user how many patterns are available (approximately)
 
 //the classes of the buttons corresponding to the node groupings
 var buttons = [ 
@@ -377,6 +378,10 @@ function visualise( clusters ) {
 	//for highlighting and selecting colour groups of nodes
 	groupButtons( dataset, largestClus ); 
 
+	//draw line to tell user approximately how many patterns are visable
+	drawLine();
+
+	//tells user precisely how many patterns are visible
 	resetButtonBox( n );
 	
 	//determines size of nodes
@@ -484,7 +489,45 @@ function groupButtons( dataset, largestClus ) {
 
 			//update frequency table
 			updateTable( dataset.nodes );
+
+			updateLine( dataset.nodes );
 		});
+}
+
+function drawLine() {
+	var line = svg.append("line")
+		.attr("x1", 25)
+		.attr("y1", 25)
+		.attr("x2", 25)
+		.attr("y2", 475)
+		.attr("stroke", "black")
+		.attr("stroke-width", 1.5);
+
+	marker = svg.append("line")
+		.attr("x1", 20)
+		.attr("y1", 25)
+		.attr("x2", 30)
+		.attr("y2", 25)
+		.attr("id", "marker")
+		.attr("stroke", "black")
+		.attr("stroke-width", 3);
+}
+
+function updateLine( nodes ) {
+	//determines where marker will be
+	var markScale = d3.scale.linear()
+					.domain([1, level[0].length])
+					.range([475, 25]);
+	
+	var numPats = 0;
+	for( var i = 0; i < nodes.length; i++ ) {
+		numPats += nodes[i].id.split( "-" ).length;
+	}
+	var position = markScale( numPats );
+
+	marker = marker
+		.attr("y1", position)
+		.attr("y2", position);
 }
 
 function getNodes( c ) {
@@ -596,8 +639,14 @@ function resetVis() {
 	nodes.exit().remove();
 	links.exit().remove();
 
+	//remove marker ready for it to be re-drawn
+	d3.select("#marker").remove();
+
+	//remove the frequency table ready for it to be re-drawn
 	total.clear();
 	d3.select( "table" ).remove();
+
+	//re-visualise everything
 	visualise( level[ level.length - numOfGroups ] );
 }
 
