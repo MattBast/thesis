@@ -376,7 +376,6 @@ function visualise( clusters ) {
 	var n = getMoreNodes( originalNodes );
 	var e = getEdges( n );
 	dataset = { nodes: n, edges: e };
-	console.log( dataset );
 
 	var largestClus = getLargestCluster( n );
 
@@ -397,7 +396,7 @@ function visualise( clusters ) {
 	//scales Jaccard similarity to new distance measure
 	var distScale = d3.scale.linear()
 						.domain([0, 1])
-						.range([10, 100]);
+						.range([50, 400]);
 
 	//create force directed layout
 	force.nodes(dataset.nodes)
