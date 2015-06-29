@@ -11,7 +11,7 @@ var priorityQueue = []; //<-- orders patterns/clusters by similarity
 
 //each element represents a level in the hierarchical clustering
 var level = [];
-var dataset = []; 
+var dataset = {}; 
 
 //lists of entities and indexs
 var entity = new Map();
@@ -151,7 +151,7 @@ function main() {
 function initClusters() { 
 	var clusters = [];
 	var parents = [];
-	for( var i = 1; i < 51; i++ ) { 
+	for( var i = 1; i < 101; i++ ) { 
 		clusters.push( i.toString() );
 		clusRef.set( i.toString(), parents );
 	}
@@ -160,8 +160,8 @@ function initClusters() {
 
 function buildSimTable() {
 	var simTable = new Map(); //<-- records how similar patterns are
-	for( var i = 0; i < 50; i++ ) { 
-		for( var j = i; j < 50; j++ ) { 
+	for( var i = 0; i < 100; i++ ) { 
+		for( var j = i; j < 100; j++ ) { 
 			var iKey = (i + 1).toString();
 			var jKey = (j + 1).toString();
 			if( j === i ) { 
@@ -373,10 +373,11 @@ function visualise( clusters ) {
 	var e = getEdges( n );
 	dataset = { nodes: n, edges: e };
 
+
 	var largestClus = getLargestCluster( n );
 
 	//for highlighting and selecting colour groups of nodes
-	groupButtons( dataset, largestClus ); 
+	groupButtons( largestClus ); 
 
 	//draw line to tell user approximately how many patterns are visable
 	drawLine();
@@ -416,7 +417,7 @@ function visualise( clusters ) {
 	createTable( clusters );
 }
 
-function groupButtons( dataset, largestClus ) {
+function groupButtons( largestClus ) {
 	//determines size of nodes
 	var rScale = d3.scale.linear()
 				.domain([ 0, largestClus ])
@@ -594,6 +595,8 @@ function newDataset( oldDataset, clickedClass ) {
 	var count = 0;
 	var newDataset = { nodes: [], edges: [] };
 	var oldNodes = oldDataset.nodes;
+
+	//loop through dataset and pick out nodes that match the clicked class
 	for( var i = 0; i < oldNodes.length; i++ ) {
 		if( oldNodes[i].class === clickedClass ) {
 			node = { id: oldNodes[i].id, class: buttons[count] }
@@ -601,6 +604,7 @@ function newDataset( oldDataset, clickedClass ) {
 			count++;
 		}
 	}
+	
 	//update how many patterns are present
 	resetButtonBox( newDataset.nodes );
 
@@ -609,6 +613,7 @@ function newDataset( oldDataset, clickedClass ) {
 
 	//get the edges
 	newDataset.edges = getEdges( newDataset.nodes );
+
 	return newDataset;
 }
 
