@@ -373,7 +373,6 @@ function visualise( clusters ) {
 	var e = getEdges( n );
 	dataset = { nodes: n, edges: e };
 
-
 	var largestClus = getLargestCluster( n );
 
 	//for highlighting and selecting colour groups of nodes
@@ -940,9 +939,12 @@ function createTableHead( table ) {
 }
 
 function clickRow(d, i) {
+	//determines the max number of a specific entity a cluster could hold
+	var largestClus = getLargestCluster( dataset.nodes );
+
 	//determines intensity of red
 	var colourScale = d3.scale.linear()
-		.domain([0, 100])
+		.domain([0, largestClus])
 		.range([100, 255]);
 
 	var rowPattern = d.pattern;
@@ -958,9 +960,7 @@ function clickRow(d, i) {
 		.style("stroke", function(d, i) {
 			var frequency = getFrequency( d.id );
 			var ef = frequency.get( rowPattern ); //<-- entity frequency
-			var efp = getPercentage( ef, totalFrequency ); //<-- ef percentage
-			efp = Math.round( efp );
-			return d3.rgb( colourScale( efp ), 50, 50 );
+			return d3.rgb( colourScale( ef ), 50, 50 );
 		})
 		.style("stroke-width", 5);
 
@@ -970,6 +970,7 @@ function clickRow(d, i) {
 
 	var patternFrequency = frequency.get( rowPattern );
 
+	//alter text in tooltip
 	d3.select("#tooltip")
 		.style("left", 0)
 		.style("top", (yPos + 20) + "px")
@@ -983,9 +984,11 @@ function clickRow(d, i) {
 			}
 		});
 
+		//show tooltip
 		d3.select("#tooltip").classed("hidden", false);
 	})
 	.on("mouseout", function() {
+		//hide tooltip
 		d3.select("#tooltip").classed("hidden", true);
 	});
 
