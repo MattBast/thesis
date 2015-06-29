@@ -585,6 +585,11 @@ function getEdges( nodes ) {
 				edge = { source: i, target: j, value: clusSim.get( nodes[i].id + "+" + nodes[j].id ) };
 				edges.push( edge );
 			}
+
+			/*
+			Need an else statement here that finds the similarity between nodes
+			if one does not exist already. Then add it to clusSim
+			*/
 		}	
 	}
 	return edges;
@@ -650,6 +655,9 @@ function resetVis() {
 	//remove the frequency table ready for it to be re-drawn
 	total.clear();
 	d3.select( "table" ).remove();
+
+	//find out how many groups the user wants this time
+	numOfGroups = getNumOfGroups();
 
 	//re-visualise everything
 	visualise( level[ level.length - numOfGroups ] );
