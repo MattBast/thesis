@@ -246,6 +246,8 @@ function updateSimTable( simTable, simClus, clusters ) {
 
 	simTable = removeSamePats( simTable, simClus );
 
+	/* look for and remove anything that compares to two clusters 
+	about to be clustered together */
 	for( var j = 0; j < clusters.length; j++ ) {
 		var object = {
 			key : "",
@@ -277,6 +279,7 @@ function updateSimTable( simTable, simClus, clusters ) {
 		}
 	}
 
+	//get the two patterns/clusters that are most similar
 	var newClusSims = compareNewClus( simClus, tmp1, tmp2 );
 	simTable = updateTableAndQueue( simTable, newClusSims );
 	
@@ -302,6 +305,7 @@ function compareNewClus( simClus, tmp1, tmp2 ) {
 	for( var i = 0; i < tmp1.length; i++ ) {
 		var clus = tmp1[i].key.split( "+" );
 		var ref = "";
+		//make sure not to compare cluster to itself
 		if( clus[0] !== simClus[0] && clus[0] !== simClus[1] ) {
 			ref = clus[0];
 		}
@@ -372,6 +376,7 @@ function visualise( clusters ) {
 	var n = getMoreNodes( originalNodes );
 	var e = getEdges( n );
 	dataset = { nodes: n, edges: e };
+	console.log( dataset );
 
 	var largestClus = getLargestCluster( n );
 
@@ -584,7 +589,12 @@ function getEdges( nodes ) {
 				edge = { source: i, target: j, value: clusSim.get( nodes[i].id + "+" + nodes[j].id ) };
 				edges.push( edge );
 			}
-
+			else {
+				var similarity = compareNodes( nodes[i].id, nodes[j].id );
+				clusSim.set( nodes[i].id + "+" + nodes[i].id, similarity );
+				edge = { source: i, target: j, value: similarity };
+				edges.push( edge );
+			}
 			/*
 			Need an else statement here that finds the similarity between nodes
 			if one does not exist already. Then add it to clusSim
@@ -592,6 +602,37 @@ function getEdges( nodes ) {
 		}	
 	}
 	return edges;
+}
+
+function compareNodes( node1, node2 ) {
+	var comparisons = new Map();
+	var comparison;
+	var best = 0; //<-- the comparison that best satisfies the specified linkage
+
+	var patterns1 = node1.split( "-" );
+	var patterns2 = node2.split( "-" );
+
+	for( var i = 0; i < patterns1.length; i++ ) {
+		for( var j = 0; j < patterns2.length; j++ ) {
+			if( clusSim.has( patterns1[i] + "+" + patterns2[j] ) ) {
+				comparisons.set( comparison, clusSim.get( patterns1[i] + "+" + patterns2[j] ) ); 
+			}
+			if( clusSim.has( patterns1[j] + "+" + patterns2[i] ) ) {
+				comparisons.set( comparison, clusSim.get( patterns1[j] + "+" + patterns2[i] ) ); 
+			}
+		}
+	}
+
+	for( var value of comparisons.values() ) {
+		if( best === 0 ) {
+			best = value;
+		}
+		else {
+			best = mostSimilar( best, value );
+		}
+	}
+
+	return best;
 }
 
 function newDataset( oldDataset, clickedClass ) {
