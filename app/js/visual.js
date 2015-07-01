@@ -57,7 +57,7 @@ function upload() {
 	if( fileInput.files.length > 0 ) {
 
 		var file = fileInput.files[0];
-		console.log( "Upload", file.name );
+		console.log( "Uploaded", file.name );
 
 		var reader = new FileReader();
 		readFile( file, reader );
@@ -202,8 +202,34 @@ function similarity( p1, p2 ) {
 }
 
 function addToQueue( queue, simTable, newSim ) {
+	//type of linkage affects where cluster will go in queue
+	if( linkage[1].checked ) { //<-- complete linkage
+		queue = lowestSim( queue, simTable, newSim );
+	}
+	else if( linkage[2].checked ) { //<-- average linkage
+		queue = lowestSim( queue, simTable, newSim );
+	}
+	else { //<-- single linkage
+		queue = highestSim( queue, simTable, newSim );
+	}
+
+	return queue;
+}
+
+function highestSim( queue, simTable, newSim ) {
 	for( var i = 0; i < queue.length; i++ ) {
 		if( simTable.get( newSim ) > simTable.get( queue[i] ) ) {
+			queue.splice( i, 0, newSim );
+			return queue;
+		}
+	}
+	queue.push( newSim );
+	return queue;
+}
+
+function lowestSim( queue, simTable, newSim ) {
+	for( var i = 0; i < queue.length; i++ ) {
+		if( simTable.get( newSim ) < simTable.get( queue[i] ) ) {
 			queue.splice( i, 0, newSim );
 			return queue;
 		}
@@ -215,7 +241,8 @@ function addToQueue( queue, simTable, newSim ) {
 function addCluster( simTable ) {
 	var clusters = [];
 	clusters = clusters.concat( level[level.length - 1] );
-	var simClus = priorityQueue[0].split( "+" );
+	var simClus = checkForDuplicate( simTable );
+
 	simTable.delete( simClus[0] + "+" + simClus[1] );
 
 	//new cluster and its parents
@@ -228,6 +255,15 @@ function addCluster( simTable ) {
 	simTable = updateSimTable( simTable, simClus, clusters );
 	
 	return simTable;
+}
+
+function checkForDuplicate( simTable ) {
+	var simClus = priorityQueue[0].split( "+" );
+	if( simClus[0] === simClus[1] ) {
+		priorityQueue.splice( 0, 1 );
+		simClus = checkForDuplicate();
+	}
+	return simClus;
 }
 
 function updateClusters( clusters, simClus ) {
@@ -243,8 +279,6 @@ function updateClusters( clusters, simClus ) {
 function updateSimTable( simTable, simClus, clusters ) {
 	var tmp1 = [];
 	var tmp2 = [];
-
-	simTable = removeSamePats( simTable, simClus );
 
 	/* look for and remove anything that compares to two clusters 
 	about to be clustered together */
@@ -271,8 +305,8 @@ function updateSimTable( simTable, simClus, clusters ) {
 			tmp2.push( object );
 			simTable.delete( object.key );
 		}
-		if( simTable.has( simClus[1] + "+" +  clusters[j] ) ) {
-			object.key = simClus[1] + "+" +  clusters[j];
+		if( simTable.has( simClus[1] + "+" + clusters[j] ) ) {
+			object.key = simClus[1] + "+" + clusters[j];
 			object.value = simTable.get( object.key );
 			tmp2.push( object );
 			simTable.delete( object.key );
@@ -289,11 +323,14 @@ function updateSimTable( simTable, simClus, clusters ) {
 
 function removeSamePats( simTable, simClus ) {
 	//remove comparisons where a pattern is compared to itself
-	if( simTable.has( simClus[0] + "+" +  simClus[0] ) ) {
-		simTable.delete( simClus[0] + "+" +  simClus[0] );
+	if( simClus[0] === simClus[1] ) {
+		simTable.delete( simClus[0] + "+" + simClus[1] );
 	}
-	if( simTable.has( simClus[1] + "+" +  simClus[1] ) ) {
-		simTable.delete( simClus[1] + "+" +  simClus[1] );
+	if( simTable.has( simClus[0] + "+" + simClus[0] ) ) {
+		simTable.delete( simClus[0] + "+" + simClus[0] );
+	}
+	if( simTable.has( simClus[1] + "+" + simClus[1] ) ) {
+		simTable.delete( simClus[1] + "+" + simClus[1] );
 	}
 
 	return simTable;
