@@ -343,7 +343,7 @@ function mean( num1, num2 ) {
 }
 
 function updateTableAndQueue( simTable, newClusSims ) {
-	//add new clusters to simTable and priorityQueue
+	//add new clusters to simTable, clusSim and priorityQueue
 	for( var key of newClusSims.keys() ) {
 		simTable.set( key, newClusSims.get( key ) );
 		clusSim.set( key, newClusSims.get( key ) ); 
@@ -570,7 +570,7 @@ function getMoreNodes( originalNodes ) {
 		//stop if there are less than twenty patterns in current set
 		if( onePat >= newNodes.length ) { break; }
 
-		//prevents patterns turning up in newNodes more tha once
+		//prevents patterns turning up in newNodes more than once
 		originalNodes = newNodes;
 		if( newNodes.length < 20 ) { newNodes = []; }
 	}	
@@ -682,17 +682,17 @@ function setDistScale() {
 	if( linkage[1].checked ) { //<-- complete linkage
 		distScale = d3.scale.linear()
 			.domain([0, 1])
-			.range([50, 400]);
+			.range([50, 300]);
 	}
 	else if( linkage[2].checked ) { //<-- average linkage
 		distScale = d3.scale.linear()
 			.domain([0, 1])
-			.range([50, 400]);
+			.range([50, 300]);
 	}
 	else { //<-- single linkage
 		distScale = d3.scale.linear()
 			.domain([0, 1])
-			.range([400, 50]);
+			.range([300, 50]);
 	}
 
 	return distScale;
