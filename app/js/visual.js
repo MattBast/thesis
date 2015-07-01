@@ -393,10 +393,8 @@ function visualise( clusters ) {
 				.domain([ 0, largestClus ])
 				.range([5, 20]);
 
-	//scales Jaccard similarity to new distance measure
-	var distScale = d3.scale.linear()
-						.domain([0, 1])
-						.range([50, 400]);
+	//scales Jaccard similarity to pixels.
+	var distScale = setDistScale();
 
 	//create force directed layout
 	force.nodes(dataset.nodes)
@@ -594,10 +592,6 @@ function getEdges( nodes ) {
 				edge = { source: i, target: j, value: similarity };
 				edges.push( edge );
 			}
-			/*
-			Need an else statement here that finds the similarity between nodes
-			if one does not exist already. Then add it to clusSim
-			*/
 		}	
 	}
 	return edges;
@@ -678,6 +672,28 @@ function resetButtonBox( nodes ) {
 		numPats += nodes[i].id.split( "-" ).length;
 	}
 	patternsPresent.innerHTML = "Patterns present: " + numPats;
+}
+
+function setDistScale() {
+	var distScale; 
+
+	if( linkage[1].checked ) { //<-- complete linkage
+		distScale = d3.scale.linear()
+			.domain([0, 1])
+			.range([50, 400]);
+	}
+	else if( linkage[2].checked ) { //<-- average linkage
+		distScale = d3.scale.linear()
+			.domain([0, 1])
+			.range([50, 400]);
+	}
+	else { //<-- single linkage
+		distScale = d3.scale.linear()
+			.domain([0, 1])
+			.range([400, 50]);
+	}
+
+	return distScale;
 }
 
 function resetVis() {
