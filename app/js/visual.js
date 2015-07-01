@@ -611,8 +611,8 @@ function compareNodes( node1, node2 ) {
 				comparison = patterns1[i] + "+" + patterns2[j];
 				comparisons.set( comparison, clusSim.get( comparison ) ); 
 			}
-			if( clusSim.has( patterns1[j] + "+" + patterns2[i] ) ) {
-				comparison = patterns1[j] + "+" + patterns2[i];
+			if( clusSim.has( patterns2[j] + "+" + patterns1[i] ) ) {
+				comparison = patterns2[j] + "+" + patterns1[i];
 				comparisons.set( comparison, clusSim.get( comparison ) ); 
 			}
 		}
