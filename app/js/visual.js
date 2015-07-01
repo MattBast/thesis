@@ -336,6 +336,12 @@ function mostSimilar( num1, num2 ) {
 	return best;
 }
 
+function mean( num1, num2 ) {
+	var total = num1 + num2;
+	total = total / 2;
+	return total;
+}
+
 function updateTableAndQueue( simTable, newClusSims ) {
 	//add new clusters to simTable and priorityQueue
 	for( var key of newClusSims.keys() ) {
@@ -352,12 +358,6 @@ function updateTableAndQueue( simTable, newClusSims ) {
 		}
 	}
 	return simTable;
-}
-
-function mean( num1, num2 ) {
-	var total = num1 + num2;
-	total = total / 2;
-	return total;
 }
 
 function getNumOfGroups() {
@@ -608,10 +608,12 @@ function compareNodes( node1, node2 ) {
 	for( var i = 0; i < patterns1.length; i++ ) {
 		for( var j = 0; j < patterns2.length; j++ ) {
 			if( clusSim.has( patterns1[i] + "+" + patterns2[j] ) ) {
-				comparisons.set( comparison, clusSim.get( patterns1[i] + "+" + patterns2[j] ) ); 
+				comparison = patterns1[i] + "+" + patterns2[j];
+				comparisons.set( comparison, clusSim.get( comparison ) ); 
 			}
 			if( clusSim.has( patterns1[j] + "+" + patterns2[i] ) ) {
-				comparisons.set( comparison, clusSim.get( patterns1[j] + "+" + patterns2[i] ) ); 
+				comparison = patterns1[j] + "+" + patterns2[i];
+				comparisons.set( comparison, clusSim.get( comparison ) ); 
 			}
 		}
 	}
@@ -775,9 +777,9 @@ function hideTooltip() {
 	d3.select("#tooltip").classed("hidden", true);
 }
 
-function clickNode() {
+function clickNode( d ) {
 	var yPos = parseFloat(d3.select("svg").attr("y"));
-	var text = "";
+	var text = d.id + " ";
 	for( var key of frequency.keys() ) {
 		text += key + " " + frequency.get( key ) + " "; 
 	}
@@ -787,8 +789,7 @@ function clickNode() {
 		.style("top", (yPos + 20) + "px")
 		.select("#value2")
 		.on("click", function() {
-			d3.select("#tooltip2")
-				.classed("hidden", true);
+			d3.select("#tooltip2").classed("hidden", true);
 		})
 		.text( text );
 
