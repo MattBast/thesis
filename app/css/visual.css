@@ -9,10 +9,15 @@ div {
 
 #visual {
 	margin-top: 2%;
+	border: none;
 }
 
 #patternCount {
 	margin-top: 2%;
+}
+
+button {
+	margin: 5px;
 }
 
 #searchBar {
@@ -24,6 +29,10 @@ div {
 
 input {
 	margin: 2%;
+}
+
+#groups {
+	width: 20px;
 }
 
 table {
@@ -89,12 +98,12 @@ table {
 }
 
 .link {
-	stroke: #000;
+	stroke: #000000;
 	stroke-width: 1.5px;
 }
 
 .node {
-  	fill: #000;
+  	fill: #f0f0f0;
   	stroke: #000000;
   	stroke-width: 1.5px;
 }
@@ -122,4 +131,64 @@ tr.highlight:hover {
 
 #deselect.hidden {
 	display: none;
+}
+
+.one {
+	fill: #1f77b4;
+	stroke: #000000;
+	stroke-width: 1.5px;
+}
+
+.two {
+	fill: #ff7f0e;
+	stroke: #000000;
+	stroke-width: 1.5px;
+}
+
+.three {
+	fill: #2ca02c;
+	stroke: #000000;
+	stroke-width: 1.5px;
+}
+
+.four {
+	fill: #d62728;
+	stroke: #000000;
+	stroke-width: 1.5px;
+}
+
+.five {
+	fill: #9467bd;
+	stroke: #000000;
+	stroke-width: 1.5px;
+}
+
+.six {
+	fill: #8c564b;
+	stroke: #000000;
+	stroke-width: 1.5px;
+}
+
+.seven {
+	fill: #e377c2;
+	stroke: #000000;
+	stroke-width: 1.5px;
+}
+
+.eight {
+	fill: #7f7f7f;
+	stroke: #000000;
+	stroke-width: 1.5px;
+}
+
+.nine {
+	fill: #bcbd22;
+	stroke: #000000;
+	stroke-width: 1.5px;
+}
+
+.ten {
+	fill: #17becf;
+	stroke: #000000;
+	stroke-width: 1.5px;
 }

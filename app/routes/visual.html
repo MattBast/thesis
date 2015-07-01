@@ -18,6 +18,7 @@
 			<input type="radio" name="linkage" value="complete"/>Complete
 			<input type="radio" name="linkage" value="average"/>Average<br>
 			<input type="file" id="fileInput"/><br>
+			<input type="text" id="groups" value="5"/>Number of groups (maximum of ten)<br>
 		</div>
 		<div id="tooltip" class="hidden">
 			<p><span id="value"></span></p>
@@ -28,6 +29,7 @@
 		<canvas id="spinner" width="500" height="500"></canvas>
 		<div id="patternCount">
 			<h3 id="patternsPresent"></h3>
+			<button type="button" onclick="resetVis()">Reset</button>
 		</div>
 		<div id="visual"></div>
 		<div id="searchBar">
