@@ -204,13 +204,13 @@ function similarity( p1, p2 ) {
 function addToQueue( queue, simTable, newSim ) {
 	//type of linkage affects where cluster will go in queue
 	if( linkage[1].checked ) { //<-- complete linkage
-		queue = lowestSim( queue, simTable, newSim );
+		queue = highestSim( queue, simTable, newSim );
 	}
 	else if( linkage[2].checked ) { //<-- average linkage
-		queue = lowestSim( queue, simTable, newSim );
+		queue = highestSim( queue, simTable, newSim );
 	}
 	else { //<-- single linkage
-		queue = highestSim( queue, simTable, newSim );
+		queue = lowestSim( queue, simTable, newSim );
 	}
 
 	return queue;
@@ -321,21 +321,6 @@ function updateSimTable( simTable, simClus, clusters ) {
 	return simTable;
 }
 
-function removeSamePats( simTable, simClus ) {
-	//remove comparisons where a pattern is compared to itself
-	if( simClus[0] === simClus[1] ) {
-		simTable.delete( simClus[0] + "+" + simClus[1] );
-	}
-	if( simTable.has( simClus[0] + "+" + simClus[0] ) ) {
-		simTable.delete( simClus[0] + "+" + simClus[0] );
-	}
-	if( simTable.has( simClus[1] + "+" + simClus[1] ) ) {
-		simTable.delete( simClus[1] + "+" + simClus[1] );
-	}
-
-	return simTable;
-}
-
 function compareNewClus( simClus, tmp1, tmp2 ) {
 	var newClusSims = new Map();
 	var best = 0;
@@ -361,13 +346,13 @@ function mostSimilar( num1, num2 ) {
 	var best = 0;
 
 	if( linkage[1].checked ) { //<-- complete linkage
-		best = Math.min( num1, num2 );
+		best = Math.max( num1, num2 );
 	}
 	else if( linkage[2].checked ) { //<-- average linkage
 		best = mean( num1, num2 );
 	}
 	else { //<-- single linkage
-		best = Math.max( num1, num2 );
+		best = Math.min( num1, num2 );
 	}
 
 	return best;
@@ -719,17 +704,17 @@ function setDistScale() {
 	if( linkage[1].checked ) { //<-- complete linkage
 		distScale = d3.scale.linear()
 			.domain([0, 1])
-			.range([50, 300]);
+			.range([300, 50]);
 	}
 	else if( linkage[2].checked ) { //<-- average linkage
 		distScale = d3.scale.linear()
 			.domain([0, 1])
-			.range([50, 300]);
+			.range([300, 50]);
 	}
 	else { //<-- single linkage
 		distScale = d3.scale.linear()
 			.domain([0, 1])
-			.range([300, 50]);
+			.range([50, 300]);
 	}
 
 	return distScale;
