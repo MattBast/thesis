@@ -416,7 +416,9 @@ function visualise( clusters ) {
 				.range([5, 20]);
 
 	//scales Jaccard similarity to pixels.
-	var distScale = setDistScale();
+	var distScale = d3.scale.linear()
+			.domain([0, 1])
+			.range([300, 50]);
 
 	//create force directed layout
 	force.nodes(dataset.nodes)
@@ -696,28 +698,6 @@ function resetButtonBox( nodes ) {
 		numPats += nodes[i].id.split( "-" ).length;
 	}
 	patternsPresent.innerHTML = "Patterns present: " + numPats;
-}
-
-function setDistScale() {
-	var distScale; 
-
-	if( linkage[1].checked ) { //<-- complete linkage
-		distScale = d3.scale.linear()
-			.domain([0, 1])
-			.range([300, 50]);
-	}
-	else if( linkage[2].checked ) { //<-- average linkage
-		distScale = d3.scale.linear()
-			.domain([0, 1])
-			.range([300, 50]);
-	}
-	else { //<-- single linkage
-		distScale = d3.scale.linear()
-			.domain([0, 1])
-			.range([50, 300]);
-	}
-
-	return distScale;
 }
 
 function resetVis() {
