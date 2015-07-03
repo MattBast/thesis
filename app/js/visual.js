@@ -151,7 +151,7 @@ function main() {
 function initClusters() { 
 	var clusters = [];
 	var parents = [];
-	for( var i = 1; i < 1001; i++ ) { 
+	for( var i = 1; i < 201; i++ ) { 
 		clusters.push( i.toString() );
 		clusRef.set( i.toString(), parents );
 	}
@@ -162,8 +162,8 @@ function buildSimTable() {
 	//records how similar two patterns/clusters compared to one another
 	var simTable = new Map(); 
 	//loop through patterns and compare them against one another
-	for( var i = 0; i < 1000; i++ ) { 
-		for( var j = i; j < 1000; j++ ) { 
+	for( var i = 0; i < 200; i++ ) { 
+		for( var j = i; j < 200; j++ ) { 
 			var iKey = (i + 1).toString();
 			var jKey = (j + 1).toString();
 			if( j === i ) { 
