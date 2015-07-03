@@ -151,7 +151,7 @@ function main() {
 function initClusters() { 
 	var clusters = [];
 	var parents = [];
-	for( var i = 1; i < 101; i++ ) { 
+	for( var i = 1; i < 1001; i++ ) { 
 		clusters.push( i.toString() );
 		clusRef.set( i.toString(), parents );
 	}
@@ -159,9 +159,11 @@ function initClusters() {
 }
 
 function buildSimTable() {
-	var simTable = new Map(); //<-- records how similar patterns are
-	for( var i = 0; i < 100; i++ ) { 
-		for( var j = i; j < 100; j++ ) { 
+	//records how similar two patterns/clusters compared to one another
+	var simTable = new Map(); 
+	//loop through patterns and compare them against one another
+	for( var i = 0; i < 1000; i++ ) { 
+		for( var j = i; j < 1000; j++ ) { 
 			var iKey = (i + 1).toString();
 			var jKey = (j + 1).toString();
 			if( j === i ) { 
@@ -202,40 +204,25 @@ function similarity( p1, p2 ) {
 }
 
 function addToQueue( queue, simTable, newSim ) {
-	//type of linkage affects where cluster will go in queue
-	if( linkage[1].checked ) { //<-- complete linkage
-		queue = highestSim( queue, simTable, newSim );
+	//if clusters are disjoint (similarity of 0), push to end of queue
+	if( simTable.get( newSim ) === 0 ) {
+		queue.push( newSim );
+		return queue;
 	}
-	else if( linkage[2].checked ) { //<-- average linkage
-		queue = highestSim( queue, simTable, newSim );
-	}
-	else { //<-- single linkage
-		queue = lowestSim( queue, simTable, newSim );
-	}
-
-	return queue;
-}
-
-function highestSim( queue, simTable, newSim ) {
-	for( var i = 0; i < queue.length; i++ ) {
-		if( simTable.get( newSim ) > simTable.get( queue[i] ) ) {
-			queue.splice( i, 0, newSim );
-			return queue;
+	/* else start from beginning of queue. If find a comparison with a 
+	lower similarity score, splice in new comparison */
+	else {
+		for( var i = 0; i < queue.length; i++ ) {
+			if( simTable.get( newSim ) > simTable.get( queue[i] ) ) {
+				queue.splice( i, 0, newSim );
+				return queue;
+			}
 		}
+		/* push comparison onto the end of the queue if it has the 
+		lowest similarity in the queue */
+		queue.push( newSim );
+		return queue;
 	}
-	queue.push( newSim );
-	return queue;
-}
-
-function lowestSim( queue, simTable, newSim ) {
-	for( var i = 0; i < queue.length; i++ ) {
-		if( simTable.get( newSim ) < simTable.get( queue[i] ) ) {
-			queue.splice( i, 0, newSim );
-			return queue;
-		}
-	}
-	queue.push( newSim );
-	return queue;
 }
 
 function addCluster( simTable ) {
@@ -280,8 +267,8 @@ function updateSimTable( simTable, simClus, clusters ) {
 	var tmp1 = [];
 	var tmp2 = [];
 
-	/* look for and remove anything that compares to two clusters 
-	about to be clustered together */
+	/* loop through clusters looking for when they are compared to
+	either of the two patterns/clusters in question */
 	for( var j = 0; j < clusters.length; j++ ) {
 		var object = {
 			key : "",
@@ -346,13 +333,13 @@ function mostSimilar( num1, num2 ) {
 	var best = 0;
 
 	if( linkage[1].checked ) { //<-- complete linkage
-		best = Math.max( num1, num2 );
+		best = Math.min( num1, num2 );
 	}
 	else if( linkage[2].checked ) { //<-- average linkage
 		best = mean( num1, num2 );
 	}
 	else { //<-- single linkage
-		best = Math.min( num1, num2 );
+		best = Math.max( num1, num2 );
 	}
 
 	return best;
