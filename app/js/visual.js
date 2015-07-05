@@ -146,10 +146,8 @@ function main() {
 	while( level[level.length - 1].length > 1 ) {
 		simTable = addCluster( simTable );
 	}
-
-	console.log( clusSim );
-
 	console.log( "Finished clustering" );
+
 	visualise( level[ level.length - numOfGroups ] );
 }
 
