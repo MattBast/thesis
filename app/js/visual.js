@@ -140,11 +140,14 @@ function main() {
 	console.log( "Finished building simTable" );
 
 	priorityQueue = mergeSort( priorityQueue, simTable );
+	console.log( "Priority queue has been sorted" );
 
 	//keep clustering the patterns until there are only three clusters
 	while( level[level.length - 1].length > 1 ) {
 		simTable = addCluster( simTable );
 	}
+
+	console.log( clusSim );
 
 	console.log( "Finished clustering" );
 	visualise( level[ level.length - numOfGroups ] );
@@ -238,28 +241,6 @@ function similarity( p1, p2 ) {
 	return similarity;
 }
 
-function addToQueue( queue, simTable, newSim ) {
-	//if clusters are disjoint (similarity of 0), push to end of queue
-	if( simTable.get( newSim ) === 0 ) {
-		queue.push( newSim );
-		return queue;
-	}
-	/* else start from beginning of queue. If find a comparison with a 
-	lower similarity score, splice in new comparison */
-	else {
-		for( var i = 0; i < queue.length; i++ ) {
-			if( simTable.get( newSim ) > simTable.get( queue[i] ) ) {
-				queue.splice( i, 0, newSim );
-				return queue;
-			}
-		}
-		/* push comparison onto the end of the queue if it has the 
-		lowest similarity in the queue */
-		queue.push( newSim );
-		return queue;
-	}
-}
-
 function addCluster( simTable ) {
 	var clusters = [];
 	clusters = clusters.concat( level[level.length - 1] );
@@ -299,39 +280,43 @@ function updateClusters( clusters, simClus ) {
 }
 
 function updateSimTable( simTable, simClus, clusters ) {
-	var tmp1 = [];
-	var tmp2 = [];
+	var tmp1 = []; //<-- clusters compared to simClus0
+	var tmp2 = []; //<-- clusters compared to simClus1
 
 	/* loop through clusters looking for when they are compared to
 	either of the two patterns/clusters in question */
 	for( var j = 0; j < clusters.length; j++ ) {
-		var object = {
+		var object1 = {
+			key : "",
+			value : 0
+		};
+		var object2 = {
 			key : "",
 			value : 0
 		};
 		if( simTable.has( clusters[j] + "+" + simClus[0] ) ) {
-			object.key = clusters[j] + "+" + simClus[0];
-			object.value = simTable.get( object.key );
-			tmp1.push( object );
-			simTable.delete( object.key );
+			object1.key = clusters[j] + "+" + simClus[0];
+			object1.value = simTable.get( object1.key );
+			tmp1.push( object1 );
+			simTable.delete( object1.key );
 		}
 		if( simTable.has( simClus[0] + "+" +  clusters[j] ) ) {
-			object.key = simClus[0] + "+" +  clusters[j];
-			object.value = simTable.get( object.key );
-			tmp1.push( object );
-			simTable.delete( object.key );
+			object1.key = simClus[0] + "+" +  clusters[j];
+			object1.value = simTable.get( object1.key );
+			tmp1.push( object1 );
+			simTable.delete( object1.key );
 		}
 		if( simTable.has( clusters[j] + "+" + simClus[1] ) ) {
-			object.key = clusters[j] + "+" + simClus[1];
-			object.value = simTable.get( object.key );
-			tmp2.push( object );
-			simTable.delete( object.key );
+			object2.key = clusters[j] + "+" + simClus[1];
+			object2.value = simTable.get( object2.key );
+			tmp2.push( object2 );
+			simTable.delete( object2.key );
 		}
 		if( simTable.has( simClus[1] + "+" + clusters[j] ) ) {
-			object.key = simClus[1] + "+" + clusters[j];
-			object.value = simTable.get( object.key );
-			tmp2.push( object );
-			simTable.delete( object.key );
+			object2.key = simClus[1] + "+" + clusters[j];
+			object2.value = simTable.get( object2.key );
+			tmp2.push( object2 );
+			simTable.delete( object2.key );
 		}
 	}
 
@@ -396,7 +381,7 @@ function updateTableAndQueue( simTable, newClusSims ) {
 	}
 
 	//sort tmpQueue
-	tmpQueue = mergeSort( tmpQueue, newClusSims );
+	tmpQueue = mergeSort( tmpQueue, simTable );
 
 	/* add in new comparisons and take out redundant ones from
 	priorityQueue */
@@ -405,18 +390,16 @@ function updateTableAndQueue( simTable, newClusSims ) {
 			priorityQueue.splice( i, 1 );
 			i--;
 		}
-		if( simTable.get( priorityQueue[i] ) < simTable.get( tmpQueue[j] ) ) {
-			priorityQueue.splice( i, 0, tmpQueue[j] );
-			j++;
-		}
 	}
 
 	var j = 0;
 	for( var i = 0; i < priorityQueue.length; i++ ) {
 		if( simTable.get( tmpQueue[j] ) > simTable.get( priorityQueue[i] ) ) {
-			priorityQueue.splice( i - 1, 0, tmpQueue[j] );
+			priorityQueue.splice( i, 0, tmpQueue[j] );
 			j++;
-			i--;
+		}
+		if( j === tmpQueue.length ) {
+			break;
 		}
 	}
 
