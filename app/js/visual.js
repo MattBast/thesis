@@ -139,6 +139,8 @@ function main() {
 	var simTable = buildSimTable();
 	console.log( "Finished building simTable" );
 
+	priorityQueue = mergeSort( priorityQueue, simTable );
+
 	//keep clustering the patterns until there are only three clusters
 	while( level[level.length - 1].length > 1 ) {
 		simTable = addCluster( simTable );
@@ -168,18 +170,51 @@ function buildSimTable() {
 			var jKey = (j + 1).toString();
 			if( j === i ) { 
 				simTable.set( iKey + "+" + jKey, 0 );
-				priorityQueue.push( iKey + "+" + jKey );
 			}
 			else {
 				var sim = similarity( patterns.get(i), patterns.get(j) );
 				simTable.set( iKey + "+" + jKey, sim );
 				clusSim.set( iKey + "+" + jKey, sim );
-				priorityQueue = addToQueue( priorityQueue, simTable,
-					iKey + "+" + jKey );
-			}	
+			}
+			priorityQueue.push( iKey + "+" + jKey );	
 		}
 	}
 	return simTable;
+}
+
+function mergeSort( array, simTable ){
+
+    //arrays with 0 or 1 elements don't need sorting
+    if( array.length < 2 ) {
+        return array;
+    }
+
+    //split array in half.
+    var middle = Math.floor( array.length / 2 ),
+        left = array.slice( 0, middle ),
+        right = array.slice( middle );
+
+    /* Recursively split arrays, sort them and then re-merge 
+    them back together until the original array is returned */
+    return merge( mergeSort( left, simTable ), mergeSort( right, simTable ), simTable );
+}
+
+function merge( left, right, simTable ){
+    var result = [], il = 0, ir = 0;
+
+    /* Compare elements from left and right arrays adding smaller one to 
+    result array. Do this until one of the arrays is empty. */
+    while ( il < left.length && ir < right.length ){
+        if( simTable.get( left[il] ) > simTable.get( right[ir] ) ){
+            result.push( left[il++] );
+        } 
+        else {
+            result.push( right[ir++] );
+        }
+    }
+
+    //concat what is left of left and right to result
+    return result.concat( left.slice(il) ).concat( right.slice(ir) );
 }
 
 function similarity( p1, p2 ) {
@@ -352,20 +387,39 @@ function mean( num1, num2 ) {
 }
 
 function updateTableAndQueue( simTable, newClusSims ) {
+	var tmpQueue = [];
 	//add new clusters to simTable, clusSim and priorityQueue
 	for( var key of newClusSims.keys() ) {
 		simTable.set( key, newClusSims.get( key ) );
 		clusSim.set( key, newClusSims.get( key ) ); 
-		priorityQueue = addToQueue( priorityQueue, simTable, key );
+		tmpQueue.push( key );
 	}
 
-	//take out redundant clusters from priorityQueue
-	for( var c = 0; c < priorityQueue.length; c++ ) {
-		if( simTable.has( priorityQueue[c] ) === false ) {
-			priorityQueue.splice( c, 1 );
-			c--;
+	//sort tmpQueue
+	tmpQueue = mergeSort( tmpQueue, newClusSims );
+
+	/* add in new comparisons and take out redundant ones from
+	priorityQueue */
+	for( var i = 0; i < priorityQueue.length; i++ ) {
+		if( simTable.has( priorityQueue[i] ) === false ) {
+			priorityQueue.splice( i, 1 );
+			i--;
+		}
+		if( simTable.get( priorityQueue[i] ) < simTable.get( tmpQueue[j] ) ) {
+			priorityQueue.splice( i, 0, tmpQueue[j] );
+			j++;
 		}
 	}
+
+	var j = 0;
+	for( var i = 0; i < priorityQueue.length; i++ ) {
+		if( simTable.get( tmpQueue[j] ) > simTable.get( priorityQueue[i] ) ) {
+			priorityQueue.splice( i - 1, 0, tmpQueue[j] );
+			j++;
+			i--;
+		}
+	}
+
 	return simTable;
 }
 
@@ -1116,4 +1170,9 @@ Array.prototype.swap = function (x,y) {
   this[x] = this[y];
   this[y] = tmp;
   return this;
+}
+
+Array.prototype.injectArray = function( index, array ) {
+	//found this code at: http://stackoverflow.com/questions/7032550/javascript-insert-an-array-inside-another-array
+	return this.slice( 0, index ).concat( array ).concat( this.slice( index ) );
 }
