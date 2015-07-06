@@ -154,7 +154,7 @@ function main() {
 function initClusters() { 
 	var clusters = [];
 	var parents = [];
-	for( var i = 1; i < 201; i++ ) { 
+	for( var i = 1; i < 501; i++ ) { 
 		clusters.push( i.toString() );
 		clusRef.set( i.toString(), parents );
 	}
@@ -165,8 +165,8 @@ function buildSimTable() {
 	//records how similar two patterns/clusters compared to one another
 	var simTable = new Map(); 
 	//loop through patterns and compare them against one another
-	for( var i = 0; i < 200; i++ ) { 
-		for( var j = i; j < 200; j++ ) { 
+	for( var i = 0; i < 500; i++ ) { 
+		for( var j = i; j < 500; j++ ) { 
 			var iKey = (i + 1).toString();
 			var jKey = (j + 1).toString();
 			if( j === i ) { 
@@ -381,8 +381,7 @@ function updateTableAndQueue( simTable, newClusSims ) {
 	//sort tmpQueue
 	tmpQueue = mergeSort( tmpQueue, simTable );
 
-	/* add in new comparisons and take out redundant ones from
-	priorityQueue */
+	// take out redundant comparisons from priority queue 
 	for( var i = 0; i < priorityQueue.length; i++ ) {
 		if( simTable.has( priorityQueue[i] ) === false ) {
 			priorityQueue.splice( i, 1 );
@@ -390,18 +389,34 @@ function updateTableAndQueue( simTable, newClusSims ) {
 		}
 	}
 
-	var j = 0;
-	for( var i = 0; i < priorityQueue.length; i++ ) {
-		if( simTable.get( tmpQueue[j] ) > simTable.get( priorityQueue[i] ) ) {
-			priorityQueue.splice( i, 0, tmpQueue[j] );
-			j++;
-		}
-		if( j === tmpQueue.length ) {
-			break;
-		}
+	//insert tmpQueue comparisons into priorityQueue
+	var insert = 0;
+	for( var i = 0; i < tmpQueue.length; i++ ) {
+		insert = binarySearch( 0, priorityQueue.length - 1, simTable.get( tmpQueue[i] ), simTable );
+		priorityQueue.splice( insert, 0, tmpQueue[i] );
 	}
 
 	return simTable;
+}
+
+function binarySearch( low, high, key, simTable ) {
+	//start at beginning of array
+	var middle = Math.floor( low + ( ( high - low ) / 2 ) );
+
+	//stop if only one element in current view of array
+	if( low === high ) {
+		return low;
+	}
+
+	//decide if key is on left or right of middle element
+	if( key < simTable.get( priorityQueue[middle] ) ) {
+		return binarySearch( middle + 1, high, key, simTable );
+	}
+	else if( key > simTable.get( priorityQueue[middle] ) ) {
+		return binarySearch( low, middle, key, simTable );
+	}
+
+	return middle;
 }
 
 function getNumOfGroups() {
