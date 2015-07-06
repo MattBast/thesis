@@ -332,7 +332,7 @@ function compareNewClus( simClus, tmp1, tmp2 ) {
 	for( var i = 0; i < tmp1.length; i++ ) {
 		var clus = tmp1[i].key.split( "+" );
 		var ref = "";
-		//make sure not to compare cluster to itself
+		//get cluster not in simClus from tmp1
 		if( clus[0] !== simClus[0] && clus[0] !== simClus[1] ) {
 			ref = clus[0];
 		}
