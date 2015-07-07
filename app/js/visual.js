@@ -73,30 +73,35 @@ function readFile( file, reader ) {
 
 		var array = reader.result.split( " " );
 
-		var map = new Map();
+		var ent = new Map();
 
 		var count = 1;
 
+		var pat = new Map(); //<-- pattern
+
 		//find a pattern in file. Store each entity as a key - value
 		for( var i = 0; i < array.length; i++ ) {
-			if( array[i].indexOf( "." ) != -1 && !isNaN( array[i] ) ) { 
-				var pat = new Map(); //<-- pattern
-				pat.set( 0, array[i] ); //<-- interestingness
-				patterns.push( pat );
-
-			}
+			//add entity to pattern
 			if( array[i].indexOf( "." ) != -1 && isNaN( array[i] ) ) {
-				if( !map.has( array[i] ) ) {
-					map.set( array[i], count );
+				//if this is first instance of entity, add to entity key/value store
+				if( !ent.has( array[i] ) ) {
+					ent.set( array[i], count );
 					pat.set( count, array[i] );
 					count++;
 				}
 				else {
-					pat.set( map.get( array[i] ), array[i] );
+					pat.set( ent.get( array[i] ), array[i] );
 				}
 			}
+			//found end of 
+			if( array[i].indexOf( "\n" ) != -1 ) { 
+				pat.set( ent.get( array[i] ), array[i] );
+				patterns.push( pat );
+				pat = new Map();
+
+			}
 		}
-		keyValueSwap( map );
+		keyValueSwap( ent );
 		console.log( "Finished reading" );
 		patterns = sparseMatrix();
 		main();
@@ -105,9 +110,9 @@ function readFile( file, reader ) {
 	reader.readAsText( file );
 }
 
-function keyValueSwap( map ) {
+function keyValueSwap( ent ) {
 	var count = 0;
-	for( var key of map.keys() ) {
+	for( var key of ent.keys() ) {
 		entity.set( count, key );
 		count++;
 	}
