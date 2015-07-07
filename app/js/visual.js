@@ -77,13 +77,18 @@ function readFile( file, reader ) {
 
 		var count = 1;
 
-		var pat = new Map(); //<-- pattern
-
-		//find a pattern in file. Store each entity as a key - value
+		//find a pattern in file. Store each entity as a key-value
 		for( var i = 0; i < array.length; i++ ) {
+			//interestingness marks start of new pattern
+			if( array[i].indexOf( "." ) != -1 && !isNaN( array[i] ) ) { 
+				var pat = new Map(); //<-- pattern
+				pat.set( 0, array[i] ); //<-- interestingness
+				patterns.push( pat );
+
+			}
 			//add entity to pattern
 			if( array[i].indexOf( "." ) != -1 && isNaN( array[i] ) ) {
-				//if this is first instance of entity, add to entity key/value store
+				//if this is first instance of entity, add to entity key-value store
 				if( !ent.has( array[i] ) ) {
 					ent.set( array[i], count );
 					pat.set( count, array[i] );
@@ -92,13 +97,6 @@ function readFile( file, reader ) {
 				else {
 					pat.set( ent.get( array[i] ), array[i] );
 				}
-			}
-			//found end of 
-			if( array[i].indexOf( "\n" ) != -1 ) { 
-				pat.set( ent.get( array[i] ), array[i] );
-				patterns.push( pat );
-				pat = new Map();
-
 			}
 		}
 		keyValueSwap( ent );
