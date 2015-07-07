@@ -1167,8 +1167,3 @@ Array.prototype.swap = function (x,y) {
   this[y] = tmp;
   return this;
 }
-
-Array.prototype.injectArray = function( index, array ) {
-	//found this code at: http://stackoverflow.com/questions/7032550/javascript-insert-an-array-inside-another-array
-	return this.slice( 0, index ).concat( array ).concat( this.slice( index ) );
-}
