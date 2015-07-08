@@ -284,6 +284,9 @@ function updateSimTable( simTable, simClus, clusters ) {
 	var tmp1 = []; //<-- clusters compared to simClus0
 	var tmp2 = []; //<-- clusters compared to simClus1
 
+	//remove simClus from priority queue
+	priorityQueue.splice( 0, 1 );
+
 	/* loop through clusters looking for when they are compared to
 	either of the two patterns/clusters in question */
 	for( var j = 0; j < clusters.length; j++ ) {
@@ -299,24 +302,48 @@ function updateSimTable( simTable, simClus, clusters ) {
 			object1.key = clusters[j] + "+" + simClus[0];
 			object1.value = simTable.get( object1.key );
 			tmp1.push( object1 );
+
+			//remove redundant comparison from queue
+			var index = binarySearch( priorityQueue, object1.key, simTable );
+			priorityQueue.splice( index, 1 );
+
+			//remove redundant comparison from simTable
 			simTable.delete( object1.key );
 		}
 		if( simTable.has( simClus[0] + "+" +  clusters[j] ) ) {
 			object1.key = simClus[0] + "+" +  clusters[j];
 			object1.value = simTable.get( object1.key );
 			tmp1.push( object1 );
+
+			//remove redundant comparison from queue
+			var index = binarySearch( priorityQueue, object1.key, simTable );
+			priorityQueue.splice( index, 1 );
+
+			//remove redundant comparison from simTable
 			simTable.delete( object1.key );
 		}
 		if( simTable.has( clusters[j] + "+" + simClus[1] ) ) {
 			object2.key = clusters[j] + "+" + simClus[1];
 			object2.value = simTable.get( object2.key );
 			tmp2.push( object2 );
+
+			//remove redundant comparison from queue
+			var index = binarySearch( priorityQueue, object2.key, simTable );
+			priorityQueue.splice( index, 1 );
+
+			//remove redundant comparison from simTable
 			simTable.delete( object2.key );
 		}
 		if( simTable.has( simClus[1] + "+" + clusters[j] ) ) {
 			object2.key = simClus[1] + "+" + clusters[j];
 			object2.value = simTable.get( object2.key );
 			tmp2.push( object2 );
+
+			//remove redundant comparison from queue
+			var index = binarySearch( priorityQueue, object2.key, simTable );
+			priorityQueue.splice( index, 1 );
+
+			//remove redundant comparison from simTable
 			simTable.delete( object2.key );
 		}
 	}
@@ -384,27 +411,67 @@ function updateTableAndQueue( simTable, newClusSims ) {
 	//sort tmpQueue
 	tmpQueue = mergeSort( tmpQueue, simTable );
 
-	// take out redundant comparisons from priority queue 
-	for( var i = 0; i < priorityQueue.length; i++ ) {
-		if( simTable.has( priorityQueue[i] ) === false ) {
-			priorityQueue.splice( i, 1 );
-			i--;
-		}
-	}
-
 	//insert tmpQueue comparisons into priorityQueue
 	var insert = 0;
 	for( var i = 0; i < tmpQueue.length; i++ ) {
-		insert = binarySearch( 0, priorityQueue.length - 1, simTable.get( tmpQueue[i] ), simTable );
+		insert = binaryInsert( 0, priorityQueue.length - 1, simTable.get( tmpQueue[i] ), simTable );
 		priorityQueue.splice( insert, 0, tmpQueue[i] );
 	}
 
 	return simTable;
 }
 
-function binarySearch( low, high, key, simTable ) {
-	//start at beginning of array
+function binarySearch( array, key, simTable ) {
+	/* 
+		This code is based on an Neill Campbells lecture notes. 
+	*/
+
+	var low = 0, high = array.length - 1;
+	var keyValue = simTable.get( key );
+
+	while( low <= high ) {
+		var middle = Math.floor( low + ( ( high - low ) / 2 ) );
+		var midValue = simTable.get( array[middle] );
+
+		//check to see if found key
+		if( key === array[middle] ) {
+			return middle;
+		}
+		else if( keyValue === midValue ) {
+			/* some comparisons have the same value. 
+			This bit catches those ones */
+			var padding = Math.floor( array.length / 100 );
+			low = low - padding;
+			high = high + padding;
+			for( var i = (low - 1); i <= high; i++ ) {
+				if( array[i] === key ) {
+					return i;
+				}
+			}
+		}
+		else {
+			//use right of middle
+			if( keyValue < midValue ) {
+				low = middle + 1;
+			}
+			//use left of middle
+			else {
+				high = middle - 1;
+			}
+		}
+	}
+
+	return -1;
+}
+
+function binaryInsert( low, high, key, simTable ) {
+	/* 
+		This code is based on an example from: 
+		http://jeffreystedfast.blogspot.co.uk/2007/02/binary-insertion-sort.html 
+	*/
+
 	var middle = Math.floor( low + ( ( high - low ) / 2 ) );
+	var midElement = simTable.get( priorityQueue[middle] );
 
 	//stop if only one element in current view of array
 	if( low === high ) {
@@ -412,11 +479,11 @@ function binarySearch( low, high, key, simTable ) {
 	}
 
 	//decide if key is on left or right of middle element
-	if( key < simTable.get( priorityQueue[middle] ) ) {
-		return binarySearch( middle + 1, high, key, simTable );
+	if( key < midElement ) {
+		return binaryInsert( middle + 1, high, key, simTable );
 	}
-	else if( key > simTable.get( priorityQueue[middle] ) ) {
-		return binarySearch( low, middle, key, simTable );
+	else if( key > midElement ) {
+		return binaryInsert( low, middle, key, simTable );
 	}
 
 	return middle;
@@ -1164,7 +1231,7 @@ Array.prototype.max = function() {
 	return Math.max.apply( Math, this );
 }
 
-Array.prototype.swap = function (x,y) {
+Array.prototype.swap = function(x,y) {
   var tmp = this[x];
   this[x] = this[y];
   this[y] = tmp;
