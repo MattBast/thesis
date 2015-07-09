@@ -856,9 +856,17 @@ function hideTooltip() {
 
 function clickNode( d ) {
 	var yPos = parseFloat(d3.select("svg").attr("y"));
-	var text = " ";
+
+	//work out percentage of patterns this entity turns up in
+	var frequency = getFrequency( d.id ); 
+
+	var text = "";
 	for( var key of frequency.keys() ) {
-		text += key + " " + frequency.get( key ) + " "; 
+		var ef = frequency.get( key ); //<-- entity frequency
+		var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
+		ef = Math.floor( (ef / numOfPats) * 100 ); //<-- get percentage (rounded down)
+
+		text += key + " " + frequency.get( key ) + " " + ef + "% "; 
 	}
 
 	d3.select("#tooltip2")
@@ -1078,7 +1086,7 @@ function clickRow(d, i) {
 
 	//determines intensity of red
 	var colourScale = d3.scale.linear()
-		.domain([0, largestClus])
+		.domain([0, 100])
 		.range([100, 255]);
 
 	var rowPattern = d.pattern;
@@ -1092,9 +1100,20 @@ function clickRow(d, i) {
 
 	nodes.transition()
 		.style("stroke", function(d, i) {
-			var frequency = getFrequency( d.id );
+			//returns a map of all entitys and their frequency
+			var frequency = getFrequency( d.id ); 
+
 			var ef = frequency.get( rowPattern ); //<-- entity frequency
-			return d3.rgb( colourScale( ef ), 50, 50 );
+			var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
+			ef = (ef / numOfPats) * 100;
+
+			if( ef === 0 ) {
+				return d3.rgb( 0, 50, 50 );
+
+			}
+			else {
+				return d3.rgb( colourScale( ef ), 50, 50 );
+			}
 		})
 		.style("stroke-width", 5);
 
@@ -1102,21 +1121,21 @@ function clickRow(d, i) {
 		var yPos = parseFloat(d3.select("svg").attr("y"));
 		var frequency = getFrequency( d.id );
 
-	var patternFrequency = frequency.get( rowPattern );
+		var patternFrequency = frequency.get( rowPattern );
 
-	//alter text in tooltip
-	d3.select("#tooltip")
-		.style("left", 0)
-		.style("top", (yPos + 20) + "px")
-		.select("#value")
-		.text( function() {
-			if( patternFrequency === undefined ) {
-				return rowPattern + " 0";
-			}
-			else {
-				return rowPattern + " " + patternFrequency;
-			}
-		});
+		//alter text in tooltip
+		d3.select("#tooltip")
+			.style("left", 0)
+			.style("top", (yPos + 20) + "px")
+			.select("#value")
+			.text( function() {
+				if( patternFrequency === undefined ) {
+					return rowPattern + " 0";
+				}
+				else {
+					return rowPattern + " " + patternFrequency;
+				}
+			});
 
 		//show tooltip
 		d3.select("#tooltip").classed("hidden", false);
