@@ -157,7 +157,7 @@ function main() {
 function initClusters() { 
 	var clusters = [];
 	var parents = [];
-	for( var i = 1; i < 1001; i++ ) { 
+	for( var i = 1; i < 501; i++ ) { 
 		clusters.push( i.toString() );
 		clusRef.set( i.toString(), parents );
 	}
@@ -166,8 +166,8 @@ function initClusters() {
 
 function buildSimTable() {
 	//loop through patterns and compare them against one another
-	for( var i = 0; i < 1000; i++ ) { 
-		for( var j = i; j < 1000; j++ ) { 
+	for( var i = 0; i < 500; i++ ) { 
+		for( var j = i; j < 500; j++ ) { 
 			var iKey = (i + 1).toString();
 			var jKey = (j + 1).toString();
 			if( j === i ) { 
@@ -264,18 +264,19 @@ function checkForDuplicate() {
 }
 
 function updateClusters( clusters, simClus ) {
-	for( var i = 0; i < clusters.length; i++ ) {
-		if( clusters[i] === simClus[0] || clusters[i] === simClus[1] ) {
-			clusters.splice( i, 1 );
-			i--;
-		}
-	}
+	//search for and remove two
+	var index = binarySearch( clusters, simClus[0] );
+	clusters.splice( index, 1 );
+
+	index = binarySearch( clusters, simClus[1] );
+	clusters.splice( index, 1 );
+
 	return clusters;
 }
 
 function updateSimTable( simClus, clusters ) {
-	var tmp1 = []; //<-- clusters compared to simClus0
-	var tmp2 = []; //<-- clusters compared to simClus1
+	var comps1 = []; //<-- clusters compared to simClus0
+	var comps2 = []; //<-- clusters compared to simClus1
 
 	//remove simClus from priority queue
 	priorityQueue.splice( 0, 1 );
@@ -283,48 +284,45 @@ function updateSimTable( simClus, clusters ) {
 	/* loop through clusters looking for when they are compared to
 	either of the two patterns/clusters in question */
 	for( var j = 0; j < clusters.length; j++ ) {
-		var comp1 = { //<-- comparison 1
-			key : "",
-			value : 0
-		};
-		var comp2 = { //<-- comparison 2
-			key : "",
-			value : 0
-		};
 		if( simTable.has( clusters[j] + "+" + simClus[0] ) ) {
-			comp1 = setComparison( comp1, clusters[j] + "+" + simClus[0] );
-			tmp1.push( comp1 );
+			var comp1 = setComparison( clusters[j] + "+" + simClus[0] );
+			comps1.push( comp1 );
 			removeFromQueue( comp1 ); //<-- remove redundant comparison from queue
 		}
 		if( simTable.has( simClus[0] + "+" +  clusters[j] ) ) {
-			comp1 = setComparison( comp1, clusters[0] + "+" + simClus[j] );
-			tmp1.push( comp1 );
-			removeFromQueue( comp1 ); //<-- remove redundant comparison from queue
+			var comp1 = setComparison( simClus[0] + "+" +  clusters[j] );
+			comps1.push( comp1 );
+			removeFromQueue( comp1 );//<-- remove redundant comparison from queue
 		}
 		if( simTable.has( clusters[j] + "+" + simClus[1] ) ) {
-			comp2 = setComparison( comp2, clusters[j] + "+" + simClus[1] );
-			tmp2.push( comp2 );
+			var comp2 = setComparison( clusters[j] + "+" + simClus[1] );
+			comps2.push( comp2 );
 			removeFromQueue( comp2 ); //<-- remove redundant comparison from queue
 		}
 		if( simTable.has( simClus[1] + "+" + clusters[j] ) ) {
-			comp2 = setComparison( comp2, simClus[1] + "+" + clusters[j] );
-			tmp2.push( comp2 );
+			var comp2 = setComparison( simClus[1] + "+" + clusters[j] );
+			comps2.push( comp2 );
 			removeFromQueue( comp2 ); //<-- remove redundant comparison from queue
 		}
 	}
 
 	//get the two patterns/clusters that are most similar
-	var tmpQueue = compareNewClus( simClus, tmp1, tmp2 );
+	var tmpQueue = compareNewClus( simClus, comps1, comps2 );
 
 	updateQueue( tmpQueue );
 	
 	level.push( clusters );
 }
 
-function setComparison( comparison, key ) {
-	comparison.key = key;
-	comparison.value = simTable.get( comparison.key );
-	return comparison;
+function setComparison( key ) {
+	var comp = { //<-- comparison
+		key : "",
+		value : 0
+	};
+
+	comp.key = key;
+	comp.value = simTable.get( comp.key );
+	return comp;
 }
 
 function removeFromQueue( comparison ) {
@@ -858,7 +856,7 @@ function hideTooltip() {
 
 function clickNode( d ) {
 	var yPos = parseFloat(d3.select("svg").attr("y"));
-	var text = d.id + " ";
+	var text = " ";
 	for( var key of frequency.keys() ) {
 		text += key + " " + frequency.get( key ) + " "; 
 	}
