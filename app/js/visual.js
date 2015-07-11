@@ -994,6 +994,7 @@ function updateTable( dataNodes ) {
 }
 
 function getSortedTotal( clusters ) {
+	//add up the frequency of all entities in this dataset
 	for( var j = 0; j < clusters.length; j++ ) {
 		total = combine( total, getFrequency( clusters[j] ) );
 	}
@@ -1028,24 +1029,25 @@ function getPercentage( ef, tf ) {
 	return ef;
 }
 
-function combine( f1, f2 ) {
-	var total = new Map();
-	var checked = [];
-	for( var key of f2.keys() ) {
-		if( f1.has( key ) ) {
-			total.set( key, f1.get( key ) + f2.get( key ) );
-			checked.push( key );
+function combine( clusEnts1, clusEnts2 ) {
+	//loop through all entities and their frequency in clusEnts2
+	for( var key of clusEnts2.keys() ) {
+		if( clusEnts1.has( key ) ) {
+			//add frequency of clusEnts1 and clusEnts2 together
+			clusEnts1.set( key, clusEnts1.get( key ) + clusEnts2.get( key ) );
 		}
 		else {
-			total.set( key, f2.get( key ) );
+			//put in new entity and its frequency
+			clusEnts1.set( key, clusEnts2.get( key ) );
 		}
 	}
 
-	return total;
+	return clusEnts1;
 }
 
 function sortTotal( total ) {
 	var sortedTotal = [];
+	//insertion sort
 	for( var key of total.keys() ) {
 		var entity = {
 			pattern : key,
@@ -1098,6 +1100,7 @@ function clickRow(d, i) {
 	//highlight selected row
 	d3.select(this).classed("highlight", true);
 
+	//chnage the border of each node to a shade of red
 	nodes.transition()
 		.style("stroke", function(d, i) {
 			//returns a map of all entitys and their frequency
@@ -1117,6 +1120,7 @@ function clickRow(d, i) {
 		})
 		.style("stroke-width", 5);
 
+	//change data in tooltip to mtch the data of the node currently hovered over
 	nodes.on("mouseover", function(d, i) {
 		var yPos = parseFloat(d3.select("svg").attr("y"));
 		var frequency = getFrequency( d.id );
