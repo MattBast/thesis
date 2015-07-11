@@ -645,7 +645,7 @@ function getMoreNodes( originalNodes ) {
 	var node;
 	var newNodes = [];
 	var parents = [];
-	while( newNodes.length < 20 ) {
+	while( newNodes.length < 30 ) {
 		var onePat = 0; //<-- count how many patterns have no parents
 
 		for( var i = 0; i < originalNodes.length; i++ ) {
@@ -671,7 +671,7 @@ function getMoreNodes( originalNodes ) {
 
 		//prevents patterns turning up in newNodes more than once
 		originalNodes = newNodes;
-		if( newNodes.length < 20 ) { newNodes = []; }
+		if( newNodes.length < 30 ) { newNodes = []; }
 	}	
 	return newNodes;
 }
