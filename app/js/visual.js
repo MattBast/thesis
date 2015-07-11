@@ -6,7 +6,7 @@ var linkage = document.getElementsByName("linkage");
 
 var patterns = [];
 var clusRef = new Map(); //<-- references the parents of a cluster
-var clusSim = new Map(); //<-- the Jaccard similarity between two patterns
+var simTable = new Map(); //<-- the Jaccard similarity between two patterns
 var priorityQueue = []; //<-- orders patterns/clusters by similarity
 
 //each element represents a level in the hierarchical clustering
@@ -57,7 +57,7 @@ function upload() {
 	if( fileInput.files.length > 0 ) {
 
 		var file = fileInput.files[0];
-		console.log( "Upload", file.name );
+		console.log( "Uploaded", file.name );
 
 		var reader = new FileReader();
 		readFile( file, reader );
@@ -73,30 +73,33 @@ function readFile( file, reader ) {
 
 		var array = reader.result.split( " " );
 
-		var map = new Map();
+		var ent = new Map();
 
 		var count = 1;
 
-		//find a pattern in file. Store each entity as a key - value
+		//find a pattern in file. Store each entity as a key-value
 		for( var i = 0; i < array.length; i++ ) {
+			//interestingness marks start of new pattern
 			if( array[i].indexOf( "." ) != -1 && !isNaN( array[i] ) ) { 
 				var pat = new Map(); //<-- pattern
 				pat.set( 0, array[i] ); //<-- interestingness
 				patterns.push( pat );
 
 			}
+			//add entity to pattern
 			if( array[i].indexOf( "." ) != -1 && isNaN( array[i] ) ) {
-				if( !map.has( array[i] ) ) {
-					map.set( array[i], count );
+				//if this is first instance of entity, add to entity key-value store
+				if( !ent.has( array[i] ) ) {
+					ent.set( array[i], count );
 					pat.set( count, array[i] );
 					count++;
 				}
 				else {
-					pat.set( map.get( array[i] ), array[i] );
+					pat.set( ent.get( array[i] ), array[i] );
 				}
 			}
 		}
-		keyValueSwap( map );
+		keyValueSwap( ent );
 		console.log( "Finished reading" );
 		patterns = sparseMatrix();
 		main();
@@ -105,9 +108,9 @@ function readFile( file, reader ) {
 	reader.readAsText( file );
 }
 
-function keyValueSwap( map ) {
+function keyValueSwap( ent ) {
 	var count = 0;
-	for( var key of map.keys() ) {
+	for( var key of ent.keys() ) {
 		entity.set( count, key );
 		count++;
 	}
@@ -136,22 +139,25 @@ function main() {
 	initClusters();
 	console.log( "Completed initial clustering" );
 
-	var simTable = buildSimTable();
+	buildSimTable();
 	console.log( "Finished building simTable" );
+
+	priorityQueue = mergeSort( priorityQueue );
+	console.log( "Priority queue has been sorted" );
 
 	//keep clustering the patterns until there are only three clusters
 	while( level[level.length - 1].length > 1 ) {
-		simTable = addCluster( simTable );
+		addCluster();
 	}
-
 	console.log( "Finished clustering" );
+
 	visualise( level[ level.length - numOfGroups ] );
 }
 
 function initClusters() { 
 	var clusters = [];
 	var parents = [];
-	for( var i = 1; i < 101; i++ ) { 
+	for( var i = 1; i < 501; i++ ) { 
 		clusters.push( i.toString() );
 		clusRef.set( i.toString(), parents );
 	}
@@ -159,25 +165,55 @@ function initClusters() {
 }
 
 function buildSimTable() {
-	var simTable = new Map(); //<-- records how similar patterns are
-	for( var i = 0; i < 100; i++ ) { 
-		for( var j = i; j < 100; j++ ) { 
+	//loop through patterns and compare them against one another
+	for( var i = 0; i < 500; i++ ) { 
+		for( var j = i; j < 500; j++ ) { 
 			var iKey = (i + 1).toString();
 			var jKey = (j + 1).toString();
 			if( j === i ) { 
 				simTable.set( iKey + "+" + jKey, 0 );
-				priorityQueue.push( iKey + "+" + jKey );
 			}
 			else {
 				var sim = similarity( patterns.get(i), patterns.get(j) );
 				simTable.set( iKey + "+" + jKey, sim );
-				clusSim.set( iKey + "+" + jKey, sim );
-				priorityQueue = addToQueue( priorityQueue, simTable,
-					iKey + "+" + jKey );
-			}	
+			}
+			priorityQueue.push( iKey + "+" + jKey );	
 		}
 	}
-	return simTable;
+}
+
+function mergeSort( array ){
+    //arrays with 0 or 1 elements don't need sorting
+    if( array.length < 2 ) {
+        return array;
+    }
+
+    //split array in half.
+    var middle = Math.floor( array.length / 2 ),
+        left = array.slice( 0, middle ),
+        right = array.slice( middle );
+
+    /* Recursively split arrays, sort them and then re-merge 
+    them back together until the original array is returned */
+    return merge( mergeSort( left ), mergeSort( right ) );
+}
+
+function merge( left, right ){
+    var result = [], il = 0, ir = 0;
+
+    /* Compare elements from left and right arrays adding smaller one to 
+    result array. Do this until one of the arrays is empty. */
+    while ( il < left.length && ir < right.length ){
+        if( simTable.get( left[il] ) > simTable.get( right[ir] ) ){
+            result.push( left[il++] );
+        } 
+        else {
+            result.push( right[ir++] );
+        }
+    }
+
+    //concat what is left of left and right to result
+    return result.concat( left.slice(il) ).concat( right.slice(ir) );
 }
 
 function similarity( p1, p2 ) {
@@ -201,21 +237,11 @@ function similarity( p1, p2 ) {
 	return similarity;
 }
 
-function addToQueue( queue, simTable, newSim ) {
-	for( var i = 0; i < queue.length; i++ ) {
-		if( simTable.get( newSim ) > simTable.get( queue[i] ) ) {
-			queue.splice( i, 0, newSim );
-			return queue;
-		}
-	}
-	queue.push( newSim );
-	return queue;
-}
-
-function addCluster( simTable ) {
+function addCluster() {
 	var clusters = [];
 	clusters = clusters.concat( level[level.length - 1] );
-	var simClus = priorityQueue[0].split( "+" );
+	var simClus = checkForDuplicate();
+
 	simTable.delete( simClus[0] + "+" + simClus[1] );
 
 	//new cluster and its parents
@@ -225,87 +251,93 @@ function addCluster( simTable ) {
 	clusters = updateClusters( clusters, simClus );
 	clusters.push( newCluster );
 	
-	simTable = updateSimTable( simTable, simClus, clusters );
-	
-	return simTable;
+	updateSimTable( simClus, clusters );
+}
+
+function checkForDuplicate() {
+	var simClus = priorityQueue[0].split( "+" );
+	if( simClus[0] === simClus[1] ) {
+		priorityQueue.splice( 0, 1 );
+		simClus = checkForDuplicate();
+	}
+	return simClus;
 }
 
 function updateClusters( clusters, simClus ) {
-	for( var i = 0; i < clusters.length; i++ ) {
-		if( clusters[i] === simClus[0] || clusters[i] === simClus[1] ) {
-			clusters.splice( i, 1 );
-			i--;
-		}
-	}
+	//search for and remove two
+	var index = binarySearch( clusters, simClus[0] );
+	clusters.splice( index, 1 );
+
+	index = binarySearch( clusters, simClus[1] );
+	clusters.splice( index, 1 );
+
 	return clusters;
 }
 
-function updateSimTable( simTable, simClus, clusters ) {
-	var tmp1 = [];
-	var tmp2 = [];
+function updateSimTable( simClus, clusters ) {
+	var comps1 = []; //<-- clusters compared to simClus0
+	var comps2 = []; //<-- clusters compared to simClus1
 
-	simTable = removeSamePats( simTable, simClus );
+	//remove simClus from priority queue
+	priorityQueue.splice( 0, 1 );
 
-	/* look for and remove anything that compares to two clusters 
-	about to be clustered together */
+	/* loop through clusters looking for when they are compared to
+	either of the two patterns/clusters in question */
 	for( var j = 0; j < clusters.length; j++ ) {
-		var object = {
-			key : "",
-			value : 0
-		};
 		if( simTable.has( clusters[j] + "+" + simClus[0] ) ) {
-			object.key = clusters[j] + "+" + simClus[0];
-			object.value = simTable.get( object.key );
-			tmp1.push( object );
-			simTable.delete( object.key );
+			var comp1 = setComparison( clusters[j] + "+" + simClus[0] );
+			comps1.push( comp1 );
+			removeFromQueue( comp1 ); //<-- remove redundant comparison from queue
 		}
 		if( simTable.has( simClus[0] + "+" +  clusters[j] ) ) {
-			object.key = simClus[0] + "+" +  clusters[j];
-			object.value = simTable.get( object.key );
-			tmp1.push( object );
-			simTable.delete( object.key );
+			var comp1 = setComparison( simClus[0] + "+" +  clusters[j] );
+			comps1.push( comp1 );
+			removeFromQueue( comp1 );//<-- remove redundant comparison from queue
 		}
 		if( simTable.has( clusters[j] + "+" + simClus[1] ) ) {
-			object.key = clusters[j] + "+" + simClus[1];
-			object.value = simTable.get( object.key );
-			tmp2.push( object );
-			simTable.delete( object.key );
+			var comp2 = setComparison( clusters[j] + "+" + simClus[1] );
+			comps2.push( comp2 );
+			removeFromQueue( comp2 ); //<-- remove redundant comparison from queue
 		}
-		if( simTable.has( simClus[1] + "+" +  clusters[j] ) ) {
-			object.key = simClus[1] + "+" +  clusters[j];
-			object.value = simTable.get( object.key );
-			tmp2.push( object );
-			simTable.delete( object.key );
+		if( simTable.has( simClus[1] + "+" + clusters[j] ) ) {
+			var comp2 = setComparison( simClus[1] + "+" + clusters[j] );
+			comps2.push( comp2 );
+			removeFromQueue( comp2 ); //<-- remove redundant comparison from queue
 		}
 	}
 
 	//get the two patterns/clusters that are most similar
-	var newClusSims = compareNewClus( simClus, tmp1, tmp2 );
-	simTable = updateTableAndQueue( simTable, newClusSims );
+	var tmpQueue = compareNewClus( simClus, comps1, comps2 );
+
+	updateQueue( tmpQueue );
 	
 	level.push( clusters );
-	return simTable;
 }
 
-function removeSamePats( simTable, simClus ) {
-	//remove comparisons where a pattern is compared to itself
-	if( simTable.has( simClus[0] + "+" +  simClus[0] ) ) {
-		simTable.delete( simClus[0] + "+" +  simClus[0] );
-	}
-	if( simTable.has( simClus[1] + "+" +  simClus[1] ) ) {
-		simTable.delete( simClus[1] + "+" +  simClus[1] );
-	}
+function setComparison( key ) {
+	var comp = { //<-- comparison
+		key : "",
+		value : 0
+	};
 
-	return simTable;
+	comp.key = key;
+	comp.value = simTable.get( comp.key );
+	return comp;
+}
+
+function removeFromQueue( comparison ) {
+	var index = binarySearch( priorityQueue, comparison.key );
+	priorityQueue.splice( index, 1 );
 }
 
 function compareNewClus( simClus, tmp1, tmp2 ) {
-	var newClusSims = new Map();
-	var best = 0;
+	var tmpQueue = []; //<-- temporary queue of new clusters
+	var best = 0; //<-- best similarity comparison between clusters
 	for( var i = 0; i < tmp1.length; i++ ) {
 		var clus = tmp1[i].key.split( "+" );
 		var ref = "";
-		//make sure not to compare cluster to itself
+
+		//get cluster not in simClus
 		if( clus[0] !== simClus[0] && clus[0] !== simClus[1] ) {
 			ref = clus[0];
 		}
@@ -313,11 +345,14 @@ function compareNewClus( simClus, tmp1, tmp2 ) {
 			ref = clus[1];
 		}
 
+		//create key and value for new cluster comparison
 		var newKey = ref + "+" + simClus[0] + "-" + simClus[1];
 		best = mostSimilar( tmp1[i].value, tmp2[i].value );
-		newClusSims.set( newKey, best );
+
+		simTable.set( newKey, best ); //<-- add to simTable
+		tmpQueue.push( newKey ); //<-- add to temporary queue of new clusters
 	}
-	return newClusSims;
+	return tmpQueue;
 }
 
 function mostSimilar( num1, num2 ) {
@@ -342,22 +377,84 @@ function mean( num1, num2 ) {
 	return total;
 }
 
-function updateTableAndQueue( simTable, newClusSims ) {
-	//add new clusters to simTable, clusSim and priorityQueue
-	for( var key of newClusSims.keys() ) {
-		simTable.set( key, newClusSims.get( key ) );
-		clusSim.set( key, newClusSims.get( key ) ); 
-		priorityQueue = addToQueue( priorityQueue, simTable, key );
-	}
+function updateQueue( tmpQueue ) {
+	//sort tmpQueue
+	tmpQueue = mergeSort( tmpQueue );
 
-	//take out redundant clusters from priorityQueue
-	for( var c = 0; c < priorityQueue.length; c++ ) {
-		if( simTable.has( priorityQueue[c] ) === false ) {
-			priorityQueue.splice( c, 1 );
-			c--;
+	//insert tmpQueue comparisons into priorityQueue
+	var insert = 0;
+	for( var i = 0; i < tmpQueue.length; i++ ) {
+		insert = binaryInsert( 0, priorityQueue.length - 1, simTable.get( tmpQueue[i] ) );
+		priorityQueue.splice( insert, 0, tmpQueue[i] );
+	}
+}
+
+function binarySearch( array, key ) {
+	/* 
+		This code is based on an Neill Campbells lecture notes. 
+	*/
+
+	var low = 0, high = array.length - 1;
+	var keyValue = simTable.get( key );
+
+	while( low <= high ) {
+		var middle = Math.floor( low + ( ( high - low ) / 2 ) );
+		var midValue = simTable.get( array[middle] );
+
+		//check to see if found key
+		if( key === array[middle] ) {
+			return middle;
+		}
+		else if( keyValue === midValue ) {
+			/* some comparisons have the same value. 
+			This bit catches those ones */
+			var padding = Math.floor( array.length / 100 );
+			low = low - padding;
+			high = high + padding;
+			for( var i = (low - 1); i <= high; i++ ) {
+				if( array[i] === key ) {
+					return i;
+				}
+			}
+		}
+		else {
+			//use right of middle
+			if( keyValue < midValue ) {
+				low = middle + 1;
+			}
+			//use left of middle
+			else {
+				high = middle - 1;
+			}
 		}
 	}
-	return simTable;
+
+	return -1;
+}
+
+function binaryInsert( low, high, key ) {
+	/* 
+		This code is based on an example from: 
+		http://jeffreystedfast.blogspot.co.uk/2007/02/binary-insertion-sort.html 
+	*/
+
+	var middle = Math.floor( low + ( ( high - low ) / 2 ) );
+	var midElement = simTable.get( priorityQueue[middle] );
+
+	//stop if only one element in current view of array
+	if( low === high ) {
+		return low;
+	}
+
+	//decide if key is on left or right of middle element
+	if( key < midElement ) {
+		return binaryInsert( middle + 1, high, key );
+	}
+	else if( key > midElement ) {
+		return binaryInsert( low, middle, key );
+	}
+
+	return middle;
 }
 
 function getNumOfGroups() {
@@ -394,7 +491,9 @@ function visualise( clusters ) {
 				.range([5, 20]);
 
 	//scales Jaccard similarity to pixels.
-	var distScale = setDistScale();
+	var distScale = d3.scale.linear()
+			.domain([0, 1])
+			.range([300, 50]);
 
 	//create force directed layout
 	force.nodes(dataset.nodes)
@@ -582,13 +681,13 @@ function getEdges( nodes ) {
 	var edges = [];
 	for( var i = 0; i < nodes.length; i++ ) {
 		for( var j = 0; j < nodes.length; j++ ) {
-			if( ( i !== j ) && ( clusSim.has( nodes[i].id + "+" + nodes[j].id ) ) ) {
-				edge = { source: i, target: j, value: clusSim.get( nodes[i].id + "+" + nodes[j].id ) };
+			if( ( i !== j ) && ( simTable.has( nodes[i].id + "+" + nodes[j].id ) ) ) {
+				edge = { source: i, target: j, value: simTable.get( nodes[i].id + "+" + nodes[j].id ) };
 				edges.push( edge );
 			}
 			else {
 				var similarity = compareNodes( nodes[i].id, nodes[j].id );
-				clusSim.set( nodes[i].id + "+" + nodes[i].id, similarity );
+				simTable.set( nodes[i].id + "+" + nodes[i].id, similarity );
 				edge = { source: i, target: j, value: similarity };
 				edges.push( edge );
 			}
@@ -607,13 +706,13 @@ function compareNodes( node1, node2 ) {
 
 	for( var i = 0; i < patterns1.length; i++ ) {
 		for( var j = 0; j < patterns2.length; j++ ) {
-			if( clusSim.has( patterns1[i] + "+" + patterns2[j] ) ) {
+			if( simTable.has( patterns1[i] + "+" + patterns2[j] ) ) {
 				comparison = patterns1[i] + "+" + patterns2[j];
-				comparisons.set( comparison, clusSim.get( comparison ) ); 
+				comparisons.set( comparison, simTable.get( comparison ) ); 
 			}
-			if( clusSim.has( patterns2[j] + "+" + patterns1[i] ) ) {
+			if( simTable.has( patterns2[j] + "+" + patterns1[i] ) ) {
 				comparison = patterns2[j] + "+" + patterns1[i];
-				comparisons.set( comparison, clusSim.get( comparison ) ); 
+				comparisons.set( comparison, simTable.get( comparison ) ); 
 			}
 		}
 	}
@@ -674,28 +773,6 @@ function resetButtonBox( nodes ) {
 		numPats += nodes[i].id.split( "-" ).length;
 	}
 	patternsPresent.innerHTML = "Patterns present: " + numPats;
-}
-
-function setDistScale() {
-	var distScale; 
-
-	if( linkage[1].checked ) { //<-- complete linkage
-		distScale = d3.scale.linear()
-			.domain([0, 1])
-			.range([50, 300]);
-	}
-	else if( linkage[2].checked ) { //<-- average linkage
-		distScale = d3.scale.linear()
-			.domain([0, 1])
-			.range([50, 300]);
-	}
-	else { //<-- single linkage
-		distScale = d3.scale.linear()
-			.domain([0, 1])
-			.range([300, 50]);
-	}
-
-	return distScale;
 }
 
 function resetVis() {
@@ -779,9 +856,17 @@ function hideTooltip() {
 
 function clickNode( d ) {
 	var yPos = parseFloat(d3.select("svg").attr("y"));
-	var text = d.id + " ";
+
+	//work out percentage of patterns this entity turns up in
+	var frequency = getFrequency( d.id ); 
+
+	var text = "";
 	for( var key of frequency.keys() ) {
-		text += key + " " + frequency.get( key ) + " "; 
+		var ef = frequency.get( key ); //<-- entity frequency
+		var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
+		ef = Math.floor( (ef / numOfPats) * 100 ); //<-- get percentage (rounded down)
+
+		text += key + " " + frequency.get( key ) + " " + ef + "% "; 
 	}
 
 	d3.select("#tooltip2")
@@ -1001,7 +1086,7 @@ function clickRow(d, i) {
 
 	//determines intensity of red
 	var colourScale = d3.scale.linear()
-		.domain([0, largestClus])
+		.domain([0, 100])
 		.range([100, 255]);
 
 	var rowPattern = d.pattern;
@@ -1015,9 +1100,20 @@ function clickRow(d, i) {
 
 	nodes.transition()
 		.style("stroke", function(d, i) {
-			var frequency = getFrequency( d.id );
+			//returns a map of all entitys and their frequency
+			var frequency = getFrequency( d.id ); 
+
 			var ef = frequency.get( rowPattern ); //<-- entity frequency
-			return d3.rgb( colourScale( ef ), 50, 50 );
+			var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
+			ef = (ef / numOfPats) * 100;
+
+			if( ef === 0 ) {
+				return d3.rgb( 0, 50, 50 );
+
+			}
+			else {
+				return d3.rgb( colourScale( ef ), 50, 50 );
+			}
 		})
 		.style("stroke-width", 5);
 
@@ -1025,21 +1121,21 @@ function clickRow(d, i) {
 		var yPos = parseFloat(d3.select("svg").attr("y"));
 		var frequency = getFrequency( d.id );
 
-	var patternFrequency = frequency.get( rowPattern );
+		var patternFrequency = frequency.get( rowPattern );
 
-	//alter text in tooltip
-	d3.select("#tooltip")
-		.style("left", 0)
-		.style("top", (yPos + 20) + "px")
-		.select("#value")
-		.text( function() {
-			if( patternFrequency === undefined ) {
-				return rowPattern + " 0";
-			}
-			else {
-				return rowPattern + " " + patternFrequency;
-			}
-		});
+		//alter text in tooltip
+		d3.select("#tooltip")
+			.style("left", 0)
+			.style("top", (yPos + 20) + "px")
+			.select("#value")
+			.text( function() {
+				if( patternFrequency === undefined ) {
+					return rowPattern + " 0";
+				}
+				else {
+					return rowPattern + " " + patternFrequency;
+				}
+			});
 
 		//show tooltip
 		d3.select("#tooltip").classed("hidden", false);
@@ -1122,7 +1218,7 @@ Array.prototype.max = function() {
 	return Math.max.apply( Math, this );
 }
 
-Array.prototype.swap = function (x,y) {
+Array.prototype.swap = function(x,y) {
   var tmp = this[x];
   this[x] = this[y];
   this[y] = tmp;
