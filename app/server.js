@@ -2,7 +2,7 @@ var http = require( 'http' );
 var fs = require( 'fs' );
 var path = require( 'path' );
 var url = require( 'url' );
-var routes = require( './routes.js' );
+var routes = require( './cluster.js' );
 var io = require("socket.io")(http);
 
 var port = 8000;
@@ -57,6 +57,19 @@ var server = http.createServer( function( request, response ) {
 				response.writeHead( 404 );
 				response.end();
 			}
+		});
+
+		io.on("connection", function( socket ) {
+			socket.on("init", function() {
+				var clusters = [];
+				var parents = [];
+				for( var i = 1; i < 501; i++ ) { 
+					clusters.push( i.toString() );
+					clusRef.set( i.toString(), parents );
+				}
+				var object = { "clusters": clusters };
+				io.emit("init", object );
+			});
 		});
 	}
 	//go to the home page

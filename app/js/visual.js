@@ -1,11 +1,15 @@
+//so data can be sent to the server
+var socket = io.connect("http://localhost:8000");
+
 //upload file when input changes
 var fileInput = document.getElementById( "fileInput" );
 fileInput.addEventListener("change", upload );
 
+//what linkage method the user wants to use
 var linkage = document.getElementsByName("linkage");
 
-var patterns = [];
-var clusRef = new Map(); //<-- references the parents of a cluster
+var patterns = []; //<-- the patterns and references to the entities they contain
+var clusRef = new Object(); //<-- references the parents of a cluster
 var simTable = new Map(); //<-- the Jaccard similarity between two patterns
 var priorityQueue = []; //<-- orders patterns/clusters by similarity
 
@@ -136,22 +140,26 @@ function sparseMatrix() {
 }
 
 function main() {
-	initClusters();
-	console.log( "Completed initial clustering" );
+	socket.emit("init");
+	socket.on("init", function( object ) {
+		level.push( object.clusters );
+		clusRef = object.clusRef;
+		console.log( "Completed initial clustering" );
 
-	buildSimTable();
-	console.log( "Finished building simTable" );
+		buildSimTable();
+		console.log( "Finished building simTable" );
 
-	priorityQueue = mergeSort( priorityQueue );
-	console.log( "Priority queue has been sorted" );
+		priorityQueue = mergeSort( priorityQueue );
+		console.log( "Priority queue has been sorted" );
 
-	//keep clustering the patterns until there are only three clusters
-	while( level[level.length - 1].length > 1 ) {
-		addCluster();
-	}
-	console.log( "Finished clustering" );
+		//keep clustering the patterns until there are only three clusters
+		while( level[level.length - 1].length > 1 ) {
+			addCluster();
+		}
+		console.log( "Finished clustering" );
 
-	visualise( level[ level.length - numOfGroups ] );
+		visualise( level[ level.length - numOfGroups ] );
+	});
 }
 
 function initClusters() { 
