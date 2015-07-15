@@ -48,7 +48,7 @@ io.on("connection", function( socket ) {
 		//loop through patterns and compare them against one another
 		for( var i = 0; i < 500; i++ ) { 
 			for( var j = i; j < 500; j++ ) {
-				var key = (i + 1).toString() + (j + 1).toString();
+				var key = (i + 1).toString() + "+" + (j + 1).toString();
 				if( j === i ) { 
 					simTable[key] = 0;
 				}
@@ -95,7 +95,6 @@ function setReturnObject() {
 		"patterns": patterns,
 		"clusRef": clusRef,
 		"simTable": simTable,
-		"priorityQueue": priorityQueue,
 		"level": level
 	};
 	return object;
@@ -301,7 +300,7 @@ function binaryInsert( low, high, key ) {
 	*/
 
 	var middle = Math.floor( low + ( ( high - low ) / 2 ) );
-	var midElement = simTable.get( priorityQueue[middle] );
+	var midElement = simTable[ priorityQueue[middle] ];
 
 	//stop if only one element in current view of array
 	if( low === high ) {

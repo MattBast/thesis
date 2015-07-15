@@ -225,7 +225,6 @@ function setGlobalVariables( variables ) {
 	patterns = variables.patterns;
 	clusRef = variables.clusRef;
 	simTable = variables.simTable;
-	priorityQueue = variables.priorityQueue;
 	level = variables.level;
 }
 
@@ -411,7 +410,7 @@ function getMoreNodes( originalNodes ) {
 		var onePat = 0; //<-- count how many patterns have no parents
 
 		for( var i = 0; i < originalNodes.length; i++ ) {
-			parents = clusRef.get( originalNodes[i].id );
+			parents = clusRef[ originalNodes[i].id ];
 
 			//if a cluster contains more than one pattern, get its parents
 			if( parents.length !== 0 ) {
@@ -443,13 +442,13 @@ function getEdges( nodes ) {
 	var edges = [];
 	for( var i = 0; i < nodes.length; i++ ) {
 		for( var j = 0; j < nodes.length; j++ ) {
-			if( ( i !== j ) && ( simTable.has( nodes[i].id + "+" + nodes[j].id ) ) ) {
-				edge = { source: i, target: j, value: simTable.get( nodes[i].id + "+" + nodes[j].id ) };
+			if( ( i !== j ) && ( simTable[ nodes[i].id + "+" + nodes[j].id ] !== undefined ) ) {
+				edge = { source: i, target: j, value: simTable[nodes[i].id + "+" + nodes[j].id] };
 				edges.push( edge );
 			}
 			else {
 				var similarity = compareNodes( nodes[i].id, nodes[j].id );
-				simTable.set( nodes[i].id + "+" + nodes[i].id, similarity );
+				simTable[ nodes[i].id + "+" + nodes[i].id ] = similarity;
 				edge = { source: i, target: j, value: similarity };
 				edges.push( edge );
 			}
@@ -459,33 +458,49 @@ function getEdges( nodes ) {
 }
 
 function compareNodes( node1, node2 ) {
-	var comparisons = new Map();
+	var comparisons = new Object();
 	var comparison;
-	var best = 0; //<-- the comparison that best satisfies the specified linkage
 
 	var patterns1 = node1.split( "-" );
 	var patterns2 = node2.split( "-" );
 
 	for( var i = 0; i < patterns1.length; i++ ) {
 		for( var j = 0; j < patterns2.length; j++ ) {
-			if( simTable.has( patterns1[i] + "+" + patterns2[j] ) ) {
+			if( simTable[ patterns1[i] + "+" + patterns2[j] ] !== undefined ) {
 				comparison = patterns1[i] + "+" + patterns2[j];
-				comparisons.set( comparison, simTable.get( comparison ) ); 
+				comparisons[comparison] = simTable[comparison]; 
 			}
-			if( simTable.has( patterns2[j] + "+" + patterns1[i] ) ) {
+			if( simTable[ patterns2[j] + "+" + patterns1[i] ] !== undefined ) {
 				comparison = patterns2[j] + "+" + patterns1[i];
-				comparisons.set( comparison, simTable.get( comparison ) ); 
+				comparisons[comparison] = simTable[comparison]; 
 			}
 		}
 	}
 
-	for( var value of comparisons.values() ) {
+	var best = 0; //<-- the comparison that best satisfies the specified linkage
+	for( var i in comparisons ) {
 		if( best === 0 ) {
-			best = value;
+			best = comparisons[i];
 		}
 		else {
-			best = mostSimilar( best, value );
+			best = mostSimilar( best, comparisons[i] );
 		}
+	}
+
+	return best;
+}
+
+function mostSimilar( num1, num2 ) {
+	var best = 0;
+
+	if( linkage[1].checked ) { //<-- complete linkage
+		best = Math.min( num1, num2 );
+	}
+	else if( linkage[2].checked ) { //<-- average linkage
+		best = mean( num1, num2 );
+	}
+	else { //<-- single linkage
+		best = Math.max( num1, num2 );
 	}
 
 	return best;
@@ -766,9 +781,9 @@ function getSortedTotal( clusters ) {
 function getFrequency( cluster ) {
 	var patternRefs = cluster.split( "-" );
 	var pat = [];
-	frequency = new Map();
+	var frequency = new Map();
 	for( var i = 0; i < patternRefs.length; i++ ) {
-		pat = patterns.get( parseInt(patternRefs[i]) );
+		pat = patterns[parseInt(patternRefs[i])];
 		for( var j = 0; j < pat.length; j++ ) {
 
 			if( pat[j] === 1 && frequency.has( entity.get(j) ) ) {
