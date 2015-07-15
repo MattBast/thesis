@@ -10,7 +10,7 @@ var linkage = document.getElementsByName("linkage");
 
 var patterns = []; //<-- the patterns and references to the entities they contain
 var clusRef = new Object(); //<-- references the parents of a cluster
-var simTable = new Map(); //<-- the Jaccard similarity between two patterns
+var simTable = new Object(); //<-- the Jaccard similarity between two patterns
 var priorityQueue = []; //<-- orders patterns/clusters by similarity
 
 //each element represents a level in the hierarchical clustering
@@ -121,7 +121,7 @@ function keyValueSwap( ent ) {
 }
 
 function sparseMatrix() {
-	var newPats = new Map(); //<-- new patterns
+	var newPats = new Object(); //<-- new patterns
 
 	for( var i = 0; i < patterns.length; i++ ) {
 		var e = []; //<-- new array of entities in pattern
@@ -133,61 +133,39 @@ function sparseMatrix() {
 				e.push(0);
 			}
 		}
-		newPats.set( i, e );
+		newPats[i] = e;
 	}
 
 	return newPats;
 }
 
 function main() {
-	socket.emit("init");
-	socket.on("init", function( object ) {
+	socket.emit("init"); //<-- tell server to start function
+	socket.on("init", function( object ) { //<-- recieve result from server
 		level.push( object.clusters );
 		clusRef = object.clusRef;
 		console.log( "Completed initial clustering" );
 
-		buildSimTable();
-		console.log( "Finished building simTable" );
+		socket.emit("build", patterns ); //<-- tell server to start function
+		socket.on("build", function( object ) { //<-- recieve result from server
+			simTable = object.simTable;
+			priorityQueue = object.priorityQueue;
+			console.log( "Finished building simTable" );
 
-		priorityQueue = mergeSort( priorityQueue );
-		console.log( "Priority queue has been sorted" );
+			//sort priorityQueue
+			priorityQueue = mergeSort( priorityQueue );
+			console.log( "Priority queue has been sorted" );
 
-		//keep clustering the patterns until there are only three clusters
-		while( level[level.length - 1].length > 1 ) {
-			addCluster();
-		}
-		console.log( "Finished clustering" );
+			//keep clustering the patterns until there are only three clusters
+			while( level[level.length - 1].length > 1 ) {
+				addCluster();
+			}
+			console.log( "Finished clustering" );
 
-		visualise( level[ level.length - numOfGroups ] );
+			visualise( level[ level.length - numOfGroups ] );
+		});
+		
 	});
-}
-
-function initClusters() { 
-	var clusters = [];
-	var parents = [];
-	for( var i = 1; i < 501; i++ ) { 
-		clusters.push( i.toString() );
-		clusRef.set( i.toString(), parents );
-	}
-	level.push( clusters );
-}
-
-function buildSimTable() {
-	//loop through patterns and compare them against one another
-	for( var i = 0; i < 500; i++ ) { 
-		for( var j = i; j < 500; j++ ) { 
-			var iKey = (i + 1).toString();
-			var jKey = (j + 1).toString();
-			if( j === i ) { 
-				simTable.set( iKey + "+" + jKey, 0 );
-			}
-			else {
-				var sim = similarity( patterns.get(i), patterns.get(j) );
-				simTable.set( iKey + "+" + jKey, sim );
-			}
-			priorityQueue.push( iKey + "+" + jKey );	
-		}
-	}
 }
 
 function mergeSort( array ){
@@ -212,7 +190,7 @@ function merge( left, right ){
     /* Compare elements from left and right arrays adding smaller one to 
     result array. Do this until one of the arrays is empty. */
     while ( il < left.length && ir < right.length ){
-        if( simTable.get( left[il] ) > simTable.get( right[ir] ) ){
+        if( simTable[ left[il] ] > simTable[ right[ir] ] ){
             result.push( left[il++] );
         } 
         else {
@@ -222,27 +200,6 @@ function merge( left, right ){
 
     //concat what is left of left and right to result
     return result.concat( left.slice(il) ).concat( right.slice(ir) );
-}
-
-function similarity( p1, p2 ) {
-	var matchEnt = 0; //<-- intersection
-	var difEnt = 0; //<-- union
-
-	for( var i = 0; i < p1.length; i++ ) {
-		if( p1[i] === 1 && p2[i] === 1 ) {
-			matchEnt++;
-			difEnt--;
-		}
-		if( p1[i] === 1 ) {
-			difEnt++;
-		}
-		if( p2[i] === 1 ) {
-			difEnt++;
-		}
-	}
-
-	var similarity = matchEnt / difEnt;
-	return similarity;
 }
 
 function addCluster() {
@@ -1210,25 +1167,4 @@ function deselectRows() {
 
 	//reset tooltip to top ten
 	nodes.on("mouseover", hover);
-}
-
-Array.prototype.contains = function(obj) {
-    var i = this.length + 1;
-    while (i--) {
-        if (this[i] == obj) {
-            return true;
-        }
-    }
-    return false;
-}
-
-Array.prototype.max = function() {
-	return Math.max.apply( Math, this );
-}
-
-Array.prototype.swap = function(x,y) {
-  var tmp = this[x];
-  this[x] = this[y];
-  this[y] = tmp;
-  return this;
 }
