@@ -22,6 +22,7 @@ var entity = new Map();
 
 //displays how high up the tree the user is
 var patternsPresent = document.getElementById( "patternsPresent" );
+var totalNumOfPats; //<-- total number of patterns
 
 //create table tag
 var total = new Map();
@@ -550,6 +551,7 @@ function resetButtonBox( nodes ) {
 		numPats += nodes[i].id.split( "-" ).length;
 	}
 	patternsPresent.innerHTML = "Patterns present: " + numPats;
+	totalNumOfPats = numPats;
 }
 
 function resetVis() {
@@ -610,19 +612,16 @@ function hover( d, i ) {
 	var yPos = parseFloat(d3.select("svg").attr("y"));
 	var frequency = getFrequency( d.id );
 
-	var topThree = "";
-	var count = 0;
-	for( var key of frequency.keys() ) {
-		count++;
-		topThree += key + " " + frequency.get( key ) + " "; 
-		if( count === 3 ) { break; }
-	}
+	var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
+	var text = "Number of Patterns: " + numOfPats;
+	var percentage = (numOfPats / totalNumOfPats) * 100;
+	text += " Percentage of total: " + percentage + "%";
 
 	d3.select("#tooltip")
 		.style("left", 0)
 		.style("top", (yPos + 20) + "px")
 		.select("#value")
-		.text( topThree );
+		.text( text );
 
 	d3.select("#tooltip").classed("hidden", false);
 }
@@ -877,7 +876,7 @@ function clickRow(d, i) {
 	//highlight selected row
 	d3.select(this).classed("highlight", true);
 
-	//chnage the border of each node to a shade of red
+	//change the border of each node to a shade of red
 	nodes.transition()
 		.style("stroke", function(d, i) {
 			//returns a map of all entitys and their frequency
@@ -911,10 +910,12 @@ function clickRow(d, i) {
 			.select("#value")
 			.text( function() {
 				if( patternFrequency === undefined ) {
-					return rowPattern + " 0";
+					return rowPattern + " 0 0%";
 				}
 				else {
-					return rowPattern + " " + patternFrequency;
+					var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
+					var percentage = Math.floor( (patternFrequency / numOfPats) * 100 ); 
+					return rowPattern + " " + patternFrequency + " (" + percentage + "%)";
 				}
 			});
 
@@ -931,12 +932,20 @@ function clickRow(d, i) {
 }
 
 function putDataInRows( tr ) {
-	tr.append("td")
+	tr.append("td") //<-- append entity name
 		.attr("class", "pattern")
 		.html(function(d) { return d.pattern; } );
-	tr.append("td")
+	tr.append("td") //<-- append entity frequency
 		.attr("class", "frequency")
-		.html(function(d) { return d.frequency; } );
+		.html(function(d) { 
+			if( d.frequency === undefined ) {
+				return "0 (0%)";
+			}
+			else {
+				var percentage = Math.floor( (d.frequency / totalNumOfPats) * 100 );
+				return d.frequency + " (" + percentage + "%)"; 
+			}
+		});
 }
 
 function searchTable() {
