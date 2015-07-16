@@ -18,6 +18,10 @@ div {
 	opacity: 0;
 }
 
+#numOfNodesBox {
+	display: none;
+}
+
 #fileUploadButton {
 	opacity: 0.5;
 }

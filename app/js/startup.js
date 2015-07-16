@@ -11,6 +11,7 @@ var fileUploadButton = document.getElementById( "fileUploadButton" );
 fileUploadButton.addEventListener( "click", clickButton );
 
 function fadeIn( box ) {
+	box.style.display = "block";
 	var opacity = 0.1; //<-- initial opacity
 	var timer = setInterval( function() {
 		//stop increasing opacity when reach 1
