@@ -1,8 +1,9 @@
 //so data can be sent to the server
 var socket = io.connect("http://localhost:8000");
 
-//get the file from the file upload button
+//inputs
 var fileInput = document.getElementById( "fileInput" );
+var numOfNodes = document.getElementById( "numOfNodes" );
 
 //what linkage method the user wants to use
 var linkage = document.getElementsByName("linkage");
@@ -20,6 +21,7 @@ var dataset = {};
 var entity = new Map();
 
 //displays how high up the tree the user is
+var fileName = document.getElementById( "fileName" );
 var patternsPresent = document.getElementById( "patternsPresent" );
 var totalNumOfPats; //<-- total number of patterns
 
@@ -402,11 +404,14 @@ function getNodes( c ) {
 	return nodes;
 }
 
+/*  
+	This needs changing to work with the numOfNodes input
+*/
 function getMoreNodes( originalNodes ) {
 	var node;
 	var newNodes = [];
 	var parents = [];
-	while( newNodes.length < 30 ) {
+	while( newNodes.length < (numOfNodes.value * 5) ) {
 		var onePat = 0; //<-- count how many patterns have no parents
 
 		for( var i = 0; i < originalNodes.length; i++ ) {
@@ -432,7 +437,7 @@ function getMoreNodes( originalNodes ) {
 
 		//prevents patterns turning up in newNodes more than once
 		originalNodes = newNodes;
-		if( newNodes.length < 30 ) { newNodes = []; }
+		if( newNodes.length < (numOfNodes.value * 5) ) { newNodes = []; }
 	}	
 	return newNodes;
 }
@@ -549,6 +554,7 @@ function resetButtonBox( nodes ) {
 	for( var i = 0; i < nodes.length; i++ ) {
 		numPats += nodes[i].id.split( "-" ).length;
 	}
+	fileName.innerHTML = "File: " + fileInput.files[0].name;
 	patternsPresent.innerHTML = "Patterns present: " + numPats;
 	totalNumOfPats = numPats;
 }
