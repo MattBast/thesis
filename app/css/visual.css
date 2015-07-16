@@ -68,6 +68,7 @@ table {
 
 #tooltip {
 	position: absolute;
+	margin: 0;
 	width: 200px;
 	height: auto;
 	padding: 10px;

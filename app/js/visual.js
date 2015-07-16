@@ -404,9 +404,6 @@ function getNodes( c ) {
 	return nodes;
 }
 
-/*  
-	This needs changing to work with the numOfNodes input
-*/
 function getMoreNodes( originalNodes ) {
 	var node;
 	var newNodes = [];
@@ -643,7 +640,6 @@ function drawNodes( dataNodes, rScale ) {
 }
 
 function hover( d, i ) {
-	var yPos = parseFloat(d3.select("svg").attr("y"));
 	var frequency = getFrequency( d.id );
 
 	var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
@@ -652,8 +648,6 @@ function hover( d, i ) {
 	text += " Percentage of total: " + percentage + "%";
 
 	d3.select("#tooltip")
-		.style("left", 0)
-		.style("top", (yPos + 20) + "px")
 		.select("#value")
 		.text( text );
 
