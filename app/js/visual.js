@@ -1,9 +1,8 @@
 //so data can be sent to the server
 var socket = io.connect("http://localhost:8000");
 
-//upload file when input changes
+//get the file from the file upload button
 var fileInput = document.getElementById( "fileInput" );
-fileInput.addEventListener("change", upload );
 
 //what linkage method the user wants to use
 var linkage = document.getElementsByName("linkage");

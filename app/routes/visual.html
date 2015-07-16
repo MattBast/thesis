@@ -6,19 +6,29 @@
 		<title>Visual</title>
 		<script type="text/javascript" src="../d3/d3.min.js"></script>
 	</head>
-	<body>
+	<body onload="fadeIn( fileInputBox )">
 		<ul>
 			<li><a href="/">Home</a></li>
 			<li><a href="visual.html">Visualise</a></li>
 			<li><a href="terms.html">Terminology</a></li>
 			<li><a href="tutorial.html">Tutorial</a></li>
 		</ul>
+		<div class="inputBox" id="fileInputBox">
+			<h3>Please enter the file containing the patterns:</h3>
+			<input type="file" id="fileInput"/>
+			<br/>
+			<button id="fileUploadButton">Confirm</button>
+		</div>
+		<div class="inputBox" id="numOfNodesBox">
+			<h3>How many nodes per group would you like:</h3>
+			<input type="text" name="numOfNodes" value="10"/>
+			<br/>
+			<button onclick="upload()">Confirm</button>
+		</div>
 		<div>
 			<input type="radio" name="linkage" value="single" checked="checked"/>Single
 			<input type="radio" name="linkage" value="complete"/>Complete
 			<input type="radio" name="linkage" value="average"/>Average
-			<br></br>
-			<input type="file" id="fileInput"/>
 			<br></br>
 			<input type="text" id="groups" value="5"/>Number of groups (maximum of ten)
 		</div>
@@ -42,6 +52,7 @@
 		</div>
 		<script src ="http://localhost:8000/socket.io/socket.io.js"></script>
 		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+		<script type="text/javascript" src="../js/startup.js"></script>
 		<script type="text/javascript" src="../js/visual.js"></script>
 	</body>
 </html>
