@@ -411,7 +411,23 @@ function getMoreNodes( originalNodes ) {
 	var node;
 	var newNodes = [];
 	var parents = [];
-	while( newNodes.length < (numOfNodes.value * 5) ) {
+
+	//number of original nodes
+	var numOfOrigNodes = originalNodes.length;
+
+	//an object that records how many nodes each group currently has
+	var groups = {}; 
+
+	//fill the groups object with group names
+	for( var i = 0; i < numOfOrigNodes; i++ ) {
+		groups[ buttons[i] ] = 1;
+	}
+
+	var ready = false;
+
+	/* keep retrieving the parents of nodes until each group has 
+	specified number of nodes or just nodes one pattern long */
+	while( ready === false ) {
 		var onePat = 0; //<-- count how many patterns have no parents
 
 		for( var i = 0; i < originalNodes.length; i++ ) {
@@ -419,10 +435,14 @@ function getMoreNodes( originalNodes ) {
 
 			//if a cluster contains more than one pattern, get its parents
 			if( parents.length !== 0 ) {
+				//put parents into newNodes array
 				node = { id: parents[0], class: originalNodes[i].class };
 				newNodes.push( node );
 				node = { id: parents[1], class: originalNodes[i].class };
 				newNodes.push( node );
+
+				//group now has one more node than before
+				groups[ originalNodes[i].class ] += 1;
 			}
 			//else just use the original cluster (of one pattern)
 			else {
@@ -435,9 +455,18 @@ function getMoreNodes( originalNodes ) {
 		//stop if there are less than twenty patterns in current set
 		if( onePat >= newNodes.length ) { break; }
 
-		//prevents patterns turning up in newNodes more than once
-		originalNodes = newNodes;
-		if( newNodes.length < (numOfNodes.value * 5) ) { newNodes = []; }
+		for( var j = 0; j < numOfOrigNodes; j++ ) {
+			if( groups[ buttons[j] ] >= numOfNodes.value ) { ready = true; }
+		}
+		if( ready === true ) { break; }
+
+		//prepare to loop again
+		if( ready === false ) {
+			//prevents patterns turning up in newNodes more than once
+			originalNodes = newNodes;
+			newNodes = [];
+		}
+		
 	}	
 	return newNodes;
 }
