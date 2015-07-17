@@ -4,7 +4,6 @@ var server = require("http").createServer(app);
 var io = require("socket.io")(server);
 
 //the variables used during the clustering process
-var linkage; //<-- what linkage method the user wants to use
 var patterns; //<-- the patterns and references to the entities they contain
 var clusRef; //<-- references the parents of a cluster
 var simTable; //<-- the Jaccard similarity between two patterns
@@ -81,7 +80,6 @@ io.on("connection", function( socket ) {
 });
 
 function setGlobalVariables( variables ) {
-	linkage = variables.linkage;
 	patterns = variables.patterns;
 	clusRef = variables.clusRef;
 	simTable = variables.simTable;
@@ -91,7 +89,6 @@ function setGlobalVariables( variables ) {
 
 function setReturnObject() {
 	var object = {
-		"linkage": linkage,
 		"patterns": patterns,
 		"clusRef": clusRef,
 		"simTable": simTable,
@@ -208,28 +205,12 @@ function compareNewClus( simClus, comps1, comps2 ) {
 
 		//create key and value for new cluster comparison
 		var newKey = ref + "+" + simClus[0] + "-" + simClus[1];
-		best = mostSimilar( comps1[i].value, comps2[i].value );
+		best = mean( comps1[i].value, comps2[i].value );
 
 		simTable[newKey] = best; //<-- add to simTable
 		tmpQueue.push( newKey ); //<-- add to temporary queue of new clusters
 	}
 	return tmpQueue;
-}
-
-function mostSimilar( num1, num2 ) {
-	var best = 0;
-
-	if( linkage[1].checked ) { //<-- complete linkage
-		best = Math.min( num1, num2 );
-	}
-	else if( linkage[2].checked ) { //<-- average linkage
-		best = mean( num1, num2 );
-	}
-	else { //<-- single linkage
-		best = Math.max( num1, num2 );
-	}
-
-	return best;
 }
 
 function mean( num1, num2 ) {

@@ -5,9 +5,6 @@ var socket = io.connect("http://localhost:8000");
 var fileInput = document.getElementById( "fileInput" );
 var numOfNodes = document.getElementById( "numOfNodes" );
 
-//what linkage method the user wants to use
-var linkage = document.getElementsByName("linkage");
-
 var patterns = []; //<-- the patterns and references to the entities they contain
 var clusRef = new Object(); //<-- references the parents of a cluster
 var simTable = new Object(); //<-- the Jaccard similarity between two patterns
@@ -19,6 +16,7 @@ var dataset = {};
 
 //lists of entities and indexs
 var entity = new Map();
+var entityIDF; //<-- inverse document frequency of entity
 
 //displays how high up the tree the user is
 var fileName = document.getElementById( "fileName" );
@@ -159,7 +157,6 @@ function main() {
 			console.log( "Priority queue has been sorted" );
 
 			var variables = {
-				"linkage": linkage,
 				"patterns": patterns,
 				"clusRef": clusRef,
 				"simTable": simTable,
@@ -223,7 +220,6 @@ function getNumOfGroups() {
 }
 
 function setGlobalVariables( variables ) {
-	linkage = variables.linkage;
 	patterns = variables.patterns;
 	clusRef = variables.clusRef;
 	simTable = variables.simTable;
@@ -247,6 +243,9 @@ function visualise( clusters ) {
 
 	//tells user precisely how many patterns are visible
 	resetButtonBox( n );
+
+	//set inverse document frequency score for each entity
+	entityIDF = setIDFs( dataset );
 	
 	//determines size of nodes
 	var rScale = d3.scale.linear()
@@ -375,6 +374,32 @@ function drawLine() {
 		.attr("id", "marker")
 		.attr("stroke", "black")
 		.attr("stroke-width", 3);
+}
+
+function setIDFs( dataset ) {
+	var idfs = {}; //<-- inverse document frequency
+	var nodes = dataset.nodes; //<-- clusters
+
+	//loop through the entities and retieve and idf score for each
+	for( var key of entity.keys() ) {
+		var count = 0; //<-- number of clusters/nodes containing entity
+
+		//loop through the clusters and count the ones that contain the entity
+		for( var i = 0; i < nodes.length; i++ ) {
+			var nodeFrequency = getFrequency( nodes[i].id );
+
+			if( nodeFrequency.get( entity.get( key ) ) !== undefined ) {
+				count++;
+			}
+
+		}
+
+		/* divide the total number of patterns in node by how many contain 
+		 the chosen entity. Then do the logarithm of these */
+		idfs[entity.get( key )] = Math.log( nodes.length / count );
+	}
+
+	return idfs;
 }
 
 function updateLine( nodes ) {
@@ -514,27 +539,17 @@ function compareNodes( node1, node2 ) {
 			best = comparisons[i];
 		}
 		else {
-			best = mostSimilar( best, comparisons[i] );
+			best = mean( best, comparisons[i] );
 		}
 	}
 
 	return best;
 }
 
-function mostSimilar( num1, num2 ) {
-	var best = 0;
-
-	if( linkage[1].checked ) { //<-- complete linkage
-		best = Math.min( num1, num2 );
-	}
-	else if( linkage[2].checked ) { //<-- average linkage
-		best = mean( num1, num2 );
-	}
-	else { //<-- single linkage
-		best = Math.max( num1, num2 );
-	}
-
-	return best;
+function mean( num1, num2 ) {
+	var total = num1 + num2;
+	total = total / 2;
+	return total;
 }
 
 function newDataset( oldDataset, clickedClass ) {
@@ -661,16 +676,22 @@ function hideTooltip() {
 function clickNode( d ) {
 	var yPos = parseFloat(d3.select("svg").attr("y"));
 
+	//total number of patterns in cluster
+	var clusSize = d.id.split("-").length;
+
 	//work out percentage of patterns this entity turns up in
 	var frequency = getFrequency( d.id ); 
 
 	var text = "";
 	for( var key of frequency.keys() ) {
-		var ef = frequency.get( key ); //<-- entity frequency
-		var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
-		ef = Math.floor( (ef / numOfPats) * 100 ); //<-- get percentage (rounded down)
+		//work out term frequency
+		var ef = frequency.get( key ); //<-- entity frequency (patterns containing entity)
+		var tf = ef / clusSize; //<-- term frequency
 
-		text += key + " " + frequency.get( key ) + " " + ef + "% "; 
+		//get inverse document frequency
+		var idf = entityIDF[key];
+
+		text += key + " " + idf + " "; 
 	}
 
 	d3.select("#tooltip2")
