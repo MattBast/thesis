@@ -39,7 +39,8 @@ var w = visDiv.clientWidth, h = 500;
 var svg = d3.select("#visual")
 			.append("svg")
 			.attr("width", w)
-			.attr("height", h);
+			.attr("height", h)
+			.attr("id", "svg");
 var force = d3.layout.force();
 var marker; //<-- tells user how many patterns are available (approximately)
 
@@ -169,6 +170,8 @@ function main() {
 				setGlobalVariables( variables );
 				console.log( "Finished clustering" );
 
+				displayTools();
+
 				visualise( level[ level.length - numOfGroups ] );
 			});
 		});	
@@ -224,6 +227,16 @@ function setGlobalVariables( variables ) {
 	clusRef = variables.clusRef;
 	simTable = variables.simTable;
 	level = variables.level;
+}
+
+function displayTools() {
+	var patternCount = document.getElementById( "patternCount" );
+	var svg = document.getElementById( "svg" );
+	var searchBar = document.getElementById( "searchBar" );
+
+	patternCount.style.display = "block";
+	svg.style.display = "block";
+	searchBar.style.display = "block";
 }
 
 function visualise( clusters ) {
