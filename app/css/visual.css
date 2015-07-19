@@ -109,7 +109,11 @@ table {
 
 #tooltip2 {
 	position: absolute;
-	width: 275px;
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-left: 10%;
+	margin-right: 10%;
+	width: 400px;
 	height: 500px;
 	padding: 10px;
 	background-color: white;

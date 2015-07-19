@@ -695,15 +695,15 @@ function hideTooltip() {
 }
 
 function clickNode( d ) {
-	var yPos = parseFloat(d3.select("svg").attr("y"));
-
 	//total number of patterns in cluster
 	var clusSize = d.id.split("-").length;
 
 	//work out percentage of patterns this entity turns up in
 	var frequency = getFrequency( d.id ); 
 
-	var text = "";
+	var tooltip = d3.select("#tooltip2");
+
+	//add new entity and idf per loop
 	for( var key of frequency.keys() ) {
 		//work out term frequency
 		var ef = frequency.get( key ); //<-- entity frequency (patterns containing entity)
@@ -712,17 +712,16 @@ function clickNode( d ) {
 		//get inverse document frequency
 		var idf = entityIDF[key];
 
-		text += key + " " + idf + " "; 
+		//add text to tooltip
+		var text = key + " : " + idf;
+		tooltip.append("p").text(text);
 	}
 
+	//click to hide tooltip
 	d3.select("#tooltip2")
-		.style("left", 500 + "px")
-		.style("top", (yPos + 20) + "px")
-		.select("#value2")
 		.on("click", function() {
 			d3.select("#tooltip2").classed("hidden", true);
-		})
-		.text( text );
+		});
 
 	d3.select("#tooltip2").classed("hidden", false);
 }
