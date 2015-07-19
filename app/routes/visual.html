@@ -7,28 +7,40 @@
 		<script type="text/javascript" src="../d3/d3.min.js"></script>
 	</head>
 	<body onload="fadeIn( fileInputBox )">
+		<!-- Navigation bar -->
 		<ul>
 			<li><a href="/">Home</a></li>
 			<li><a href="visual.html">Visualise</a></li>
 			<li><a href="terms.html">Terminology</a></li>
 			<li><a href="tutorial.html">Tutorial</a></li>
 		</ul>
+
+		<!-- Upload file box -->
 		<div class="floatingBox" id="fileInputBox">
 			<h3>Please enter the file containing the patterns:</h3>
 			<input type="file" id="fileInput"/>
 			<br/>
 			<button id="fileUploadButton">Confirm</button>
 		</div>
+
+		<!-- Number of nodes choice box -->
 		<div class="floatingBox" id="numOfNodesBox">
 			<h3>How many nodes per group would you like:</h3>
 			<input type="text" id="numOfNodes" value="8"/>
 			<br/>
-			<button onclick="fadeOut( numOfNodesBox ); upload();">Confirm</button>
+			<button onclick="fadeOut( numOfNodesBox );">Confirm</button>
 		</div>
+
+		<!-- Loading spinner -->
+		<canvas id="canvas" width="2000" height="400"></canvas>
+		<h4 id="loading">Loading</h4>
+
+		<!-- Click node tooltip -->
 		<div id="tooltip2" class="hidden">
 			<p><span id="value2"></span></p>
 		</div>
-		<canvas id="spinner" width="500" height="500"></canvas>
+
+		<!-- Pattern count box -->
 		<div class="floatingBox" id="patternCount">
 			<h3 id="fileName"></h3>
 			<h3 id="patternsPresent"></h3>
@@ -36,17 +48,23 @@
 			<br/>
 			<button type="button" onclick="resetVis()">Reset</button>
 		</div>
+
+		<!-- The visualisation box -->
 		<div id="visual">
 			<div id="tooltip" class="hidden">
 				<p><span id="value"></span></p>
 			</div>
 		</div>
+
+		<!-- Search bar for table -->
 		<div id="searchBar">
 			<input type="text" id="textInput"/>
 			<button type="button" id="searchButton">Search</button>
 			<button type="button" id="topTenButton" class="hidden">Top Ten</button>
 			<button type="button" id="deselect" class="hidden">No Frequency</button>
 		</div>
+
+		<!-- Various scripts -->
 		<script src ="http://localhost:8000/socket.io/socket.io.js"></script>
 		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 		<script type="text/javascript" src="../js/startup.js"></script>

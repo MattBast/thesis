@@ -26,6 +26,23 @@ div {
 	opacity: 0.5;
 }
 
+#canvas {
+	width: 60%;
+	margin-left: 20%;
+	margin-right: 20%;
+	margin-top: 20%;
+	display: none;
+}
+
+#loading {
+	padding-left: 27%;
+	padding-right: 25%;
+	margin-left: 20%;
+	margin-right: 20%;
+	margin-top: 0;
+	display: none;
+}
+
 #visual {
 	margin-top: 2%;
 	border: none;
@@ -120,16 +137,6 @@ table {
 	line-height: 20px;
 }
 
-#spinner {
-	display: block;
-	position: absolute;
-	margin-left: 15%;
-	margin-right: 15%;
-	width: 70%;
-	height: 50%;
-	z-index: -1;
-}
-
 .link {
 	stroke: #000000;
 	stroke-width: 1.5px;
@@ -166,6 +173,7 @@ tr.highlight:hover {
 	display: none;
 }
 
+/* Classes that represent the node colour groups */
 .one {
 	fill: #1f77b4;
 	stroke: #000000;

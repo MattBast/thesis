@@ -10,6 +10,15 @@ fileInput.addEventListener( "change", insertButton );
 var fileUploadButton = document.getElementById( "fileUploadButton" );
 fileUploadButton.addEventListener( "click", clickButton );
 
+//the variables controlling the loading spinner
+var c = document.getElementById( "canvas" );
+var ctx = c.getContext( "2d" );
+var loading = document.getElementById( "loading" );
+var degrees = 0;
+var timer;
+
+//-------------- fade in and out startup box functions ---------------
+
 function fadeIn( box ) {
 	box.style.display = "block";
 	var opacity = 0.1; //<-- initial opacity
@@ -36,6 +45,10 @@ function fadeOut( box, fadeInBox ) {
 			if( fadeInBox !== undefined ) {
 				fadeIn( fadeInBox );
 			}
+			//otherwise start the loading spinner
+			else {
+				spin();
+			}
 		}
 		//decrease opacity
 		box.style.opacity = opacity;
@@ -60,4 +73,59 @@ function clickButton() {
 	else {
 		fadeOut( fileInputBox, numOfNodesBox );
 	}
+}
+
+//-------------------- loading spinner functions -------------------
+
+function spin() {
+	//display the spinner
+	c.style.display = "block";
+	loading.style.display = "block";
+
+	//start spinning
+	timer = setInterval( turn, 5 );
+
+	//upload the file
+	upload(); 
+}
+
+function turn() {
+	//turn canvas one extra degrees per tick interval
+	degrees += 1;
+	if( degrees > 360 ) {
+		degrees = 0;
+	}
+
+	rotate( degrees ); //<-- turn canvas
+	drawSpinner(); //<-- draw new spinner circle
+}
+
+function rotate( degrees ) {
+	ctx.save();
+	ctx.clearRect( 0, 0, c.width, c.height );
+
+	ctx.translate( 1000, 200 ); //<-- move rotation point to centre of canvas
+	ctx.rotate( degrees*Math.PI/180 ); //<-- rotate canvas
+	ctx.translate( -1000, -200 ); //<-- move rotation point back to top left
+}
+
+function drawSpinner() {
+	//colour and width of line
+	ctx.strokeStyle = "#98bf21";
+	ctx.lineWidth = 5;
+
+	//draw circle with gap in it
+	ctx.beginPath();
+	ctx.arc( 1000, 200, 75, 0, 1.8*Math.PI );
+	ctx.stroke();
+	ctx.restore();
+}
+
+function stopSpin() {
+	//hide the spinner
+	c.style.display = "none";
+	loading.style.display = "none";
+
+	//stop spinning the canvas
+	clearInterval( timer );
 }

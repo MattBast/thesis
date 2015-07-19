@@ -58,6 +58,8 @@ var buttons = [
 		"ten"
 	];
 
+//---------------------- read file functions ----------------------
+
 function upload() {
 	if( fileInput.files.length > 0 ) {
 
@@ -140,6 +142,8 @@ function sparseMatrix() {
 	return newPats;
 }
 
+//-------------- send file contents to server function ------------
+
 function main() {
 	socket.emit("init"); //<-- tell server to start function
 	socket.on("init", function( object ) { //<-- recieve result from server
@@ -169,6 +173,8 @@ function main() {
 			socket.on("cluster", function( variables ) {
 				setGlobalVariables( variables );
 				console.log( "Finished clustering" );
+
+				stopSpin();
 
 				displayTools();
 
@@ -228,6 +234,8 @@ function setGlobalVariables( variables ) {
 	simTable = variables.simTable;
 	level = variables.level;
 }
+
+//--------------------- visualisation functions -------------------
 
 function displayTools() {
 	var patternCount = document.getElementById( "patternCount" );
@@ -728,6 +736,8 @@ function tick() {
 	nodes.attr("cx", function(d) { return d.x; } )
 		.attr("cy", function(d) { return d.y; } );
 }
+
+//------------------- create frequency table functions -------------------
 
 function createTable( clusters ) {
 	var sortedTotal = getSortedTotal( clusters );
