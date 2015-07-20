@@ -84,7 +84,7 @@
 		</div>
 
 		<!-- The visualisation box -->
-		<button class="helpButton" onclick="helpClose( visualHelpBox )">X</button>
+		<button class="helpButton" onclick="helpOpen( visualHelpBox )">?</button>
 		<div id="visual">
 			<!-- Hover over node tooltip -->
 			<div id="tooltip" class="hidden">
@@ -119,12 +119,24 @@
 			<button type="button" id="searchButton">Search</button>
 			<button type="button" id="topTenButton" class="hidden">Top Ten</button>
 			<button type="button" id="deselect" class="hidden">No Frequency</button>
+			<button class="helpButton" onclick="helpOpen( searchBar )">?</button>
+		</div>
+
+		<!-- frequency table help box -->
+		<div class="helpBox" id="patternCountHelpBox">
+			<button class="helpButton" onclick="helpClose( patternCountHelpBox )">X</button>
+			<h3>frequency Table Help</h3>
+			<p>This table provides details of how frequent an entity is in the patterns currently displayed in the above visualisation. The entities are ordered by how many of that entity there is the currently displayed patterns. The initial table only displays the top ten most frequent entities.</p>
+			<p>To look for an entity not in the top ten, enter its name in the search bar and click search. The table will change its contents to reflect the search. A &quot;Top Ten&quot; button will appear when you click search which will return the tables contents to the top ten entities.</p>
+			<p>Clicking on a row in the table will change the visual to indicate which clusters the clicked entity turns up in. The clusters outline will change to a shade of red. The lighter the shade of red, the more of the clicked entity that cluster contains. Clusters with black outlines contain none of the clicked entity. While in this state, the hover tooltip changes its contents to show how many patterns in that cluster contain the clicked entity.</p>
+			<br/>
 		</div>
 
 		<!-- Various scripts -->
 		<script src ="http://localhost:8000/socket.io/socket.io.js"></script>
 		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 		<script type="text/javascript" src="../js/startup.js"></script>
+		<script type="text/javascript" src="../js/help.js"></script>
 		<script type="text/javascript" src="../js/visual.js"></script>
 	</body>
 </html>
