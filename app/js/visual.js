@@ -44,6 +44,9 @@ var svg = d3.select("#visual")
 var force = d3.layout.force();
 var marker; //<-- tells user how many patterns are available (approximately)
 
+//help button for visual
+var visualHelpButton = document.getElementById( "visualHelpButton" );
+
 //the classes of the buttons corresponding to the node groupings
 var buttons = [ 
 		"one",
@@ -178,6 +181,8 @@ function main() {
 
 				displayTools();
 
+				displayHelpButton();
+
 				visualise( level[ level.length - numOfGroups ] );
 			});
 		});	
@@ -245,6 +250,10 @@ function displayTools() {
 	patternCount.style.display = "block";
 	svg.style.display = "block";
 	searchBar.style.display = "block";
+}
+
+function displayHelpButton() {
+	visualHelpButton.style.display = "block";
 }
 
 function visualise( clusters ) {

@@ -24,6 +24,10 @@ div {
 	float: right;
 }
 
+#visualHelpButton {
+	display: none;
+}
+
 .helpBox {
 	position: absolute;
 	top: 0;
