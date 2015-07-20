@@ -17,18 +17,42 @@
 
 		<!-- Upload file box -->
 		<div class="floatingBox" id="fileInputBox">
+			<button class="helpButton" onclick="helpOpen( fileInputHelpBox )">?</button>
 			<h3>Please enter the file containing the patterns:</h3>
 			<input type="file" id="fileInput"/>
 			<br/>
 			<button id="fileUploadButton">Confirm</button>
 		</div>
 
+		<!-- Upload file help box -->
+		<div class="helpBox" id="fileInputHelpBox">
+			<button class="helpButton" onclick="helpClose( fileInputHelpBox )">X</button>
+			<h3>File Upload Help</h3>
+			<p>RMiner will output a file with the .txt extension. This file contains the patterns in your dataset. If you open the file, you will see multiple lines of entities.</p>
+			<p>Each line represents a pattern. It begins with a number that tells us how interesting that pattern is. Then there is a list of entities contained in that pattern. Each entity will consist of a type,  a &quot;.&quot; and the individual name of that entity. The image below is an example of what your file could look like:</p>
+			<img src= "../images/fileExample.svg" class="helpImage" alt="fileExample"/>
+			<p>An example of an entity in the above example would be &quot;letter_idx.9&quot; (top left corner of image). &quot;letter_idx&quot; is the entity type, while &quot;9&quot; is the name of that individual entity.</p>
+			<p>Click on the file upload button and select this file. Then click confirm.</p>
+			<br/>
+		</div>
+
 		<!-- Number of nodes choice box -->
 		<div class="floatingBox" id="numOfNodesBox">
+			<button class="helpButton" onclick="helpOpen( numberOfNodesHelpBox )">?</button>
 			<h3>How many nodes per group would you like:</h3>
 			<input type="text" id="numOfNodes" value="8"/>
 			<br/>
 			<button onclick="fadeOut( numOfNodesBox );">Confirm</button>
+		</div>
+
+		<!-- Number of nodes choice help box -->
+		<div class="helpBox" id="numberOfNodesHelpBox">
+			<button class="helpButton" onclick="helpClose( numberOfNodesHelpBox )">X</button>
+			<h3>Number of Nodes Help</h3>
+			<p>This tool groups similar patterns together into clusters. These clusters are represented by circles. These clusters are then compared with one another. Similar clusters are put into groups. The images below are an example of what the visualisation looks like:</p>
+			<h3>Put images here</h3>
+			<p>You the user can decide how many clusters you would like in each group. Each group will still contain the same patterns regardless of how many clusters you would like. Clusters still formed by the most similar patterns.</p>
+			<br/>
 		</div>
 
 		<!-- Loading spinner -->
