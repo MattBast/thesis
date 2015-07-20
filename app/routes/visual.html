@@ -69,7 +69,7 @@
 			<button type="button" onclick="resetVis()">Reset</button>
 		</div>
 
-		<!-- Number of nodes choice help box -->
+		<!-- Number of Nodes choice help box -->
 		<div class="helpBox" id="patternCountHelpBox">
 			<button class="helpButton" onclick="helpClose( patternCountHelpBox )">X</button>
 			<h3>Summary Box Help</h3>
@@ -84,6 +84,7 @@
 		</div>
 
 		<!-- The visualisation box -->
+		<button class="helpButton" onclick="helpClose( visualHelpBox )">X</button>
 		<div id="visual">
 			<!-- Hover over node tooltip -->
 			<div id="tooltip" class="hidden">
@@ -91,6 +92,25 @@
 			</div>
 			<!-- Click node tooltip -->
 			<div id="tooltip2" class="hidden"></div>
+		</div>
+
+		<!-- Visualisation help box -->
+		<div class="helpBox" id="visualHelpBox">
+			<button class="helpButton" onclick="helpClose( visualHelpBox )">X</button>
+			<h3>Visual Display Help</h3>
+			<p>This is the visualisation of the pattern set you entered at the start. This help box has been divided into three sections regarding which part of the visualisation you need help with.</p>
+			<h4>Group Buttons</h4>
+			<h4>Enter picture of group buttons here</h4>
+			<p>Each button represents the group of clusters it shares a colour with. Hovering over a button will highlight all the clusters that it represents. Clicking a button will slice away all clusters not in that group. Each cluster in the group will be split down into its own group (and will be given a new colour to represent this). You will therefore have as many colour groups as there were clusters in the group you selected.</p>
+			<h4>Location slider</h4>
+			<h4>Enter picture of top of location slider here</h4>
+			<p>This slider gives a quick view of how many patterns are currently displayed relative to how many patterns there are in the file that has been visualised.</p>
+			<h4>Main display</h4>
+			<h4>Enter picture of main display here</h4>
+			<p>This tool groups patterns together into clusters of similar patterns. Each circle represents a cluster of similar patterns. Each cluster in turn has been grouped with other clusters that contain similar patterns. Further to this, each cluster is pulled towards clusters it is similar to and pushed away from clusters it is disimilar to. Clusters close together then contain patterns that are similar to the patterns in the other cluster. Clusters far away from one another contain patterns that are disimilar from the patterns in the other cluster.</p>
+			<p>Hovering over a cluster causes a tooltip to appear in the top left of the visualisation. This tooltip provides summary information about that cluster including how many patterns it contains and what percentage of patterns it represents compared to how many patterns are currently been displayed.</p>
+			<p>Clicking a cluster causes a tooltip to appear that provides a detailed look at the entities the patterns in that cluster contains. Each entity has been given a score that tells you how interesting that entity is. If that entity is present in many of the clusters, it is given a low score. If it does not turn up very much at all, it is also given a low score. If turns up regularly in the patterns in the clicked cluster but not very often in other clusters, it is given a high score. Scores range between the numbers 0 and 1.</p>
+			<br/>
 		</div>
 
 		<!-- Search bar for table -->
