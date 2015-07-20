@@ -61,11 +61,26 @@
 
 		<!-- Pattern count box -->
 		<div class="floatingBox" id="patternCount">
+			<button class="helpButton" onclick="helpOpen( patternCountHelpBox )">?</button>
 			<h3 id="fileName"></h3>
 			<h3 id="patternsPresent"></h3>
 			<input type="text" id="groups" value="5"/>Number of groups (maximum of ten)
 			<br/>
 			<button type="button" onclick="resetVis()">Reset</button>
+		</div>
+
+		<!-- Number of nodes choice help box -->
+		<div class="helpBox" id="patternCountHelpBox">
+			<button class="helpButton" onclick="helpClose( patternCountHelpBox )">X</button>
+			<h3>Summary Box Help</h3>
+			<p>This box displays summary information about what you are currently seeing in the visualisation below it. Below is a list of what each line in this box tells you about:</p>
+			<ul>
+				<li>File Name: The title of the file you inputted at the start.</li>
+				<li>Patterns Present: Tells you how many patterns are in all the clusters currently displayed.</li>
+				<li>Number of Groups: Tells you how many groups of clusters there are when all patterns in the file are present. You may change this by typing in a new number and pressing the reset button. Note that entering a number higher than ten will result in a visualisation with ten cluster groups.</li>
+				<li>Reset: If you have selected a group of clusters to look at in greater detail, you can click reset to return a visualisation with all patterns in the file present. Note that the &quot;Number of Nodes&quot; input box will affect this reset.</li>
+			</ul>
+			<br/>
 		</div>
 
 		<!-- The visualisation box -->
