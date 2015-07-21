@@ -312,13 +312,6 @@ function visualise( clusters ) {
 }
 
 function groupButtons() {
-	var largestClus = getLargestCluster( dataset.nodes );
-
-	//determines size of nodes
-	var rScale = d3.scale.linear()
-				.domain([ 0, largestClus ])
-				.range([5, 20]);
-
 	var colours = d3.scale.category10(); //<-- array on hex colours
 	var circle = svg.selectAll("circle");
 
@@ -350,7 +343,8 @@ function groupButtons() {
 		})
 		.on("click", function(d) {
 			//put last dataset in array for back button
-			listOfDatasets.push( dataset );
+			var lastDataset = dataset;
+			listOfDatasets.push( lastDataset );
 
 			//display back button
 			backOneVis.style.display = "block";
@@ -359,6 +353,11 @@ function groupButtons() {
 			dataset = newDataset( dataset, d );
 
 			var largestClus = getLargestCluster( dataset.nodes );
+
+			//determines size of nodes
+			var rScale = d3.scale.linear()
+						.domain([ 0, largestClus ])
+						.range([5, 20]);
 
 			//change data in layout
 			force.nodes(dataset.nodes)
@@ -401,16 +400,17 @@ function groupButtons() {
 
 function goBackOneVis() {
 	//one level below original visualisation
-	if( listOfDatasets.length === 0 ) {
+	if( listOfDatasets.length === 1 ) {
 		resetVis();
 		backOneVis.style.display = "none";
 	}
 	//go back one
 	else {
 		//get previous dataset
-		dataset = listOfDatasets[ listOfDatasets.length - 1 ];
+		var oldDataset = listOfDatasets[ listOfDatasets.length - 1 ];
+		listOfDatasets.pop();
 
-		var largestClus = getLargestCluster( dataset.nodes );
+		var largestClus = getLargestCluster( oldDataset.nodes );
 	
 		//determines size of nodes
 		var rScale = d3.scale.linear()
@@ -418,12 +418,12 @@ function goBackOneVis() {
 					.range([5, 20]);
 
 		//change data in layout
-		force.nodes(dataset.nodes)
-			.links(dataset.edges)
+		force.nodes(oldDataset.nodes)
+			.links(oldDataset.edges)
 			.start();
 			
-		nodes = nodes.data( dataset.nodes );
-		links = links.data( dataset.edges );
+		nodes = nodes.data( oldDataset.nodes );
+		links = links.data( oldDataset.edges );
 
 		//remove spare nodes and links
 		nodes.exit().remove();
@@ -451,9 +451,9 @@ function goBackOneVis() {
 		force.on("tick", tick ); 
 
 		//update frequency table
-		updateTable( dataset.nodes );
+		updateTable( oldDataset.nodes );
 
-		updateLine( dataset.nodes );
+		updateLine( oldDataset.nodes );
 	}	
 }
 
@@ -546,8 +546,6 @@ function getMoreNodes( originalNodes ) {
 	}
 
 	var ready = false;
-
-	console.log( numOfNodes.value );
 
 	/* keep retrieving the parents of nodes until each group has 
 	specified number of nodes or just nodes one pattern long */
