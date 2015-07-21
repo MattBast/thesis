@@ -9,7 +9,7 @@
 	<body onload="fadeIn( fileInputBox )">
 		<!-- Navigation bar -->
 		<ul>
-			<li><a href="/">Home</a></li>
+			<li><a href="index.html">Home</a></li>
 			<li><a href="visual.html">Visualise</a></li>
 			<li><a href="terms.html">Terminology</a></li>
 			<li><a href="tutorial.html">Tutorial</a></li>
@@ -38,6 +38,7 @@
 
 		<!-- Number of nodes choice box -->
 		<div class="floatingBox" id="numOfNodesBox">
+			<button class="backButton" onclick="fadeOut( numOfNodesBox, fileInputBox )">&lt;&lt; Back</button>
 			<button class="helpButton" onclick="helpOpen( numberOfNodesHelpBox )">?</button>
 			<h3>How many nodes per group would you like:</h3>
 			<input type="text" id="numOfNodes" value="8"/>
@@ -66,10 +67,11 @@
 			<h3 id="patternsPresent"></h3>
 			<input type="text" id="groups" value="5"/>Number of groups (maximum of ten)
 			<br/>
+			<button id="backOneVis" onclick="goBackOneVis()">&lt;&lt; Back One</button>
 			<button type="button" onclick="resetVis()">Reset</button>
 		</div>
 
-		<!-- Number of Nodes choice help box -->
+		<!-- Pattern Count help box -->
 		<div class="helpBox" id="patternCountHelpBox">
 			<button class="helpButton" onclick="helpClose( patternCountHelpBox )">X</button>
 			<h3>Summary Box Help</h3>

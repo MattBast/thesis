@@ -13,6 +13,7 @@ var priorityQueue = []; //<-- orders patterns/clusters by similarity
 //each element represents a level in the hierarchical clustering
 var level = [];
 var dataset = {}; 
+var listOfDatasets = [];
 
 //lists of entities and indexs
 var entity = new Map();
@@ -22,6 +23,7 @@ var entityIDF; //<-- inverse document frequency of entity
 var fileName = document.getElementById( "fileName" );
 var patternsPresent = document.getElementById( "patternsPresent" );
 var totalNumOfPats; //<-- total number of patterns
+var backOneVis = document.getElementById( "backOneVis" );
 
 //create table tag
 var total = new Map();
@@ -266,7 +268,7 @@ function visualise( clusters ) {
 	var largestClus = getLargestCluster( n );
 
 	//for highlighting and selecting colour groups of nodes
-	groupButtons( largestClus ); 
+	groupButtons(); 
 
 	//draw line to tell user approximately how many patterns are visable
 	drawLine();
@@ -309,7 +311,9 @@ function visualise( clusters ) {
 	createTable( clusters );
 }
 
-function groupButtons( largestClus ) {
+function groupButtons() {
+	var largestClus = getLargestCluster( dataset.nodes );
+
 	//determines size of nodes
 	var rScale = d3.scale.linear()
 				.domain([ 0, largestClus ])
@@ -345,8 +349,16 @@ function groupButtons( largestClus ) {
 				.style("stroke", "#000000");
 		})
 		.on("click", function(d) {
+			//put last dataset in array for back button
+			listOfDatasets.push( dataset );
+
+			//display back button
+			backOneVis.style.display = "block";
+
 			//get new data
 			dataset = newDataset( dataset, d );
+
+			var largestClus = getLargestCluster( dataset.nodes );
 
 			//change data in layout
 			force.nodes(dataset.nodes)
@@ -385,6 +397,64 @@ function groupButtons( largestClus ) {
 
 			updateLine( dataset.nodes );
 		});
+}
+
+function goBackOneVis() {
+	//one level below original visualisation
+	if( listOfDatasets.length === 0 ) {
+		resetVis();
+		backOneVis.style.display = "none";
+	}
+	//go back one
+	else {
+		//get previous dataset
+		dataset = listOfDatasets[ listOfDatasets.length - 1 ];
+
+		var largestClus = getLargestCluster( dataset.nodes );
+	
+		//determines size of nodes
+		var rScale = d3.scale.linear()
+					.domain([ 0, largestClus ])
+					.range([5, 20]);
+
+		//change data in layout
+		force.nodes(dataset.nodes)
+			.links(dataset.edges)
+			.start();
+			
+		nodes = nodes.data( dataset.nodes );
+		links = links.data( dataset.edges );
+
+		//remove spare nodes and links
+		nodes.exit().remove();
+		links.exit().remove();
+
+		//update links
+		links.attr("class", "link");
+
+		//update nodes
+		nodes.transition().delay(500).duration(1000)
+			.attr("class", function(d, i) {
+				return d.class;
+			})
+			.attr("r", function(d) {
+				var length = d.id.split( "-" ).length;
+				return rScale( length );
+			});
+			
+		//change data appearing in hover effect
+		nodes.on("mouseover", hover )
+			.on("mouseout", hideTooltip )
+			.call(force.drag);
+
+		//calculates x and y coordinates of every element
+		force.on("tick", tick ); 
+
+		//update frequency table
+		updateTable( dataset.nodes );
+
+		updateLine( dataset.nodes );
+	}	
 }
 
 function drawLine() {
@@ -476,6 +546,8 @@ function getMoreNodes( originalNodes ) {
 	}
 
 	var ready = false;
+
+	console.log( numOfNodes.value );
 
 	/* keep retrieving the parents of nodes until each group has 
 	specified number of nodes or just nodes one pattern long */
