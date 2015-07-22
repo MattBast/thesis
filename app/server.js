@@ -68,10 +68,12 @@ io.on("connection", function( socket ) {
 		//put values brought over from client into server versions
 		setGlobalVariables( variables );
 
+		console.time("clustering-process");
 		//keep clustering the patterns until there are only three clusters
 		while( level[level.length - 1].length > 1 ) {
 			addCluster();
 		}
+		console.timeEnd("clustering-process");
 
 		//prepare variables to be sent to client
 		var object = setReturnObject();
@@ -109,7 +111,9 @@ function addCluster() {
 	clusters = updateClusters( clusters, simClus );
 	clusters.push( newCluster );
 	
+	console.time("Update-Sim-Table");
 	updateSimTable( simClus, clusters );
+	console.timeEnd("Update-Sim-Table");
 }
 
 function checkForDuplicate() {
@@ -147,7 +151,7 @@ function updateSimTable( simClus, clusters ) {
 			comps1.push( comp1 );
 			removeFromQueue( comp1 ); //<-- remove redundant comparison from queue
 		}
-		if( simTable[ simClus[0] + "+" +  clusters[j]] !== undefined  ) {
+		if( simTable[ simClus[0] + "+" +  clusters[j] ] !== undefined  ) {
 			var comp1 = setComparison( simClus[0] + "+" +  clusters[j] );
 			comps1.push( comp1 );
 			removeFromQueue( comp1 );//<-- remove redundant comparison from queue
@@ -167,6 +171,7 @@ function updateSimTable( simClus, clusters ) {
 	//get the two patterns/clusters that are most similar
 	var tmpQueue = compareNewClus( simClus, comps1, comps2 );
 
+	//insert tmpQueue comparisons into priorityQueue
 	updateQueue( tmpQueue );
 	
 	level.push( clusters );
@@ -191,6 +196,8 @@ function removeFromQueue( comparison ) {
 function compareNewClus( simClus, comps1, comps2 ) {
 	var tmpQueue = []; //<-- temporary queue of new clusters
 	var best = 0; //<-- best similarity comparison between clusters
+
+	//loop through comps 1 and 2. Get mean similarity of their elements
 	for( var i = 0; i < comps1.length; i++ ) {
 		var clus = comps1[i].key.split( "+" );
 		var ref = "";

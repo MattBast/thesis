@@ -403,12 +403,12 @@ function goBackOneVis() {
 	if( listOfDatasets.length === 1 ) {
 		resetVis();
 		backOneVis.style.display = "none";
+		listOfDatasets.pop();
 	}
 	//go back one
 	else {
 		//get previous dataset
 		var oldDataset = listOfDatasets[ listOfDatasets.length - 1 ];
-		listOfDatasets.pop();
 
 		var largestClus = getLargestCluster( oldDataset.nodes );
 	
@@ -454,6 +454,8 @@ function goBackOneVis() {
 		updateTable( oldDataset.nodes );
 
 		updateLine( oldDataset.nodes );
+
+		listOfDatasets.pop();
 	}	
 }
 
