@@ -4,7 +4,6 @@ var server = require("http").createServer(app);
 var io = require("socket.io")(server);
 
 //the variables used during the clustering process
-var linkage; //<-- what linkage method the user wants to use
 var patterns; //<-- the patterns and references to the entities they contain
 var clusRef; //<-- references the parents of a cluster
 var simTable; //<-- the Jaccard similarity between two patterns
@@ -69,10 +68,12 @@ io.on("connection", function( socket ) {
 		//put values brought over from client into server versions
 		setGlobalVariables( variables );
 
+		console.time("clustering-process");
 		//keep clustering the patterns until there are only three clusters
 		while( level[level.length - 1].length > 1 ) {
 			addCluster();
 		}
+		console.timeEnd("clustering-process");
 
 		//prepare variables to be sent to client
 		var object = setReturnObject();
@@ -81,7 +82,6 @@ io.on("connection", function( socket ) {
 });
 
 function setGlobalVariables( variables ) {
-	linkage = variables.linkage;
 	patterns = variables.patterns;
 	clusRef = variables.clusRef;
 	simTable = variables.simTable;
@@ -91,7 +91,6 @@ function setGlobalVariables( variables ) {
 
 function setReturnObject() {
 	var object = {
-		"linkage": linkage,
 		"patterns": patterns,
 		"clusRef": clusRef,
 		"simTable": simTable,
@@ -112,7 +111,9 @@ function addCluster() {
 	clusters = updateClusters( clusters, simClus );
 	clusters.push( newCluster );
 	
+	console.time("Update-Sim-Table");
 	updateSimTable( simClus, clusters );
+	console.timeEnd("Update-Sim-Table");
 }
 
 function checkForDuplicate() {
@@ -150,7 +151,7 @@ function updateSimTable( simClus, clusters ) {
 			comps1.push( comp1 );
 			removeFromQueue( comp1 ); //<-- remove redundant comparison from queue
 		}
-		if( simTable[ simClus[0] + "+" +  clusters[j]] !== undefined  ) {
+		if( simTable[ simClus[0] + "+" +  clusters[j] ] !== undefined  ) {
 			var comp1 = setComparison( simClus[0] + "+" +  clusters[j] );
 			comps1.push( comp1 );
 			removeFromQueue( comp1 );//<-- remove redundant comparison from queue
@@ -170,6 +171,7 @@ function updateSimTable( simClus, clusters ) {
 	//get the two patterns/clusters that are most similar
 	var tmpQueue = compareNewClus( simClus, comps1, comps2 );
 
+	//insert tmpQueue comparisons into priorityQueue
 	updateQueue( tmpQueue );
 	
 	level.push( clusters );
@@ -194,6 +196,8 @@ function removeFromQueue( comparison ) {
 function compareNewClus( simClus, comps1, comps2 ) {
 	var tmpQueue = []; //<-- temporary queue of new clusters
 	var best = 0; //<-- best similarity comparison between clusters
+
+	//loop through comps 1 and 2. Get mean similarity of their elements
 	for( var i = 0; i < comps1.length; i++ ) {
 		var clus = comps1[i].key.split( "+" );
 		var ref = "";
@@ -208,28 +212,12 @@ function compareNewClus( simClus, comps1, comps2 ) {
 
 		//create key and value for new cluster comparison
 		var newKey = ref + "+" + simClus[0] + "-" + simClus[1];
-		best = mostSimilar( comps1[i].value, comps2[i].value );
+		best = mean( comps1[i].value, comps2[i].value );
 
 		simTable[newKey] = best; //<-- add to simTable
 		tmpQueue.push( newKey ); //<-- add to temporary queue of new clusters
 	}
 	return tmpQueue;
-}
-
-function mostSimilar( num1, num2 ) {
-	var best = 0;
-
-	if( linkage[1].checked ) { //<-- complete linkage
-		best = Math.min( num1, num2 );
-	}
-	else if( linkage[2].checked ) { //<-- average linkage
-		best = mean( num1, num2 );
-	}
-	else { //<-- single linkage
-		best = Math.max( num1, num2 );
-	}
-
-	return best;
 }
 
 function mean( num1, num2 ) {

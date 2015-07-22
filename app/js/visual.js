@@ -1,12 +1,9 @@
 //so data can be sent to the server
 var socket = io.connect("http://localhost:8000");
 
-//upload file when input changes
+//inputs
 var fileInput = document.getElementById( "fileInput" );
-fileInput.addEventListener("change", upload );
-
-//what linkage method the user wants to use
-var linkage = document.getElementsByName("linkage");
+var numOfNodes = document.getElementById( "numOfNodes" );
 
 var patterns = []; //<-- the patterns and references to the entities they contain
 var clusRef = new Object(); //<-- references the parents of a cluster
@@ -16,13 +13,17 @@ var priorityQueue = []; //<-- orders patterns/clusters by similarity
 //each element represents a level in the hierarchical clustering
 var level = [];
 var dataset = {}; 
+var listOfDatasets = [];
 
 //lists of entities and indexs
 var entity = new Map();
+var entityIDF; //<-- inverse document frequency of entity
 
 //displays how high up the tree the user is
+var fileName = document.getElementById( "fileName" );
 var patternsPresent = document.getElementById( "patternsPresent" );
 var totalNumOfPats; //<-- total number of patterns
+var backOneVis = document.getElementById( "backOneVis" );
 
 //create table tag
 var total = new Map();
@@ -40,9 +41,13 @@ var w = visDiv.clientWidth, h = 500;
 var svg = d3.select("#visual")
 			.append("svg")
 			.attr("width", w)
-			.attr("height", h);
+			.attr("height", h)
+			.attr("id", "svg");
 var force = d3.layout.force();
 var marker; //<-- tells user how many patterns are available (approximately)
+
+//help button for visual
+var visualHelpButton = document.getElementById( "visualHelpButton" );
 
 //the classes of the buttons corresponding to the node groupings
 var buttons = [ 
@@ -57,6 +62,8 @@ var buttons = [
 		"nine",
 		"ten"
 	];
+
+//---------------------- read file functions ----------------------
 
 function upload() {
 	if( fileInput.files.length > 0 ) {
@@ -140,6 +147,8 @@ function sparseMatrix() {
 	return newPats;
 }
 
+//-------------- send file contents to server function ------------
+
 function main() {
 	socket.emit("init"); //<-- tell server to start function
 	socket.on("init", function( object ) { //<-- recieve result from server
@@ -158,7 +167,6 @@ function main() {
 			console.log( "Priority queue has been sorted" );
 
 			var variables = {
-				"linkage": linkage,
 				"patterns": patterns,
 				"clusRef": clusRef,
 				"simTable": simTable,
@@ -170,6 +178,12 @@ function main() {
 			socket.on("cluster", function( variables ) {
 				setGlobalVariables( variables );
 				console.log( "Finished clustering" );
+
+				stopSpin();
+
+				displayTools();
+
+				displayHelpButton();
 
 				visualise( level[ level.length - numOfGroups ] );
 			});
@@ -222,11 +236,26 @@ function getNumOfGroups() {
 }
 
 function setGlobalVariables( variables ) {
-	linkage = variables.linkage;
 	patterns = variables.patterns;
 	clusRef = variables.clusRef;
 	simTable = variables.simTable;
 	level = variables.level;
+}
+
+//--------------------- visualisation functions -------------------
+
+function displayTools() {
+	var patternCount = document.getElementById( "patternCount" );
+	var svg = document.getElementById( "svg" );
+	var searchBar = document.getElementById( "searchBar" );
+
+	patternCount.style.display = "block";
+	svg.style.display = "block";
+	searchBar.style.display = "block";
+}
+
+function displayHelpButton() {
+	visualHelpButton.style.display = "block";
 }
 
 function visualise( clusters ) {
@@ -239,13 +268,16 @@ function visualise( clusters ) {
 	var largestClus = getLargestCluster( n );
 
 	//for highlighting and selecting colour groups of nodes
-	groupButtons( largestClus ); 
+	groupButtons(); 
 
 	//draw line to tell user approximately how many patterns are visable
 	drawLine();
 
 	//tells user precisely how many patterns are visible
 	resetButtonBox( n );
+
+	//set inverse document frequency score for each entity
+	entityIDF = setIDFs( dataset );
 	
 	//determines size of nodes
 	var rScale = d3.scale.linear()
@@ -279,12 +311,7 @@ function visualise( clusters ) {
 	createTable( clusters );
 }
 
-function groupButtons( largestClus ) {
-	//determines size of nodes
-	var rScale = d3.scale.linear()
-				.domain([ 0, largestClus ])
-				.range([5, 20]);
-
+function groupButtons() {
 	var colours = d3.scale.category10(); //<-- array on hex colours
 	var circle = svg.selectAll("circle");
 
@@ -315,8 +342,22 @@ function groupButtons( largestClus ) {
 				.style("stroke", "#000000");
 		})
 		.on("click", function(d) {
+			//put last dataset in array for back button
+			var lastDataset = dataset;
+			listOfDatasets.push( lastDataset );
+
+			//display back button
+			backOneVis.style.display = "block";
+
 			//get new data
 			dataset = newDataset( dataset, d );
+
+			var largestClus = getLargestCluster( dataset.nodes );
+
+			//determines size of nodes
+			var rScale = d3.scale.linear()
+						.domain([ 0, largestClus ])
+						.range([5, 20]);
 
 			//change data in layout
 			force.nodes(dataset.nodes)
@@ -357,6 +398,67 @@ function groupButtons( largestClus ) {
 		});
 }
 
+function goBackOneVis() {
+	//one level below original visualisation
+	if( listOfDatasets.length === 1 ) {
+		resetVis();
+		backOneVis.style.display = "none";
+		listOfDatasets.pop();
+	}
+	//go back one
+	else {
+		//get previous dataset
+		var oldDataset = listOfDatasets[ listOfDatasets.length - 1 ];
+
+		var largestClus = getLargestCluster( oldDataset.nodes );
+	
+		//determines size of nodes
+		var rScale = d3.scale.linear()
+					.domain([ 0, largestClus ])
+					.range([5, 20]);
+
+		//change data in layout
+		force.nodes(oldDataset.nodes)
+			.links(oldDataset.edges)
+			.start();
+			
+		nodes = nodes.data( oldDataset.nodes );
+		links = links.data( oldDataset.edges );
+
+		//remove spare nodes and links
+		nodes.exit().remove();
+		links.exit().remove();
+
+		//update links
+		links.attr("class", "link");
+
+		//update nodes
+		nodes.transition().delay(500).duration(1000)
+			.attr("class", function(d, i) {
+				return d.class;
+			})
+			.attr("r", function(d) {
+				var length = d.id.split( "-" ).length;
+				return rScale( length );
+			});
+			
+		//change data appearing in hover effect
+		nodes.on("mouseover", hover )
+			.on("mouseout", hideTooltip )
+			.call(force.drag);
+
+		//calculates x and y coordinates of every element
+		force.on("tick", tick ); 
+
+		//update frequency table
+		updateTable( oldDataset.nodes );
+
+		updateLine( oldDataset.nodes );
+
+		listOfDatasets.pop();
+	}	
+}
+
 function drawLine() {
 	var line = svg.append("line")
 		.attr("x1", 25)
@@ -374,6 +476,32 @@ function drawLine() {
 		.attr("id", "marker")
 		.attr("stroke", "black")
 		.attr("stroke-width", 3);
+}
+
+function setIDFs( dataset ) {
+	var idfs = {}; //<-- inverse document frequency
+	var nodes = dataset.nodes; //<-- clusters
+
+	//loop through the entities and retieve and idf score for each
+	for( var key of entity.keys() ) {
+		var count = 0; //<-- number of clusters/nodes containing entity
+
+		//loop through the clusters and count the ones that contain the entity
+		for( var i = 0; i < nodes.length; i++ ) {
+			var nodeFrequency = getFrequency( nodes[i].id );
+
+			if( nodeFrequency.get( entity.get( key ) ) !== undefined ) {
+				count++;
+			}
+
+		}
+
+		/* divide the total number of patterns in node by how many contain 
+		 the chosen entity. Then do the logarithm of these */
+		idfs[entity.get( key )] = Math.log( nodes.length / count );
+	}
+
+	return idfs;
 }
 
 function updateLine( nodes ) {
@@ -407,7 +535,23 @@ function getMoreNodes( originalNodes ) {
 	var node;
 	var newNodes = [];
 	var parents = [];
-	while( newNodes.length < 30 ) {
+
+	//number of original nodes
+	var numOfOrigNodes = originalNodes.length;
+
+	//an object that records how many nodes each group currently has
+	var groups = {}; 
+
+	//fill the groups object with group names
+	for( var i = 0; i < numOfOrigNodes; i++ ) {
+		groups[ buttons[i] ] = 1;
+	}
+
+	var ready = false;
+
+	/* keep retrieving the parents of nodes until each group has 
+	specified number of nodes or just nodes one pattern long */
+	while( ready === false ) {
 		var onePat = 0; //<-- count how many patterns have no parents
 
 		for( var i = 0; i < originalNodes.length; i++ ) {
@@ -415,10 +559,14 @@ function getMoreNodes( originalNodes ) {
 
 			//if a cluster contains more than one pattern, get its parents
 			if( parents.length !== 0 ) {
+				//put parents into newNodes array
 				node = { id: parents[0], class: originalNodes[i].class };
 				newNodes.push( node );
 				node = { id: parents[1], class: originalNodes[i].class };
 				newNodes.push( node );
+
+				//group now has one more node than before
+				groups[ originalNodes[i].class ] += 1;
 			}
 			//else just use the original cluster (of one pattern)
 			else {
@@ -431,9 +579,18 @@ function getMoreNodes( originalNodes ) {
 		//stop if there are less than twenty patterns in current set
 		if( onePat >= newNodes.length ) { break; }
 
-		//prevents patterns turning up in newNodes more than once
-		originalNodes = newNodes;
-		if( newNodes.length < 30 ) { newNodes = []; }
+		for( var j = 0; j < numOfOrigNodes; j++ ) {
+			if( groups[ buttons[j] ] >= numOfNodes.value ) { ready = true; }
+		}
+		if( ready === true ) { break; }
+
+		//prepare to loop again
+		if( ready === false ) {
+			//prevents patterns turning up in newNodes more than once
+			originalNodes = newNodes;
+			newNodes = [];
+		}
+		
 	}	
 	return newNodes;
 }
@@ -484,27 +641,17 @@ function compareNodes( node1, node2 ) {
 			best = comparisons[i];
 		}
 		else {
-			best = mostSimilar( best, comparisons[i] );
+			best = mean( best, comparisons[i] );
 		}
 	}
 
 	return best;
 }
 
-function mostSimilar( num1, num2 ) {
-	var best = 0;
-
-	if( linkage[1].checked ) { //<-- complete linkage
-		best = Math.min( num1, num2 );
-	}
-	else if( linkage[2].checked ) { //<-- average linkage
-		best = mean( num1, num2 );
-	}
-	else { //<-- single linkage
-		best = Math.max( num1, num2 );
-	}
-
-	return best;
+function mean( num1, num2 ) {
+	var total = num1 + num2;
+	total = total / 2;
+	return total;
 }
 
 function newDataset( oldDataset, clickedClass ) {
@@ -550,6 +697,7 @@ function resetButtonBox( nodes ) {
 	for( var i = 0; i < nodes.length; i++ ) {
 		numPats += nodes[i].id.split( "-" ).length;
 	}
+	fileName.innerHTML = "File: " + fileInput.files[0].name;
 	patternsPresent.innerHTML = "Patterns present: " + numPats;
 	totalNumOfPats = numPats;
 }
@@ -609,7 +757,6 @@ function drawNodes( dataNodes, rScale ) {
 }
 
 function hover( d, i ) {
-	var yPos = parseFloat(d3.select("svg").attr("y"));
 	var frequency = getFrequency( d.id );
 
 	var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
@@ -618,8 +765,6 @@ function hover( d, i ) {
 	text += " Percentage of total: " + percentage + "%";
 
 	d3.select("#tooltip")
-		.style("left", 0)
-		.style("top", (yPos + 20) + "px")
 		.select("#value")
 		.text( text );
 
@@ -631,28 +776,33 @@ function hideTooltip() {
 }
 
 function clickNode( d ) {
-	var yPos = parseFloat(d3.select("svg").attr("y"));
+	//total number of patterns in cluster
+	var clusSize = d.id.split("-").length;
 
 	//work out percentage of patterns this entity turns up in
 	var frequency = getFrequency( d.id ); 
 
-	var text = "";
-	for( var key of frequency.keys() ) {
-		var ef = frequency.get( key ); //<-- entity frequency
-		var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
-		ef = Math.floor( (ef / numOfPats) * 100 ); //<-- get percentage (rounded down)
+	var tooltip = d3.select("#tooltip2");
 
-		text += key + " " + frequency.get( key ) + " " + ef + "% "; 
+	//add new entity and idf per loop
+	for( var key of frequency.keys() ) {
+		//work out term frequency
+		var ef = frequency.get( key ); //<-- entity frequency (patterns containing entity)
+		var tf = ef / clusSize; //<-- term frequency
+
+		//get inverse document frequency
+		var idf = entityIDF[key];
+
+		//add text to tooltip
+		var text = key + " : " + idf;
+		tooltip.append("p").text(text);
 	}
 
+	//click to hide tooltip
 	d3.select("#tooltip2")
-		.style("left", 500 + "px")
-		.style("top", (yPos + 20) + "px")
-		.select("#value2")
 		.on("click", function() {
 			d3.select("#tooltip2").classed("hidden", true);
-		})
-		.text( text );
+		});
 
 	d3.select("#tooltip2").classed("hidden", false);
 }
@@ -666,6 +816,8 @@ function tick() {
 	nodes.attr("cx", function(d) { return d.x; } )
 		.attr("cy", function(d) { return d.y; } );
 }
+
+//------------------- create frequency table functions -------------------
 
 function createTable( clusters ) {
 	var sortedTotal = getSortedTotal( clusters );

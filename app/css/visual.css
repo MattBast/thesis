@@ -7,17 +7,104 @@ div {
   	margin-bottom: 0;
 }
 
+.floatingBox {
+	border-radius: 10px;
+	background-color: rgb(250, 250, 250);
+	margin-top: 15%;
+	margin-left: 25%;
+	margin-right: 25%;
+	padding: 5%;
+	box-shadow: 10px 10px 5px #888888;
+	opacity: 0;
+	z-index: 0;
+}
+
+.helpButton {
+	border-radius: 20px;
+	float: right;
+}
+
+#visualHelpButton {
+	display: none;
+}
+
+.helpBox {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 70%;
+	height: 80%;
+	margin: 10%;
+	z-index: 1;
+
+	background-color: white;
+	border-radius: 10px;
+	padding: 5%;
+	box-shadow: 10px 10px 5px #888888;
+	overflow: scroll;
+
+	display: none;
+	opacity: 0;
+}
+
+.helpImage {
+	width: 100%;
+	height: 30%;
+	border: solid 1px black;
+	border-radius: 10px;
+}
+
+#numOfNodesBox {
+	display: none;
+}
+
+#fileUploadButton {
+	opacity: 0.5;
+}
+
+#canvas {
+	width: 60%;
+	margin-left: 20%;
+	margin-right: 20%;
+	margin-top: 20%;
+	display: none;
+}
+
+#loading {
+	padding-left: 27%;
+	padding-right: 25%;
+	margin-left: 20%;
+	margin-right: 20%;
+	margin-top: 0;
+	display: none;
+}
+
 #visual {
 	margin-top: 2%;
 	border: none;
 }
 
+#svg {
+	display: none;
+}
+
 #patternCount {
 	margin-top: 2%;
+	margin-left: 15%;
+  	margin-right: 15%;
+  	padding-top: 2%;
+  	padding-bottom: 2%;
+  	opacity: 1;
+
+  	display: none;
 }
 
 button {
 	margin: 5px;
+}
+
+#backOneVis {
+	display: none;
 }
 
 #searchBar {
@@ -25,6 +112,8 @@ button {
 	margin-bottom: 2%;
 	margin-left: 15%;
 	margin-right: 15%;
+
+	display: none;
 }
 
 input {
@@ -44,6 +133,7 @@ table {
 
 #tooltip {
 	position: absolute;
+	margin: 0;
 	width: 200px;
 	height: auto;
 	padding: 10px;
@@ -59,7 +149,11 @@ table {
 
 #tooltip2 {
 	position: absolute;
-	width: 275px;
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-left: 10%;
+	margin-right: 10%;
+	width: 400px;
 	height: 500px;
 	padding: 10px;
 	background-color: white;
@@ -85,16 +179,6 @@ table {
 	font-family: sans-serif;
 	font-size: 16px;
 	line-height: 20px;
-}
-
-#spinner {
-	display: block;
-	position: absolute;
-	margin-left: 15%;
-	margin-right: 15%;
-	width: 70%;
-	height: 50%;
-	z-index: -1;
 }
 
 .link {
@@ -133,6 +217,7 @@ tr.highlight:hover {
 	display: none;
 }
 
+/* Classes that represent the node colour groups */
 .one {
 	fill: #1f77b4;
 	stroke: #000000;
