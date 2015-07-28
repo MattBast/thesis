@@ -2,6 +2,7 @@ var express = require("express");
 var app = express();
 var server = require("http").createServer(app);
 var io = require("socket.io")(server);
+var fs = require("fs");
 
 //the variables used during the clustering process
 var patterns; //<-- the patterns and references to the entities they contain
@@ -80,8 +81,17 @@ io.on("connection", function( socket ) {
 		io.emit( "cluster", object ); //<-- send object to client
 	});
 
+	//write variables into a .txt file
 	socket.on("save", function( variables ) {
-		console.log( variables );
+		var string = "";
+		string += "PATTERNS START\n" + variables.patterns + "\nPATTERNS END\n";
+		string += "CLUSREF START\n" + variables.clusRef + "\nCLUSREF END\n";
+		string += "SIMTABLE START\n" + variables.simTable + "\nSIMTABLE END\n";
+		string += "LEVEL START\n" + variables.level + "\nLEVEL END\n";
+		fs.writeFile( "vis_" + variables.fileName + ".txt", string, function (err) {
+  			if (err) throw err;
+  			console.log("File : " + "vis_" + variables.fileName + ".txt " + "saved!");
+		});
 		io.emit( "save" );
 	});
 });

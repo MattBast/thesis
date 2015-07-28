@@ -1160,10 +1160,10 @@ function clickSave() {
 	changeColour();
 	setTimeout( resetColours, 100 );
 	var variables = {
+		"fileName": fileInput.files[0].name,
 		"patterns": patterns,
 		"clusRef": clusRef,
 		"simTable": simTable,
-		"priorityQueue": priorityQueue,
 		"level": level
 	};
 	socket.emit( "save", variables );
