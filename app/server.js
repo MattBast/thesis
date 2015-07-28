@@ -79,6 +79,11 @@ io.on("connection", function( socket ) {
 		var object = setReturnObject();
 		io.emit( "cluster", object ); //<-- send object to client
 	});
+
+	socket.on("save", function( variables ) {
+		console.log( variables );
+		io.emit( "save" );
+	});
 });
 
 function setGlobalVariables( variables ) {
@@ -111,9 +116,7 @@ function addCluster() {
 	clusters = updateClusters( clusters, simClus );
 	clusters.push( newCluster );
 	
-	console.time("Update-Sim-Table");
 	updateSimTable( simClus, clusters );
-	console.timeEnd("Update-Sim-Table");
 }
 
 function checkForDuplicate() {

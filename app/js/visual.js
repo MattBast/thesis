@@ -63,6 +63,11 @@ var buttons = [
 		"ten"
 	];
 
+//save button
+var saveTitle = document.getElementById( "saveTitle" );
+var saveButton = document.getElementById( "saveButton" );
+saveButton.addEventListener("click", clickSave );
+
 //---------------------- read file functions ----------------------
 
 function upload() {
@@ -252,6 +257,8 @@ function displayTools() {
 	patternCount.style.display = "block";
 	svg.style.display = "block";
 	searchBar.style.display = "block";
+	saveTitle.style.display = "block";
+	saveButton.style.display = "block";
 }
 
 function displayHelpButton() {
@@ -1144,4 +1151,33 @@ function deselectRows() {
 
 	//reset tooltip to top ten
 	nodes.on("mouseover", hover);
+}
+
+//--------------------------- save file functions -----------------------------
+
+function clickSave() {
+	console.log( "Clicked save" );
+	changeColour();
+	setTimeout( resetColours, 100 );
+	var variables = {
+		"patterns": patterns,
+		"clusRef": clusRef,
+		"simTable": simTable,
+		"priorityQueue": priorityQueue,
+		"level": level
+	};
+	socket.emit( "save", variables );
+	socket.on("save", function() {
+		console.log( "File Saved" );
+	});
+}
+
+function changeColour() {
+	saveButton.style.backgroundColor = "white";
+	saveButton.style.color = "#98bf21";
+}
+
+function resetColours() {
+	saveButton.style.backgroundColor = "#98bf21";
+	saveButton.style.color = "white";
 }
