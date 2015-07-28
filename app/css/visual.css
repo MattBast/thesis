@@ -103,6 +103,25 @@ button {
 	margin: 5px;
 }
 
+#saveTitle {
+	margin-left: 20%;
+	margin-right: 20%;
+	text-align: center;
+}
+
+#saveButton {
+	color: white;
+	background-color: #98bf21;
+	border: solid 1px #98bf21;
+	border-radius: 5px;
+
+	padding: 12px;
+	margin-top: 0;
+	margin-left: 46%;
+	margin-right: 45%;
+	width: 33px;
+}
+
 #backOneVis {
 	display: none;
 }
