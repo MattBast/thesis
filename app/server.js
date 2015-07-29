@@ -23,6 +23,11 @@ app.get("/visual.html", function( request, response, next ) {
 	response.sendFile( __dirname + "/routes/visual.html" );
 });
 
+app.get("/download", function( request, response) {
+	var file = __dirname + "/fileName.json";
+	response.downlaod(file);
+});
+
 //server side calculations
 io.on("connection", function( socket ) {
 	//initialise clusters and cluster references (initClusters)
@@ -92,9 +97,9 @@ io.on("connection", function( socket ) {
 		var json = JSON.stringify( variables );
 
 		//write to file
-		fs.writeFile( "vis_" + variables.fileName[0] + ".json", json, function (err) {
+		fs.writeFile(  variables.fileName[0] + ".json", json, function (err) {
   			if (err) throw err;
-  			console.log("File : " + "vis_" + variables.fileName + ".json " + "saved");
+  			console.log("File : " + variables.fileName + ".json " + "saved");
 		});
 
 		//send success message back to client

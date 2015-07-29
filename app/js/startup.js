@@ -8,7 +8,7 @@ fileInput.addEventListener( "change", insertButton );
 
 //the confirm new or existing choice button
 var choiceButton = document.getElementById( "choiceButton" );
-var choice = document.getElementById( "choice" );
+var choice = document.getElementsByName( "choice" );
 choiceButton.addEventListener( "click", clickChoice );
 
 //the confirm button on file upload
