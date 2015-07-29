@@ -83,15 +83,21 @@ io.on("connection", function( socket ) {
 
 	//write variables into a .txt file
 	socket.on("save", function( variables ) {
-		var string = "";
-		string += "PATTERNS START\n" + variables.patterns + "\nPATTERNS END\n";
-		string += "CLUSREF START\n" + variables.clusRef + "\nCLUSREF END\n";
-		string += "SIMTABLE START\n" + variables.simTable + "\nSIMTABLE END\n";
-		string += "LEVEL START\n" + variables.level + "\nLEVEL END\n";
-		fs.writeFile( "vis_" + variables.fileName + ".txt", string, function (err) {
+		
+		//get file name
+		var fileName = variables.fileName.split(".");
+		variables[fileName] = undefined;
+
+		//encode rest of object to JSON
+		var json = JSON.stringify( variables );
+
+		//write to file
+		fs.writeFile( "vis_" + variables.fileName[0] + ".json", json, function (err) {
   			if (err) throw err;
-  			console.log("File : " + "vis_" + variables.fileName + ".txt " + "saved!");
+  			console.log("File : " + "vis_" + variables.fileName + ".json " + "saved");
 		});
+
+		//send success message back to client
 		io.emit( "save" );
 	});
 });

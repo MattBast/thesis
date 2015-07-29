@@ -1159,8 +1159,9 @@ function clickSave() {
 	console.log( "Clicked save" );
 	changeColour();
 	setTimeout( resetColours, 100 );
+	var file = fileInput.files[0];
 	var variables = {
-		"fileName": fileInput.files[0].name,
+		"fileName": file.name,
 		"patterns": patterns,
 		"clusRef": clusRef,
 		"simTable": simTable,
