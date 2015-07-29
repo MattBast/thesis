@@ -3,6 +3,8 @@ var app = express();
 var server = require("http").createServer(app);
 var io = require("socket.io")(server);
 var fs = require("fs");
+var path = require('path');
+var mime = require('mime');
 
 //the variables used during the clustering process
 var patterns; //<-- the patterns and references to the entities they contain
@@ -23,9 +25,10 @@ app.get("/visual.html", function( request, response, next ) {
 	response.sendFile( __dirname + "/routes/visual.html" );
 });
 
-app.get("/download", function( request, response) {
+//downlaod page
+app.get("/download", function( request, response ) {
 	var file = __dirname + "/fileName.json";
-	response.downlaod(file);
+	response.download( file );
 });
 
 //server side calculations

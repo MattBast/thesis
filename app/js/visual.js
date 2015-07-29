@@ -1159,6 +1159,20 @@ function clickSave() {
 	console.log( "Clicked save" );
 	changeColour();
 	setTimeout( resetColours, 100 );
+	setTimeout( sendFile, 250 );
+}
+
+function changeColour() {
+	saveButton.style.backgroundColor = "white";
+	saveButton.style.color = "#98bf21";
+}
+
+function resetColours() {
+	saveButton.style.backgroundColor = "#98bf21";
+	saveButton.style.color = "white";
+}
+
+function sendFile() {
 	var file = fileInput.files[0];
 	var variables = {
 		"fileName": file.name,
@@ -1170,15 +1184,9 @@ function clickSave() {
 	socket.emit( "save", variables );
 	socket.on("save", function() {
 		console.log( "File Saved" );
+		var downloadTitle = document.getElementById( "downloadTitle" );
+		var downloadButton = document.getElementById( "downloadButton" );
+		downloadButton.style.display = "block";
+		downloadTitle.style.display = "block";	
 	});
-}
-
-function changeColour() {
-	saveButton.style.backgroundColor = "white";
-	saveButton.style.color = "#98bf21";
-}
-
-function resetColours() {
-	saveButton.style.backgroundColor = "#98bf21";
-	saveButton.style.color = "white";
 }

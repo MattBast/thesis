@@ -153,10 +153,16 @@
 			<br/>
 		</div>
 
-		<h4 id="saveTitle">
+		<h4 class="saveTitle" id="saveTitle">
 			Saving your results allows you skip the loading phase next time you visit
 		</h4>
 		<div id="saveButton">Save</div>
+		<h4 class="saveTitle" id="DownloadTitle">
+			File successfully created. Click here to download.
+		</h4>
+		<form action="/download">
+			<input type="submit" value="submit" id="downloadButton">
+		</form>
 
 		<!-- Various scripts -->
 		<script src ="http://localhost:8000/socket.io/socket.io.js"></script>
