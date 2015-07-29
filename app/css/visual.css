@@ -70,6 +70,10 @@ div {
 	display: none;
 }
 
+#downloadFileName {
+	display: none;
+}
+
 #canvas {
 	width: 60%;
 	margin-left: 20%;

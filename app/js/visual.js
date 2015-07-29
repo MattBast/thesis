@@ -1186,7 +1186,9 @@ function sendFile() {
 		console.log( "File Saved" );
 		var downloadTitle = document.getElementById( "downloadTitle" );
 		var downloadButton = document.getElementById( "downloadButton" );
+		var downloadFileName = document.getElementById( "downloadFileName" );
 		downloadButton.style.display = "block";
 		downloadTitle.style.display = "block";	
+		downloadFileName.value = file.name;
 	});
 }
