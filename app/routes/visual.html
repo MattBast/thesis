@@ -6,7 +6,7 @@
 		<title>Visual</title>
 		<script type="text/javascript" src="../d3/d3.min.js"></script>
 	</head>
-	<body onload="fadeIn( fileInputBox )">
+	<body onload="fadeIn( choiceBox )">
 		<!-- Navigation bar -->
 		<ul>
 			<li><a href="index.html">Home</a></li>
@@ -15,7 +15,25 @@
 			<li><a href="tutorial.html">Tutorial</a></li>
 		</ul>
 
-		<!-- Upload file box -->
+		<!-- Open saved file or create new box -->
+		<div class="floatingBox" id="choiceBox">
+			<h3>Would you like to create a new visualisation or reopen an existing one?</h3>
+			<input type="radio" name="new" value="new"  id="choice">New Visualisation
+			<br/>
+			<input type="radio" name="existing" value="existing" id="choice">Load existing visualisation
+			<br/>
+			<button id="choiceButton">Confirm</button>
+		</div>
+
+		<!-- Upload .json file box -->
+		<div class="floatingBox" id="savedFileInputBox">
+			<h3>Please enter the saved file:</h3>
+			<input type="file" id="savedFileInput"/>
+			<br/>
+			<button id="savedFileUploadButton">Confirm</button>
+		</div>
+
+		<!-- Upload .txt file box -->
 		<div class="floatingBox" id="fileInputBox">
 			<button class="helpButton" onclick="helpOpen( fileInputHelpBox )">?</button>
 			<h3>Please enter the file containing the patterns:</h3>

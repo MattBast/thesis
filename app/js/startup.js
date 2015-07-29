@@ -6,9 +6,14 @@ var numOfNodesBox = document.getElementById("numOfNodesBox");
 var fileInput = document.getElementById( "fileInput" );
 fileInput.addEventListener( "change", insertButton );
 
+//the confirm new or existing choice button
+var choiceButton = document.getElementById( "choiceButton" );
+var choice = document.getElementById( "choice" );
+choiceButton.addEventListener( "click", clickChoice );
+
 //the confirm button on file upload
 var fileUploadButton = document.getElementById( "fileUploadButton" );
-fileUploadButton.addEventListener( "click", clickButton );
+fileUploadButton.addEventListener( "click", clickUpload );
 
 //the variables controlling the loading spinner
 var c = document.getElementById( "canvas" );
@@ -66,12 +71,21 @@ function insertButton() {
 	}
 }
 
-function clickButton() {
+function clickUpload() {
 	if( fileInput.files.length === 0 ) {
 		alert( "Please select a file first" );
 	}
 	else {
 		fadeOut( fileInputBox, numOfNodesBox );
+	}
+}
+
+function clickChoice() {
+	if( choice[0].checked === true ) {
+		fadeOut( choiceBox, fileInputBox );
+	}
+	else {
+		fadeOut( choiceBox, savedFileInputBox );
 	}
 }
 
