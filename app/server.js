@@ -3,8 +3,9 @@ var app = express();
 var server = require("http").createServer(app);
 var io = require("socket.io")(server);
 var fs = require("fs");
-var path = require('path');
-var mime = require('mime');
+var path = require("path");
+var mime = require("mime");
+var url = require("url");
 
 //the variables used during the clustering process
 var patterns; //<-- the patterns and references to the entities they contain
@@ -25,10 +26,17 @@ app.get("/visual.html", function( request, response, next ) {
 	response.sendFile( __dirname + "/routes/visual.html" );
 });
 
-//downlaod page
-app.get("/download", function( request, response ) {
-	var file = __dirname + "/fileName.json";
-	response.download( file );
+//download saved file
+app.get("/download", function( request, response, next ) {
+	/* 
+		Code based on example from:
+		http://code.runnable.com/UTlPPF-f2W1TAAEW/download-files-with-express-for-node-js
+	*/
+	var search = url.parse( request.url ).search;
+	var parsedSearch = url.parse( search, true ).query;
+	var path = __dirname + "/" + parsedSearch.file + ".json";
+	console.log( path );
+	response.download( path );
 });
 
 //server side calculations
@@ -89,20 +97,19 @@ io.on("connection", function( socket ) {
 		io.emit( "cluster", object ); //<-- send object to client
 	});
 
-	//write variables into a .txt file
+	//write variables into a .json file
 	socket.on("save", function( variables ) {
 		
 		//get file name
 		var fileName = variables.fileName.split(".");
-		variables[fileName] = undefined;
 
 		//encode rest of object to JSON
 		var json = JSON.stringify( variables );
 
 		//write to file
-		fs.writeFile(  variables.fileName[0] + ".json", json, function (err) {
+		fs.writeFile(  fileName[0] + ".json", json, function (err) {
   			if (err) throw err;
-  			console.log("File : " + variables.fileName + ".json " + "saved");
+  			console.log("File : " + fileName[0] + ".json " + "saved");
 		});
 
 		//send success message back to client

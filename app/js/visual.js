@@ -1184,11 +1184,13 @@ function sendFile() {
 	socket.emit( "save", variables );
 	socket.on("save", function() {
 		console.log( "File Saved" );
-		var downloadTitle = document.getElementById( "downloadTitle" );
 		var downloadButton = document.getElementById( "downloadButton" );
 		var downloadFileName = document.getElementById( "downloadFileName" );
+		var jsonFileName = variables.fileName.split( "." );
+		jsonFileName = "/download?file=" + jsonFileName[0];
+
+		downloadButton.setAttribute( "href", jsonFileName );
 		downloadButton.style.display = "block";
-		downloadTitle.style.display = "block";	
-		downloadFileName.value = file.name;
+		console.log( jsonFileName );
 	});
 }
