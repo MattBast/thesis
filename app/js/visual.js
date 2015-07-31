@@ -141,6 +141,9 @@ function readOldFile( file, reader ) {
 		//set global variables to values specified in file
 		setGlobalVariables( data );
 
+		//get rid of the loading spinner
+		stopSpin();
+
 		//visualise the data
 		displayTools();
 		displayHelpButton();
