@@ -6,6 +6,10 @@ var numOfNodesBox = document.getElementById("numOfNodesBox");
 var fileInput = document.getElementById( "fileInput" );
 fileInput.addEventListener( "change", insertButton );
 
+//get the file name from the file upload button
+var savedFileInput = document.getElementById( "savedFileInput" );
+savedFileInput.addEventListener( "change", insertButton );
+
 //the confirm new or existing choice button
 var choiceButton = document.getElementById( "choiceButton" );
 var choice = document.getElementsByName( "choice" );
@@ -85,7 +89,7 @@ function clickUpload() {
 }
 
 function clickSavedUpload() {
-	if( fileInput.files.length === 0 ) {
+	if( savedFileInput.files.length === 0 ) {
 		alert( "Please select a file first" );
 	}
 	else {

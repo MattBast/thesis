@@ -3,6 +3,7 @@ var socket = io.connect("http://localhost:8000");
 
 //inputs
 var fileInput = document.getElementById( "fileInput" );
+var savedFileInput = document.getElementById( "savedFileInput" );
 var numOfNodes = document.getElementById( "numOfNodes" );
 
 var patterns = []; //<-- the patterns and references to the entities they contain
@@ -72,21 +73,18 @@ saveButton.addEventListener("click", clickSave );
 
 function upload() {
 	if( fileInput.files.length > 0 ) {
-
 		var file = fileInput.files[0];
 		console.log( "Uploaded", file.name );
 
-		//create new visualisation
-		if( file.name.indexOf( ".txt" ) !== -1 ) {
-			var reader = new FileReader();
-			readNewFile( file, reader );
-		}
-		//load old visualisation
-		if( file.name.indexOf( ".json" ) !== -1 ) {
-			var reader = new FileReader();
-			readOldFile( file, reader );
-		}
+		var reader = new FileReader();
+		readNewFile( file, reader );
+	}
+	else if( savedFileInput.files.length > 0 ) {
+		var file = savedFileInput.files[0];
+		console.log( "Uploaded", file.name );
 
+		var reader = new FileReader();
+		readOldFile( file, reader );
 	}
 	else {
 		alert("File is empty");
@@ -136,9 +134,17 @@ function readNewFile( file, reader ) {
 function readOldFile( file, reader ) {
 	reader.addEventListener("load", function() {
 
+		//parse the data
 		var data = JSON.parse( reader.result );
-		console.log( "Read : success" );
-		console.log( data[fileName] );
+		console.log( "Finished reading" );
+
+		//set global variables to values specified in file
+		setGlobalVariables( data );
+
+		//visualise the data
+		displayTools();
+		displayHelpButton();
+		visualise( level[ level.length - numOfGroups ] );
 	});
 	reader.readAsText( file );
 }
@@ -722,7 +728,13 @@ function resetButtonBox( nodes ) {
 	for( var i = 0; i < nodes.length; i++ ) {
 		numPats += nodes[i].id.split( "-" ).length;
 	}
-	fileName.innerHTML = "File: " + fileInput.files[0].name;
+	//check to see if using new dataset or saved file
+	if( fileInput.files.length > 0 ) {
+		fileName.innerHTML = "File: " + fileInput.files[0].name;
+	}
+	else {
+		fileName.innerHTML = "File: " + savedFileInput.files[0].name;
+	}
 	patternsPresent.innerHTML = "Patterns present: " + numPats;
 	totalNumOfPats = numPats;
 }
