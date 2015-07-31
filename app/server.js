@@ -32,6 +32,7 @@ app.get("/download", function( request, response, next ) {
 		Code based on example from:
 		http://code.runnable.com/UTlPPF-f2W1TAAEW/download-files-with-express-for-node-js
 	*/
+	//the search queury tells the server what the saved file is called
 	var search = url.parse( request.url ).search;
 	var parsedSearch = url.parse( search, true ).query;
 	var path = __dirname + "/" + parsedSearch.file + ".json";

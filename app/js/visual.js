@@ -76,8 +76,16 @@ function upload() {
 		var file = fileInput.files[0];
 		console.log( "Uploaded", file.name );
 
-		var reader = new FileReader();
-		readFile( file, reader );
+		//create new visualisation
+		if( file.name.indexOf( ".txt" ) !== -1 ) {
+			var reader = new FileReader();
+			readNewFile( file, reader );
+		}
+		//load old visualisation
+		if( file.name.indexOf( ".json" ) !== -1 ) {
+			var reader = new FileReader();
+			readOldFile( file, reader );
+		}
 
 	}
 	else {
@@ -85,7 +93,7 @@ function upload() {
 	}
 }
 
-function readFile( file, reader ) {
+function readNewFile( file, reader ) {
 	reader.addEventListener("load", function() {
 
 		var array = reader.result.split( " " );
@@ -121,6 +129,16 @@ function readFile( file, reader ) {
 		patterns = sparseMatrix();
 		main();
 
+	});
+	reader.readAsText( file );
+}
+
+function readOldFile( file, reader ) {
+	reader.addEventListener("load", function() {
+
+		var data = JSON.parse( reader.result );
+		console.log( "Read : success" );
+		console.log( data[fileName] );
 	});
 	reader.readAsText( file );
 }

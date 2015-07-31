@@ -15,6 +15,10 @@ choiceButton.addEventListener( "click", clickChoice );
 var fileUploadButton = document.getElementById( "fileUploadButton" );
 fileUploadButton.addEventListener( "click", clickUpload );
 
+//the confirm button on file upload
+var savedFileUploadButton = document.getElementById( "savedFileUploadButton" );
+savedFileUploadButton.addEventListener( "click", clickSavedUpload );
+
 //the variables controlling the loading spinner
 var c = document.getElementById( "canvas" );
 var ctx = c.getContext( "2d" );
@@ -77,6 +81,15 @@ function clickUpload() {
 	}
 	else {
 		fadeOut( fileInputBox, numOfNodesBox );
+	}
+}
+
+function clickSavedUpload() {
+	if( fileInput.files.length === 0 ) {
+		alert( "Please select a file first" );
+	}
+	else {
+		fadeOut( savedFileInputBox, numOfNodesBox );
 	}
 }
 
