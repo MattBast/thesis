@@ -272,6 +272,22 @@ function setGlobalVariables( variables ) {
 	clusRef = variables.clusRef;
 	simTable = variables.simTable;
 	level = variables.level;
+
+	//if loading a saved file, this will be true
+	if( entity.size === 0 ){
+		//convert Object into Map
+		var done = false;
+		count = 0;
+		while( done === false ) {
+			if( variables.entity[count] === undefined ) {
+				done = true;
+			}
+			else {
+				entity.set( count, variables.entity[count] );
+				count++;
+			}
+		}
+	}
 }
 
 //--------------------- visualisation functions -------------------
@@ -1207,12 +1223,17 @@ function resetColours() {
 
 function sendFile() {
 	var file = fileInput.files[0];
+
+	var objectEntity = mapToObject();
+	console.log( objectEntity );
+
 	var variables = {
 		"fileName": file.name,
 		"patterns": patterns,
 		"clusRef": clusRef,
 		"simTable": simTable,
-		"level": level
+		"level": level,
+		"entity": objectEntity
 	};
 	socket.emit( "save", variables );
 	socket.on("save", function() {
@@ -1226,4 +1247,14 @@ function sendFile() {
 		downloadButton.style.display = "block";
 		console.log( jsonFileName );
 	});
+}
+
+function mapToObject() {
+	var objectEntity = new Object();
+
+	for( var key of entity.keys() ) {
+		objectEntity[key] = entity.get(key);
+	}
+
+	return objectEntity;
 }
