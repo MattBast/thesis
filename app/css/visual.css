@@ -58,8 +58,20 @@ div {
 	display: none;
 }
 
+#fileInputBox {
+	display: none;
+}
+
 #fileUploadButton {
 	opacity: 0.5;
+}
+
+#savedFileInputBox {
+	display: none;
+}
+
+#downloadFileName {
+	display: none;
 }
 
 #canvas {
@@ -101,6 +113,31 @@ div {
 
 button {
 	margin: 5px;
+}
+
+.saveTitle {
+	margin-left: 20%;
+	margin-right: 20%;
+	text-align: center;
+	display: none;
+}
+
+#saveButton {
+	color: white;
+	background-color: #98bf21;
+	border: solid 1px #98bf21;
+	border-radius: 5px;
+
+	padding: 12px;
+	margin-top: 0;
+	margin-left: 46%;
+	margin-right: 45%;
+	width: 33px;
+	display: none;
+}
+
+#downloadButton {
+	display: none;
 }
 
 #backOneVis {

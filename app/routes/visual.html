@@ -6,7 +6,7 @@
 		<title>Visual</title>
 		<script type="text/javascript" src="../d3/d3.min.js"></script>
 	</head>
-	<body onload="fadeIn( fileInputBox )">
+	<body onload="fadeIn( choiceBox )">
 		<!-- Navigation bar -->
 		<ul>
 			<li><a href="index.html">Home</a></li>
@@ -15,7 +15,25 @@
 			<li><a href="tutorial.html">Tutorial</a></li>
 		</ul>
 
-		<!-- Upload file box -->
+		<!-- Open saved file or create new box -->
+		<div class="floatingBox" id="choiceBox">
+			<h3>Would you like to create a new visualisation or reopen an existing one?</h3>
+			<input type="radio" name="choice" value="new">New Visualisation
+			<br/>
+			<input type="radio" name="choice" value="existing">Load existing visualisation
+			<br/>
+			<button id="choiceButton">Confirm</button>
+		</div>
+
+		<!-- Upload .json file box -->
+		<div class="floatingBox" id="savedFileInputBox">
+			<h3>Please enter the saved file:</h3>
+			<input type="file" id="savedFileInput"/>
+			<br/>
+			<button id="savedFileUploadButton">Confirm</button>
+		</div>
+
+		<!-- Upload .txt file box -->
 		<div class="floatingBox" id="fileInputBox">
 			<button class="helpButton" onclick="helpOpen( fileInputHelpBox )">?</button>
 			<h3>Please enter the file containing the patterns:</h3>
@@ -134,6 +152,15 @@
 			<p>Clicking on a row in the table will change the visual to indicate which clusters the clicked entity turns up in. The clusters outline will change to a shade of red. The lighter the shade of red, the more of the clicked entity that cluster contains. Clusters with black outlines contain none of the clicked entity. While in this state, the hover tooltip changes its contents to show how many patterns in that cluster contain the clicked entity.</p>
 			<br/>
 		</div>
+
+		<h4 class="saveTitle" id="saveTitle">
+			Saving your results allows you skip the loading phase next time you visit
+		</h4>
+		<div id="saveButton">Save</div>
+		<h4 class="saveTitle" id="DownloadTitle">
+			File successfully created. Click here to download.
+		</h4>
+		<a id="downloadButton" href="#">Download</a>
 
 		<!-- Various scripts -->
 		<script src ="http://localhost:8000/socket.io/socket.io.js"></script>

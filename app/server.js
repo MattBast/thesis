@@ -2,6 +2,10 @@ var express = require("express");
 var app = express();
 var server = require("http").createServer(app);
 var io = require("socket.io")(server);
+var fs = require("fs");
+var path = require("path");
+var mime = require("mime");
+var url = require("url");
 
 //the variables used during the clustering process
 var patterns; //<-- the patterns and references to the entities they contain
@@ -20,6 +24,20 @@ app.get("/", function( request, response, next ) {
 //visualisation page
 app.get("/visual.html", function( request, response, next ) {
 	response.sendFile( __dirname + "/routes/visual.html" );
+});
+
+//download saved file
+app.get("/download", function( request, response, next ) {
+	/* 
+		Code based on example from:
+		http://code.runnable.com/UTlPPF-f2W1TAAEW/download-files-with-express-for-node-js
+	*/
+	//the search queury tells the server what the saved file is called
+	var search = url.parse( request.url ).search;
+	var parsedSearch = url.parse( search, true ).query;
+	var path = __dirname + "/" + parsedSearch.file + ".json";
+	console.log( path );
+	response.download( path );
 });
 
 //server side calculations
@@ -79,6 +97,25 @@ io.on("connection", function( socket ) {
 		var object = setReturnObject();
 		io.emit( "cluster", object ); //<-- send object to client
 	});
+
+	//write variables into a .json file
+	socket.on("save", function( variables ) {
+		
+		//get file name
+		var fileName = variables.fileName.split(".");
+
+		//encode rest of object to JSON
+		var json = JSON.stringify( variables );
+
+		//write to file
+		fs.writeFile(  fileName[0] + ".json", json, function (err) {
+  			if (err) throw err;
+  			console.log("File : " + fileName[0] + ".json " + "saved");
+		});
+
+		//send success message back to client
+		io.emit( "save" );
+	});
 });
 
 function setGlobalVariables( variables ) {
@@ -111,9 +148,7 @@ function addCluster() {
 	clusters = updateClusters( clusters, simClus );
 	clusters.push( newCluster );
 	
-	console.time("Update-Sim-Table");
 	updateSimTable( simClus, clusters );
-	console.timeEnd("Update-Sim-Table");
 }
 
 function checkForDuplicate() {

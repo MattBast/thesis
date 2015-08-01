@@ -6,9 +6,22 @@ var numOfNodesBox = document.getElementById("numOfNodesBox");
 var fileInput = document.getElementById( "fileInput" );
 fileInput.addEventListener( "change", insertButton );
 
+//get the file name from the file upload button
+var savedFileInput = document.getElementById( "savedFileInput" );
+savedFileInput.addEventListener( "change", insertButton );
+
+//the confirm new or existing choice button
+var choiceButton = document.getElementById( "choiceButton" );
+var choice = document.getElementsByName( "choice" );
+choiceButton.addEventListener( "click", clickChoice );
+
 //the confirm button on file upload
 var fileUploadButton = document.getElementById( "fileUploadButton" );
-fileUploadButton.addEventListener( "click", clickButton );
+fileUploadButton.addEventListener( "click", clickUpload );
+
+//the confirm button on file upload
+var savedFileUploadButton = document.getElementById( "savedFileUploadButton" );
+savedFileUploadButton.addEventListener( "click", clickSavedUpload );
 
 //the variables controlling the loading spinner
 var c = document.getElementById( "canvas" );
@@ -66,12 +79,30 @@ function insertButton() {
 	}
 }
 
-function clickButton() {
+function clickUpload() {
 	if( fileInput.files.length === 0 ) {
 		alert( "Please select a file first" );
 	}
 	else {
 		fadeOut( fileInputBox, numOfNodesBox );
+	}
+}
+
+function clickSavedUpload() {
+	if( savedFileInput.files.length === 0 ) {
+		alert( "Please select a file first" );
+	}
+	else {
+		fadeOut( savedFileInputBox, numOfNodesBox );
+	}
+}
+
+function clickChoice() {
+	if( choice[0].checked === true ) {
+		fadeOut( choiceBox, fileInputBox );
+	}
+	else {
+		fadeOut( choiceBox, savedFileInputBox );
 	}
 }
 

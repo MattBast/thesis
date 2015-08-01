@@ -3,6 +3,7 @@ var socket = io.connect("http://localhost:8000");
 
 //inputs
 var fileInput = document.getElementById( "fileInput" );
+var savedFileInput = document.getElementById( "savedFileInput" );
 var numOfNodes = document.getElementById( "numOfNodes" );
 
 var patterns = []; //<-- the patterns and references to the entities they contain
@@ -63,24 +64,34 @@ var buttons = [
 		"ten"
 	];
 
+//save button
+var saveTitle = document.getElementById( "saveTitle" );
+var saveButton = document.getElementById( "saveButton" );
+saveButton.addEventListener("click", clickSave );
+
 //---------------------- read file functions ----------------------
 
 function upload() {
 	if( fileInput.files.length > 0 ) {
-
 		var file = fileInput.files[0];
 		console.log( "Uploaded", file.name );
 
 		var reader = new FileReader();
-		readFile( file, reader );
+		readNewFile( file, reader );
+	}
+	else if( savedFileInput.files.length > 0 ) {
+		var file = savedFileInput.files[0];
+		console.log( "Uploaded", file.name );
 
+		var reader = new FileReader();
+		readOldFile( file, reader );
 	}
 	else {
 		alert("File is empty");
 	}
 }
 
-function readFile( file, reader ) {
+function readNewFile( file, reader ) {
 	reader.addEventListener("load", function() {
 
 		var array = reader.result.split( " " );
@@ -116,6 +127,27 @@ function readFile( file, reader ) {
 		patterns = sparseMatrix();
 		main();
 
+	});
+	reader.readAsText( file );
+}
+
+function readOldFile( file, reader ) {
+	reader.addEventListener("load", function() {
+
+		//parse the data
+		var data = JSON.parse( reader.result );
+		console.log( "Finished reading" );
+
+		//set global variables to values specified in file
+		setGlobalVariables( data );
+
+		//get rid of the loading spinner
+		stopSpin();
+
+		//visualise the data
+		displayTools();
+		displayHelpButton();
+		visualise( level[ level.length - numOfGroups ] );
 	});
 	reader.readAsText( file );
 }
@@ -240,6 +272,22 @@ function setGlobalVariables( variables ) {
 	clusRef = variables.clusRef;
 	simTable = variables.simTable;
 	level = variables.level;
+
+	//if loading a saved file, this will be true
+	if( entity.size === 0 ){
+		//convert Object into Map
+		var done = false;
+		count = 0;
+		while( done === false ) {
+			if( variables.entity[count] === undefined ) {
+				done = true;
+			}
+			else {
+				entity.set( count, variables.entity[count] );
+				count++;
+			}
+		}
+	}
 }
 
 //--------------------- visualisation functions -------------------
@@ -252,6 +300,8 @@ function displayTools() {
 	patternCount.style.display = "block";
 	svg.style.display = "block";
 	searchBar.style.display = "block";
+	saveTitle.style.display = "block";
+	saveButton.style.display = "block";
 }
 
 function displayHelpButton() {
@@ -697,7 +747,13 @@ function resetButtonBox( nodes ) {
 	for( var i = 0; i < nodes.length; i++ ) {
 		numPats += nodes[i].id.split( "-" ).length;
 	}
-	fileName.innerHTML = "File: " + fileInput.files[0].name;
+	//check to see if using new dataset or saved file
+	if( fileInput.files.length > 0 ) {
+		fileName.innerHTML = "File: " + fileInput.files[0].name;
+	}
+	else {
+		fileName.innerHTML = "File: " + savedFileInput.files[0].name;
+	}
 	patternsPresent.innerHTML = "Patterns present: " + numPats;
 	totalNumOfPats = numPats;
 }
@@ -1144,4 +1200,61 @@ function deselectRows() {
 
 	//reset tooltip to top ten
 	nodes.on("mouseover", hover);
+}
+
+//--------------------------- save file functions -----------------------------
+
+function clickSave() {
+	console.log( "Clicked save" );
+	changeColour();
+	setTimeout( resetColours, 100 );
+	setTimeout( sendFile, 250 );
+}
+
+function changeColour() {
+	saveButton.style.backgroundColor = "white";
+	saveButton.style.color = "#98bf21";
+}
+
+function resetColours() {
+	saveButton.style.backgroundColor = "#98bf21";
+	saveButton.style.color = "white";
+}
+
+function sendFile() {
+	var file = fileInput.files[0];
+
+	var objectEntity = mapToObject();
+	console.log( objectEntity );
+
+	var variables = {
+		"fileName": file.name,
+		"patterns": patterns,
+		"clusRef": clusRef,
+		"simTable": simTable,
+		"level": level,
+		"entity": objectEntity
+	};
+	socket.emit( "save", variables );
+	socket.on("save", function() {
+		console.log( "File Saved" );
+		var downloadButton = document.getElementById( "downloadButton" );
+		var downloadFileName = document.getElementById( "downloadFileName" );
+		var jsonFileName = variables.fileName.split( "." );
+		jsonFileName = "/download?file=" + jsonFileName[0];
+
+		downloadButton.setAttribute( "href", jsonFileName );
+		downloadButton.style.display = "block";
+		console.log( jsonFileName );
+	});
+}
+
+function mapToObject() {
+	var objectEntity = new Object();
+
+	for( var key of entity.keys() ) {
+		objectEntity[key] = entity.get(key);
+	}
+
+	return objectEntity;
 }
