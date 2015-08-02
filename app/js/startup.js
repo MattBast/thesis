@@ -1,3 +1,12 @@
+//returns a node list (accessible much like an array)
+var boxes = document.getElementsByClassName( "floatingBox" );
+var currentBox = 0;
+
+//the confirm new or existing choice button
+var choiceButton = document.getElementById( "choiceButton" );
+var choice = document.getElementsByName( "choice" );
+choiceButton.addEventListener( "click", clickChoice );
+
 //fade in and out input boxes
 var fileInputBox = document.getElementById("fileInputBox");
 var numOfNodesBox = document.getElementById("numOfNodesBox");
@@ -9,11 +18,6 @@ fileInput.addEventListener( "change", insertButton );
 //get the file name from the file upload button
 var savedFileInput = document.getElementById( "savedFileInput" );
 savedFileInput.addEventListener( "change", insertButton );
-
-//the confirm new or existing choice button
-var choiceButton = document.getElementById( "choiceButton" );
-var choice = document.getElementsByName( "choice" );
-choiceButton.addEventListener( "click", clickChoice );
 
 //the confirm button on file upload
 var fileUploadButton = document.getElementById( "fileUploadButton" );
@@ -30,52 +34,55 @@ var loading = document.getElementById( "loading" );
 var degrees = 0;
 var timer;
 
+//------------- slide in and out startup box functions --------------
+
+function slideLeft() {
+
+	//variable to be incremented down
+	var position = 100;
+
+	//move box
+	var timer = setInterval( function(){
+		position -= 1;
+		boxes[currentBox].style.left = position + "%";
+
+		if( position === 5 ){
+			clearInterval( timer );
+		}
+	}, 5 );
+}
+
+function slideRight() {
+	//variable to be incremented down
+	var position = 25;
+
+	//move box
+	var timer = setInterval( function(){
+		position += 1;
+		boxes[currentBox].style.left = position + "%";
+
+		if( position === 100 ){
+			clearInterval( timer );
+			
+			//select the now visible
+			currentBox--;
+		}
+	}, 5 );
+}
+
 //-------------- fade in and out startup box functions ---------------
 
-function fadeIn( box ) {
-	box.style.display = "block";
-	var opacity = 0.1; //<-- initial opacity
-	var timer = setInterval( function() {
-		//stop increasing opacity when reach 1
-		if( opacity >= 1 ) {
-			clearInterval( timer );
-		}
-		//increase opacity
-		box.style.opacity = opacity;
-		box.style.filter = "alpha(opacity=" + opacity * 100 + ")";
-		opacity += opacity * 0.1;
-	}, 50 );
-}
-
-function fadeOut( box, fadeInBox ) {
-	var opacity = 1; //<-- initial opacity
-	var timer = setInterval( function() {
-		//stop decreasing opacity when reach 0.1
-		if( opacity <= 0.1 ) {
-			clearInterval( timer );
-			box.style.display = "none";
-			//fade in next div if one has been specified
-			if( fadeInBox !== undefined ) {
-				fadeIn( fadeInBox );
-			}
-			//otherwise start the loading spinner
-			else {
-				spin();
-			}
-		}
-		//decrease opacity
-		box.style.opacity = opacity;
-		box.style.filter = "alpha(opacity=" + opacity * 100 + ")";
-		opacity -= opacity * 0.1;
-	}, 50 );
-}
-
-function insertButton() {
-	if( fileInput.files.length === 0 ) {
-		alert( "No file selected" );
+function clickChoice() {
+	if( choice[0].checked !== true && choice[1].checked !== true) {
+		alert( "Please choose one of the options" );
+	}
+	else if( choice[0].checked === true ) {
+		currentBox = 2;
+		slideLeft();
 	}
 	else {
-		fileUploadButton.style.opacity = 1;
+		currentBox = 1;
+		slideLeft();
 	}
 }
 
@@ -84,7 +91,8 @@ function clickUpload() {
 		alert( "Please select a file first" );
 	}
 	else {
-		fadeOut( fileInputBox, numOfNodesBox );
+		currentBox = 3;
+		slideLeft();
 	}
 }
 
@@ -93,16 +101,18 @@ function clickSavedUpload() {
 		alert( "Please select a file first" );
 	}
 	else {
-		fadeOut( savedFileInputBox, numOfNodesBox );
+		currentBox = 3;
+		slideLeft();
 	}
 }
 
-function clickChoice() {
-	if( choice[0].checked === true ) {
-		fadeOut( choiceBox, fileInputBox );
+function insertButton() {
+	if( fileInput.files.length === 0 && savedFileInput.files.length === 0 ) {
+		alert( "No file selected" );
 	}
 	else {
-		fadeOut( choiceBox, savedFileInputBox );
+		fileUploadButton.style.opacity = 1;
+		savedFileUploadButton.style.opacity = 1;
 	}
 }
 

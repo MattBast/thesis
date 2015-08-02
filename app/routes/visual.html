@@ -1,19 +1,27 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-GB" xml:lang="en-GB">
-	<link href="../css/index.css" rel="stylesheet" type="text/css" />
 	<link href="../css/visual.css" rel="stylesheet" type="text/css" />
+	<link href="../css/sidebar.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" href="../sidr-package-1.2.1/stylesheets/jquery.sidr.dark.css">
 	<head>
 		<title>Visual</title>
 		<script type="text/javascript" src="../d3/d3.min.js"></script>
 	</head>
 	<body onload="fadeIn( choiceBox )">
+		<div id="navBar">
+			<a id="left-menu" class="menu-button" href="#left-menu">Main menu</a>
+			<a id="right-menu" class="menu-button" href="#right-menu">Tools</a>
+		</div>
+		
 		<!-- Navigation bar -->
-		<ul>
-			<li><a href="index.html">Home</a></li>
-			<li><a href="visual.html">Visualise</a></li>
-			<li><a href="terms.html">Terminology</a></li>
-			<li><a href="tutorial.html">Tutorial</a></li>
-		</ul>
+		<div id="left-content">
+			<ul>
+				<li><a href="index.html">Home</a></li>
+				<li><a href="visual.html">Visualise</a></li>
+				<li><a href="terms.html">Terminology</a></li>
+				<li><a href="#">Save</a></li>
+			</ul>
+		</div>
 
 		<!-- Open saved file or create new box -->
 		<div class="floatingBox" id="choiceBox">
@@ -74,19 +82,25 @@
 			<br/>
 		</div>
 
+		<button id="backOneVis" onclick="goBackOneVis()">&lt;&lt; Back One</button>
+
 		<!-- Loading spinner -->
 		<canvas id="canvas" width="2000" height="400"></canvas>
 		<h4 id="loading">Loading</h4>
 
 		<!-- Pattern count box -->
-		<div class="floatingBox" id="patternCount">
+		<div id="right-content">
+			<h2 id="fileName">File name</h2>
+			<h3 id="patternsPresent">Patterns present</h3>
+			<!--
 			<button class="helpButton" onclick="helpOpen( patternCountHelpBox )">?</button>
-			<h3 id="fileName"></h3>
-			<h3 id="patternsPresent"></h3>
-			<input type="text" id="groups" value="5"/>Number of groups (maximum of ten)
-			<br/>
-			<button id="backOneVis" onclick="goBackOneVis()">&lt;&lt; Back One</button>
+			-->
+			Number of groups<input type="text" id="groups" value="5"/>
 			<button type="button" onclick="resetVis()">Reset</button>
+		</div>
+
+		
+		<div class="floatingBox" id="patternCount">	
 		</div>
 
 		<!-- Pattern Count help box -->
@@ -165,8 +179,10 @@
 		<!-- Various scripts -->
 		<script src ="http://localhost:8000/socket.io/socket.io.js"></script>
 		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+		<script type="text/javascript" src="../sidr-package-1.2.1/jquery.sidr.min.js"></script>
 		<script type="text/javascript" src="../js/startup.js"></script>
 		<script type="text/javascript" src="../js/help.js"></script>
 		<script type="text/javascript" src="../js/visual.js"></script>
+		<script type="text/javascript" src="../js/sidebar.js"></script>
 	</body>
 </html>
