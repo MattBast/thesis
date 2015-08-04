@@ -33,6 +33,13 @@ var ctx = c.getContext( "2d" );
 var loading = document.getElementById( "loading" );
 var degrees = 0;
 var timer;
+//-------------- change size of boxes inside container --------------
+
+function setHeight() {
+	for( var i = 0; i < boxes.length; i++ ) {
+		boxes[i].style.height = $( "#container" ).height() + "px";
+	}
+}
 
 //------------- slide in and out startup box functions --------------
 
@@ -69,8 +76,6 @@ function slideRight() {
 		}
 	}, 5 );
 }
-
-//-------------- fade in and out startup box functions ---------------
 
 function clickChoice() {
 	if( choice[0].checked !== true && choice[1].checked !== true) {

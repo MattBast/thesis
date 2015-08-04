@@ -2,17 +2,27 @@ body {
 	margin: 0;
 }
 
+#container {
+	position: absolute;
+	background: #333;
+	width: 100%;
+	height: 50%;
+	top: 30%;
+	padding: 0;
+	-webkit-box-shadow:inset 0 0 15px 3px #222;
+	-moz-box-shadow:inset 0 0 15px 3px #222;
+	box-shadow:inset 0 0 15px 3px #222;
+	overflow: hidden;
+}
+
 .floatingBox {
 	position: absolute;
 	width: 80%;
-	height: 30%;
 	border-radius: 10px;
 	background-color: rgb(250, 250, 250);
-	top: 25%;
 	left: 5%;
 	margin: 0;
 	padding: 5%;
-	box-shadow: 10px 10px 5px #888888;
 	z-index: 0;
 }
 

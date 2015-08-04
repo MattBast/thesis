@@ -7,7 +7,7 @@
 		<title>Visual</title>
 		<script type="text/javascript" src="../d3/d3.min.js"></script>
 	</head>
-	<body onload="fadeIn( choiceBox )">
+	<body onload="setHeight()">
 		<div id="navBar">
 			<a id="left-menu" class="menu-button" href="#left-menu">Main menu</a>
 			<a id="right-menu" class="menu-button" href="#right-menu">Tools</a>
@@ -23,32 +23,49 @@
 			</ul>
 		</div>
 
-		<!-- Open saved file or create new box -->
-		<div class="floatingBox" id="choiceBox">
-			<h3>Would you like to create a new visualisation or reopen an existing one?</h3>
-			<input type="radio" name="choice" value="new">New Visualisation
-			<br/>
-			<input type="radio" name="choice" value="existing">Load existing visualisation
-			<br/>
-			<button id="choiceButton">Confirm</button>
+		<div id="container">
+			<!-- Open saved file or create new box -->
+			<div class="floatingBox" id="choiceBox">
+				<h3>Would you like to create a new visualisation or reopen an existing one?</h3>
+				<input type="radio" name="choice" value="new">New Visualisation
+				<br/>
+				<input type="radio" name="choice" value="existing">Load existing visualisation
+				<br/>
+				<button id="choiceButton">Confirm</button>
+			</div>
+
+			<!-- Upload .json file box -->
+			<div class="floatingBox" id="savedFileInputBox">
+				<h3>Please enter the saved file:</h3>
+				<input type="file" id="savedFileInput"/>
+				<br/>
+				<button id="savedFileUploadButton">Confirm</button>
+			</div>
+
+			<!-- Upload .txt file box -->
+			<div class="floatingBox" id="fileInputBox">
+				<button class="helpButton" onclick="helpOpen( fileInputHelpBox )">?</button>
+				<h3>Please enter the file containing the patterns:</h3>
+				<input type="file" id="fileInput"/>
+				<br/>
+				<button id="fileUploadButton">Confirm</button>
+			</div>
+
+			<!-- Number of nodes choice box -->
+			<div class="floatingBox" id="numOfNodesBox">
+				<button class="backButton" onclick="fadeOut( numOfNodesBox, fileInputBox )">&lt;&lt; Back</button>
+				<button class="helpButton" onclick="helpOpen( numberOfNodesHelpBox )">?</button>
+				<h3>How many nodes per group would you like:</h3>
+				<input type="text" id="numOfNodes" value="8"/>
+				<br/>
+				<button onclick="fadeOut( numOfNodesBox );">Confirm</button>
+			</div>
 		</div>
 
-		<!-- Upload .json file box -->
-		<div class="floatingBox" id="savedFileInputBox">
-			<h3>Please enter the saved file:</h3>
-			<input type="file" id="savedFileInput"/>
-			<br/>
-			<button id="savedFileUploadButton">Confirm</button>
-		</div>
+		
 
-		<!-- Upload .txt file box -->
-		<div class="floatingBox" id="fileInputBox">
-			<button class="helpButton" onclick="helpOpen( fileInputHelpBox )">?</button>
-			<h3>Please enter the file containing the patterns:</h3>
-			<input type="file" id="fileInput"/>
-			<br/>
-			<button id="fileUploadButton">Confirm</button>
-		</div>
+		
+		
 
 		<!-- Upload file help box -->
 		<div class="helpBox" id="fileInputHelpBox">
@@ -62,15 +79,7 @@
 			<br/>
 		</div>
 
-		<!-- Number of nodes choice box -->
-		<div class="floatingBox" id="numOfNodesBox">
-			<button class="backButton" onclick="fadeOut( numOfNodesBox, fileInputBox )">&lt;&lt; Back</button>
-			<button class="helpButton" onclick="helpOpen( numberOfNodesHelpBox )">?</button>
-			<h3>How many nodes per group would you like:</h3>
-			<input type="text" id="numOfNodes" value="8"/>
-			<br/>
-			<button onclick="fadeOut( numOfNodesBox );">Confirm</button>
-		</div>
+		
 
 		<!-- Number of nodes choice help box -->
 		<div class="helpBox" id="numberOfNodesHelpBox">
