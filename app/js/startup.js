@@ -87,12 +87,17 @@ function slideRight() {
 			else {
 				currentBox = 1;
 			}
+			pushOut();
 		}
 	}, 5 );
 }
 
 function pushIn() {
 	boxes[currentBox].style.boxShadow = "inset 0 0 15px 3px #222";
+}
+
+function pushOut() {
+	boxes[currentBox].style.boxShadow = "none";
 }
 
 function clickChoice() {
