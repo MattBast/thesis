@@ -37,8 +37,12 @@ var box = document.getElementById( "searchBar" );
 
 //force diagram components
 var nodes = [], links = [];
+var windowWidth = window.innerWidth;
+var w = ((windowWidth / 100 ) * 90), h = 500;
+console.log( windowWidth );
+console.log( (windowWidth / 100 ) * 80 );
 var visDiv = document.getElementById("visual");
-var w = visDiv.clientWidth, h = 500;
+visDiv.style.width = w + "px";
 var svg = d3.select("#visual")
 			.append("svg")
 			.attr("width", w)
