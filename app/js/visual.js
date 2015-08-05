@@ -293,11 +293,9 @@ function setGlobalVariables( variables ) {
 //--------------------- visualisation functions -------------------
 
 function displayTools() {
-	var patternCount = document.getElementById( "patternCount" );
 	var svg = document.getElementById( "svg" );
 	var searchBar = document.getElementById( "searchBar" );
 
-	patternCount.style.display = "block";
 	svg.style.display = "block";
 	searchBar.style.display = "block";
 	saveTitle.style.display = "block";
@@ -744,18 +742,27 @@ function getLargestCluster( nodes ) {
 
 function resetButtonBox( nodes ) {
 	var numPats = 0;
+	var nameOfFile = "";
 	for( var i = 0; i < nodes.length; i++ ) {
 		numPats += nodes[i].id.split( "-" ).length;
 	}
 	//check to see if using new dataset or saved file
 	if( fileInput.files.length > 0 ) {
-		fileName.innerHTML = "File: " + fileInput.files[0].name;
+		nameOfFile = fileName.innerHTML = "File: " + fileInput.files[0].name;
 	}
 	else {
-		fileName.innerHTML = "File: " + savedFileInput.files[0].name;
+		nameOfFile = fileName.innerHTML = "File: " + savedFileInput.files[0].name;
 	}
-	patternsPresent.innerHTML = "Patterns present: " + numPats;
 	totalNumOfPats = numPats;
+
+	$("#right-menu").sidr({
+		name: "sidr-right",
+		side: "right",
+		source: function( name ) {
+			return "<h2>" + nameOfFile + "</h2><h3>Patterns Present: " + numPats + "</h3>Number of groups<input type='text' id='groups' value='5'/><button type='button' onclick='resetVis()'>Reset</button>";
+		}
+	});
+	
 }
 
 function resetVis() {

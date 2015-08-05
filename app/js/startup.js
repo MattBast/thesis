@@ -27,6 +27,10 @@ fileUploadButton.addEventListener( "click", clickUpload );
 var savedFileUploadButton = document.getElementById( "savedFileUploadButton" );
 savedFileUploadButton.addEventListener( "click", clickSavedUpload );
 
+//the final button that commences the upload function
+var finishButton = document.getElementById( "finishButton" );
+finishButton.addEventListener( "click", clickFinish );
+
 //the variables controlling the loading spinner
 var c = document.getElementById( "canvas" );
 var ctx = c.getContext( "2d" );
@@ -36,8 +40,10 @@ var timer;
 //-------------- change size of boxes inside container --------------
 
 function setHeight() {
+	var height = $( "#container" ).height();
+	height =  height - ((height / 100) * 10);
 	for( var i = 0; i < boxes.length; i++ ) {
-		boxes[i].style.height = $( "#container" ).height() + "px";
+		boxes[i].style.height = (height - 5) + "px";
 	}
 }
 
@@ -61,7 +67,7 @@ function slideLeft() {
 
 function slideRight() {
 	//variable to be incremented down
-	var position = 25;
+	var position = 5;
 
 	//move box
 	var timer = setInterval( function(){
@@ -70,11 +76,23 @@ function slideRight() {
 
 		if( position === 100 ){
 			clearInterval( timer );
-			
-			//select the now visible
-			currentBox--;
+			if( currentBox === 1 || currentBox === 2 ) {
+				currentBox = 0;
+				fileInput.value = "";
+				savedFileInput.value = "";
+			}
+			else if( currentBox === 3 && fileInput.files.length !== 0 ) { 
+				currentBox = 2;
+			}
+			else {
+				currentBox = 1;
+			}
 		}
 	}, 5 );
+}
+
+function pushIn() {
+	boxes[currentBox].style.boxShadow = "inset 0 0 15px 3px #222";
 }
 
 function clickChoice() {
@@ -82,10 +100,12 @@ function clickChoice() {
 		alert( "Please choose one of the options" );
 	}
 	else if( choice[0].checked === true ) {
+		pushIn(); //<-- change style of panel
 		currentBox = 2;
 		slideLeft();
 	}
 	else {
+		pushIn(); //<-- change style of panel
 		currentBox = 1;
 		slideLeft();
 	}
@@ -96,6 +116,7 @@ function clickUpload() {
 		alert( "Please select a file first" );
 	}
 	else {
+		pushIn(); //<-- change style of panel
 		currentBox = 3;
 		slideLeft();
 	}
@@ -106,9 +127,27 @@ function clickSavedUpload() {
 		alert( "Please select a file first" );
 	}
 	else {
+		pushIn(); //<-- change style of panel
 		currentBox = 3;
 		slideLeft();
 	}
+}
+
+function clickFinish() {
+	pushIn();
+	var container = document.getElementById( "container" );
+	var opacity = 1;
+	var timer = setInterval( function() {
+		//stop fading and make box disappear
+		if( opacity <= 0.1 ) {
+			clearInterval( timer );
+			container.style.display = "none";
+			spin();
+		}
+		container.style.opacity = opacity;
+		container.style.filter = "alpha( opacity=" + opacity * 100 + ")";
+		opacity -= opacity * 0.1;
+	}, 10 );
 }
 
 function insertButton() {

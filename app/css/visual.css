@@ -4,22 +4,28 @@ body {
 
 #container {
 	position: absolute;
-	background: #333;
 	width: 100%;
-	height: 50%;
+	height: 40%;
 	top: 30%;
 	padding: 0;
-	-webkit-box-shadow:inset 0 0 15px 3px #222;
-	-moz-box-shadow:inset 0 0 15px 3px #222;
-	box-shadow:inset 0 0 15px 3px #222;
+	padding-top: 3%;
+	padding-bottom: 10%;
+	border: 1px solid #4d4d4d;
+	border-left: none;
+	border-right: none;
 	overflow: hidden;
 }
 
 .floatingBox {
 	position: absolute;
 	width: 80%;
+	border: 4px solid #ccc;
+	border-bottom: 5px solid #bbb;
+	border-top: 4px solid #ddd;
 	border-radius: 10px;
-	background-color: rgb(250, 250, 250);
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	background-color: #E5E4E2;
 	left: 5%;
 	margin: 0;
 	padding: 5%;

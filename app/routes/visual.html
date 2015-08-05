@@ -36,6 +36,7 @@
 
 			<!-- Upload .json file box -->
 			<div class="floatingBox" id="savedFileInputBox">
+				<button class="backButton" onclick="slideRight()">&lt;&lt; Back</button>
 				<h3>Please enter the saved file:</h3>
 				<input type="file" id="savedFileInput"/>
 				<br/>
@@ -44,6 +45,7 @@
 
 			<!-- Upload .txt file box -->
 			<div class="floatingBox" id="fileInputBox">
+				<button class="backButton" onclick="slideRight()">&lt;&lt; Back</button>
 				<button class="helpButton" onclick="helpOpen( fileInputHelpBox )">?</button>
 				<h3>Please enter the file containing the patterns:</h3>
 				<input type="file" id="fileInput"/>
@@ -53,19 +55,14 @@
 
 			<!-- Number of nodes choice box -->
 			<div class="floatingBox" id="numOfNodesBox">
-				<button class="backButton" onclick="fadeOut( numOfNodesBox, fileInputBox )">&lt;&lt; Back</button>
+				<button class="backButton" onclick="slideRight()">&lt;&lt; Back</button>
 				<button class="helpButton" onclick="helpOpen( numberOfNodesHelpBox )">?</button>
 				<h3>How many nodes per group would you like:</h3>
 				<input type="text" id="numOfNodes" value="8"/>
 				<br/>
-				<button onclick="fadeOut( numOfNodesBox );">Confirm</button>
+				<button id="finishButton">Confirm</button>
 			</div>
 		</div>
-
-		
-
-		
-		
 
 		<!-- Upload file help box -->
 		<div class="helpBox" id="fileInputHelpBox">
@@ -99,17 +96,13 @@
 
 		<!-- Pattern count box -->
 		<div id="right-content">
-			<h2 id="fileName">File name</h2>
-			<h3 id="patternsPresent">Patterns present</h3>
+			<h2 id="fileName"></h2>
+			<h3 id="patternsPresent"></h3>
 			<!--
 			<button class="helpButton" onclick="helpOpen( patternCountHelpBox )">?</button>
 			-->
 			Number of groups<input type="text" id="groups" value="5"/>
 			<button type="button" onclick="resetVis()">Reset</button>
-		</div>
-
-		
-		<div class="floatingBox" id="patternCount">	
 		</div>
 
 		<!-- Pattern Count help box -->

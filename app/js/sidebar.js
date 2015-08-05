@@ -4,9 +4,4 @@ $(document).ready( function() {
 		side: "left",
 		source: "#left-content"
 	});
-	$("#right-menu").sidr({
-		name: "sidr-right",
-		side: "right",
-		source: "#right-content"
-	});
 });

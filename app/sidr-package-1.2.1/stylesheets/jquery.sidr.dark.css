@@ -97,7 +97,8 @@
 .sidr ul li a,.sidr ul li span {
 	padding:0 15px;
 	display:block;
-	text-decoration:none;color:#fff;
+	text-decoration:none;
+	color:#fff;
 }
 
 .sidr ul li ul {
