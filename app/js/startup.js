@@ -50,7 +50,6 @@ function setHeight() {
 //------------- slide in and out startup box functions --------------
 
 function slideLeft() {
-
 	//variable to be incremented down
 	var position = 100;
 
@@ -201,8 +200,12 @@ function rotate( degrees ) {
 
 function drawSpinner() {
 	//colour and width of line
-	ctx.strokeStyle = "#98bf21";
-	ctx.lineWidth = 5;
+	var grd = ctx.createLinearGradient( 900, 0, 1100, 0 );
+	grd.addColorStop( "0", "#9467bd" );
+	grd.addColorStop( "0.3", "#1f77b4" );
+	grd.addColorStop( "1", "#d62728" );
+	ctx.strokeStyle = grd;
+	ctx.lineWidth = 20;
 
 	//draw circle with gap in it
 	ctx.beginPath();
