@@ -742,7 +742,7 @@ function getLargestCluster( nodes ) {
 	return largestClus;
 }
 
-function resetButtonBox( nodes ) {
+function resetButtonBox( nodes, list ) {
 	var numPats = 0;
 	var nameOfFile = "";
 	for( var i = 0; i < nodes.length; i++ ) {
@@ -761,10 +761,14 @@ function resetButtonBox( nodes ) {
 		name: "sidr-right",
 		side: "right",
 		source: function( name ) {
-			return "<h2>" + nameOfFile + "</h2><h3>Patterns Present: " + numPats + "</h3>";
+			if( list === undefined ) {
+				return "<h2>" + nameOfFile + "</h2><h3>Patterns Present: " + numPats + "</h3>";
+			}
+			else {
+				return "<h2>" + nameOfFile + "</h2><h3>Patterns Present: " + numPats + "</h3>" + list;
+			}
 		}
 	});
-	
 }
 
 function resetVis() {
@@ -847,7 +851,8 @@ function clickNode( d ) {
 	//work out percentage of patterns this entity turns up in
 	var frequency = getFrequency( d.id ); 
 
-	var tooltip = d3.select("#tooltip2");
+	//create empty list
+	var list = "<ul>";
 
 	//add new entity and idf per loop
 	for( var key of frequency.keys() ) {
@@ -858,18 +863,13 @@ function clickNode( d ) {
 		//get inverse document frequency
 		var idf = entityIDF[key];
 
-		//add text to tooltip
-		var text = key + " : " + idf;
-		tooltip.append("p").text(text);
+		//create new item and add to list
+		var itemContent = key.toString() + " : " + idf.toString();
+		var li = "<li>" + itemContent + "</li>";
+		list = list + li;
 	}
-
-	//click to hide tooltip
-	d3.select("#tooltip2")
-		.on("click", function() {
-			d3.select("#tooltip2").classed("hidden", true);
-		});
-
-	d3.select("#tooltip2").classed("hidden", false);
+	list = list + "</ul>";
+	resetButtonBox( dataset.nodes, list );
 }
 
 function tick() {
