@@ -33,6 +33,7 @@ ul {
 
 #right-menu {
 	float: right;
+	display: none;
 }
 
 #left-content {

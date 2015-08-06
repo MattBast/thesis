@@ -66,6 +66,10 @@ var buttons = [
 		"ten"
 	];
 
+//the button that opens and closes the right sidebar
+var rightMenuButton = document.getElementById( "right-menu" );
+rightMenuButton.addEventListener( "click", hideButton );
+
 //save button
 var saveTitle = document.getElementById( "saveTitle" );
 var saveButton = document.getElementById( "saveButton" );
@@ -851,10 +855,10 @@ function clickNode( d ) {
 	//work out percentage of patterns this entity turns up in
 	var frequency = getFrequency( d.id ); 
 
-	//create empty list
-	var list = "<ul>";
+	//array of list
+	var list = [];
 
-	//add new entity and idf per loop
+	//add new entity and idf per loop. Add each to list
 	for( var key of frequency.keys() ) {
 		//work out term frequency
 		var ef = frequency.get( key ); //<-- entity frequency (patterns containing entity)
@@ -863,16 +867,73 @@ function clickNode( d ) {
 		//get inverse document frequency
 		var idf = entityIDF[key];
 
-		//create new item and add to list
-		var itemContent = key.toString() + " : " + idf.toString();
-		var li = "<li>" + itemContent + "</li>";
-		list = list + li;
+		//add to list
+		var item = {
+			"key": key,
+			"idf": idf
+		};
+		list.push( item );
+
+		
 	}
-	list = list + "</ul>";
-	resetButtonBox( dataset.nodes, list );
+
+	//sort list
+	list = sortByIdf( list );
+
+	//create html string of list and put in right sidebar
+	var htmlList = "<ul>";
+
+	for( var j = 0; j < list.length; j++ ) {
+		//create new item and add to list
+		var itemContent = list[j].key.toString() + " : " + list[j].idf.toString();
+		var li = "<li>" + itemContent + "</li>";
+		htmlList = htmlList + li;
+	}
+
+	htmlList = htmlList + "</ul>";
+	resetButtonBox( dataset.nodes, htmlList );
 
 	//click button to open right sidebar
-	document.getElementById( "right-menu" ).click();
+	rightMenuButton.click();
+	rightMenuButton.style.display = "block";
+}
+
+function sortByIdf( array ) {
+	//arrays with 0 or 1 elements don't need sorting
+    if( array.length < 2 ) {
+        return array;
+    }
+
+    //split array in half.
+    var middle = Math.floor( array.length / 2 ),
+        left = array.slice( 0, middle ),
+        right = array.slice( middle );
+
+    /* Recursively split arrays, sort them and then re-merge 
+    them back together until the original array is returned */
+    return mergeByIdf( sortByIdf( left ), sortByIdf( right ) );
+}
+
+function mergeByIdf( left, right ) {
+	var result = [], il = 0, ir = 0;
+
+    /* Compare elements from left and right arrays adding smaller one to 
+    result array. Do this until one of the arrays is empty. */
+    while ( il < left.length && ir < right.length ){
+        if( left[il].idf > right[ir].idf ){
+            result.push( left[il++] );
+        } 
+        else {
+            result.push( right[ir++] );
+        }
+    }
+
+    //concat what is left of left and right to result
+    return result.concat( left.slice(il) ).concat( right.slice(ir) );
+}
+
+function hideButton() {
+	rightMenuButton.style.display = "none";
 }
 
 function tick() {
