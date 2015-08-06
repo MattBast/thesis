@@ -39,8 +39,6 @@ var box = document.getElementById( "searchBar" );
 var nodes = [], links = [];
 var windowWidth = window.innerWidth;
 var w = ((windowWidth / 100 ) * 90), h = 500;
-console.log( windowWidth );
-console.log( (windowWidth / 100 ) * 80 );
 var visDiv = document.getElementById("visual");
 visDiv.style.width = w + "px";
 var svg = d3.select("#visual")
@@ -300,9 +298,9 @@ function displayTools() {
 	var svg = document.getElementById( "svg" );
 	var searchBar = document.getElementById( "searchBar" );
 
+	visDiv.style.display = "block";
 	svg.style.display = "block";
 	searchBar.style.display = "block";
-	saveTitle.style.display = "block";
 	saveButton.style.display = "block";
 }
 
@@ -763,7 +761,7 @@ function resetButtonBox( nodes ) {
 		name: "sidr-right",
 		side: "right",
 		source: function( name ) {
-			return "<h2>" + nameOfFile + "</h2><h3>Patterns Present: " + numPats + "</h3>Number of groups<input type='text' id='groups' value='5'/><button type='button' onclick='resetVis()'>Reset</button>";
+			return "<h2>" + nameOfFile + "</h2><h3>Patterns Present: " + numPats + "</h3>";
 		}
 	});
 	

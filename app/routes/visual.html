@@ -9,17 +9,16 @@
 	</head>
 	<body onload="setHeight()">
 		<div id="navBar">
-			<a id="left-menu" class="menu-button" href="#left-menu">Main menu</a>
-			<a id="right-menu" class="menu-button" href="#right-menu">Tools</a>
+			<a id="left-menu" class="menu-button" href="#left-menu">Tools</a>
+			<a id="right-menu" class="menu-button" href="#right-menu">Info</a>
 		</div>
 		
 		<!-- Navigation bar -->
 		<div id="left-content">
 			<ul>
-				<li><a href="index.html">Home</a></li>
-				<li><a href="visual.html">Visualise</a></li>
-				<li><a href="terms.html">Terminology</a></li>
-				<li><a href="#">Save</a></li>
+				<li><a href="#">New</a></li>
+				<li>Number of groups<input type="text" id="groups" value="5"/><button type="button" onclick="resetVis()">Reset</button></li>
+				<li><a id="saveButton" href="#">Save</a></li>
 			</ul>
 		</div>
 
@@ -101,8 +100,6 @@
 			<!--
 			<button class="helpButton" onclick="helpOpen( patternCountHelpBox )">?</button>
 			-->
-			Number of groups<input type="text" id="groups" value="5"/>
-			<button type="button" onclick="resetVis()">Reset</button>
 		</div>
 
 		<!-- Pattern Count help box -->
@@ -169,13 +166,6 @@
 			<br/>
 		</div>
 
-		<h4 class="saveTitle" id="saveTitle">
-			Saving your results allows you skip the loading phase next time you visit
-		</h4>
-		<div id="saveButton">Save</div>
-		<h4 class="saveTitle" id="DownloadTitle">
-			File successfully created. Click here to download.
-		</h4>
 		<a id="downloadButton" href="#">Download</a>
 
 		<!-- Various scripts -->
