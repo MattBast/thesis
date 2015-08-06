@@ -870,6 +870,9 @@ function clickNode( d ) {
 	}
 	list = list + "</ul>";
 	resetButtonBox( dataset.nodes, list );
+
+	//click button to open right sidebar
+	document.getElementById( "right-menu" ).click();
 }
 
 function tick() {
