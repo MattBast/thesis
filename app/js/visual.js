@@ -70,11 +70,6 @@ var buttons = [
 var rightMenuButton = document.getElementById( "right-menu" );
 rightMenuButton.addEventListener( "click", hideButton );
 
-//save button
-var saveTitle = document.getElementById( "saveTitle" );
-var saveButton = document.getElementById( "saveButton" );
-saveButton.addEventListener("click", clickSave );
-
 //---------------------- read file functions ----------------------
 
 function upload() {
@@ -305,7 +300,6 @@ function displayTools() {
 	visDiv.style.display = "block";
 	svg.style.display = "block";
 	searchBar.style.display = "block";
-	saveButton.style.display = "block";
 }
 
 function displayHelpButton() {
@@ -328,7 +322,7 @@ function visualise( clusters ) {
 	drawLine();
 
 	//tells user precisely how many patterns are visible
-	resetButtonBox( n );
+	writeSidebarContent( n );
 
 	//set inverse document frequency score for each entity
 	entityIDF = setIDFs( dataset );
@@ -724,7 +718,7 @@ function newDataset( oldDataset, clickedClass ) {
 	}
 	
 	//update how many patterns are present
-	resetButtonBox( newDataset.nodes );
+	writeSidebarContent( newDataset.nodes );
 
 	//create groups of nodes
 	newDataset.nodes = getMoreNodes( newDataset.nodes );
@@ -746,7 +740,7 @@ function getLargestCluster( nodes ) {
 	return largestClus;
 }
 
-function resetButtonBox( nodes, list ) {
+function writeSidebarContent( nodes, list ) {
 	var numPats = 0;
 	var nameOfFile = "";
 	for( var i = 0; i < nodes.length; i++ ) {
@@ -856,8 +850,24 @@ function clickNode( d ) {
 	var frequency = getFrequency( d.id ); 
 
 	//array of list
-	var list = [];
+	var list = createList( frequency, clusSize );
 
+	//sort list
+	list = sortByIdf( list );
+
+	//create html string of list and put in right sidebar
+	var htmlList = createHtmlList( list );
+
+	//write content into right sidebar
+	writeSidebarContent( dataset.nodes, htmlList );
+
+	//click button to open right sidebar
+	rightMenuButton.click();
+	rightMenuButton.style.display = "block";
+}
+
+function createList( frequency, clusSize ) {
+	var list = [];
 	//add new entity and idf per loop. Add each to list
 	for( var key of frequency.keys() ) {
 		//work out term frequency
@@ -872,30 +882,21 @@ function clickNode( d ) {
 			"key": key,
 			"idf": idf
 		};
-		list.push( item );
-
-		
+		list.push( item );	
 	}
+	return list;
+}
 
-	//sort list
-	list = sortByIdf( list );
-
-	//create html string of list and put in right sidebar
+function createHtmlList( list ) {
 	var htmlList = "<ul>";
-
 	for( var j = 0; j < list.length; j++ ) {
 		//create new item and add to list
 		var itemContent = list[j].key.toString() + " : " + list[j].idf.toString();
 		var li = "<li>" + itemContent + "</li>";
 		htmlList = htmlList + li;
 	}
-
 	htmlList = htmlList + "</ul>";
-	resetButtonBox( dataset.nodes, htmlList );
-
-	//click button to open right sidebar
-	rightMenuButton.click();
-	rightMenuButton.style.display = "block";
+	return htmlList;
 }
 
 function sortByIdf( array ) {
@@ -1279,27 +1280,42 @@ function deselectRows() {
 
 function clickSave() {
 	console.log( "Clicked save" );
-	changeColour();
-	setTimeout( resetColours, 100 );
-	setTimeout( sendFile, 250 );
-}
-
-function changeColour() {
-	saveButton.style.backgroundColor = "white";
-	saveButton.style.color = "#98bf21";
-}
-
-function resetColours() {
-	saveButton.style.backgroundColor = "#98bf21";
-	saveButton.style.color = "white";
+	sendFile();
 }
 
 function sendFile() {
-	var file = fileInput.files[0];
+	var file;
+	if( fileInput.files.length > 0 ) {
+		file = fileInput.files[0];
+	}
+	else {
+		file = savedFileInput.files[0];
+	}
 
+	//change variable from Map data type to object data type
 	var objectEntity = mapToObject();
-	console.log( objectEntity );
 
+	//create object holding variables needed to create save file
+	var variables = setVariables( file, objectEntity );
+
+	socket.emit( "save", variables );
+	socket.on("save", function() {
+		console.log( "File Saved" );
+
+		//create href that will fire download function in server
+		var downloadFileName = document.getElementById( "downloadFileName" );
+		var jsonFileName = variables.fileName.split( "." );
+		jsonFileName = "/download?file=" + jsonFileName[0];
+
+		//create and click link that sends file to server as an attachment
+		var downloadButton = document.createElement( "a" );
+		downloadButton.setAttribute( "href", jsonFileName );
+		downloadButton.click();
+		console.log( jsonFileName );
+	});
+}
+
+function setVariables( file, objectEntity ) {
 	var variables = {
 		"fileName": file.name,
 		"patterns": patterns,
@@ -1308,18 +1324,7 @@ function sendFile() {
 		"level": level,
 		"entity": objectEntity
 	};
-	socket.emit( "save", variables );
-	socket.on("save", function() {
-		console.log( "File Saved" );
-		var downloadButton = document.getElementById( "downloadButton" );
-		var downloadFileName = document.getElementById( "downloadFileName" );
-		var jsonFileName = variables.fileName.split( "." );
-		jsonFileName = "/download?file=" + jsonFileName[0];
-
-		downloadButton.setAttribute( "href", jsonFileName );
-		downloadButton.style.display = "block";
-		console.log( jsonFileName );
-	});
+	return variables;
 }
 
 function mapToObject() {

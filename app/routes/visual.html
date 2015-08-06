@@ -18,7 +18,7 @@
 			<ul>
 				<li><a href="#">New</a></li>
 				<li>Number of groups<input type="text" id="groups" value="5"/><button type="button" onclick="resetVis()">Reset</button></li>
-				<li><a id="saveButton" href="#">Save</a></li>
+				<li><a id="save" href="#" onclick="clickSave()">Save</a></li>
 			</ul>
 		</div>
 
@@ -162,15 +162,13 @@
 			<br/>
 		</div>
 
-		<a id="downloadButton" href="#">Download</a>
-
 		<!-- Various scripts -->
 		<script src ="http://localhost:8000/socket.io/socket.io.js"></script>
 		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
-		<script type="text/javascript" src="../sidr-package-1.2.1/jquery.sidr.min.js"></script>
 		<script type="text/javascript" src="../js/startup.js"></script>
 		<script type="text/javascript" src="../js/help.js"></script>
 		<script type="text/javascript" src="../js/visual.js"></script>
 		<script type="text/javascript" src="../js/sidebar.js"></script>
+		<script type="text/javascript" src="../sidr-package-1.2.1/jquery.sidr.min.js"></script>
 	</body>
 </html>

@@ -100,7 +100,7 @@ io.on("connection", function( socket ) {
 
 	//write variables into a .json file
 	socket.on("save", function( variables ) {
-		
+
 		//get file name
 		var fileName = variables.fileName.split(".");
 
