@@ -37,6 +37,10 @@ var ctx = c.getContext( "2d" );
 var loading = document.getElementById( "loading" );
 var degrees = 0;
 var timer;
+
+//so data can be received from the server
+var socket = io.connect("http://localhost:8000");
+
 //-------------- change size of boxes inside container --------------
 
 function setHeight() {
@@ -146,7 +150,7 @@ function clickFinish() {
 		if( opacity <= 0.1 ) {
 			clearInterval( timer );
 			container.style.display = "none";
-			spin();
+			load();
 		}
 		container.style.opacity = opacity;
 		container.style.filter = "alpha( opacity=" + opacity * 100 + ")";
@@ -164,7 +168,53 @@ function insertButton() {
 	}
 }
 
-//-------------------- loading spinner functions -------------------
+//------------------------- loading functions -----------------------
+
+function load() {
+	if( fileInput.files.length > 0 ) {
+		loadbar();
+	}
+	else {
+		spin();
+	}
+}
+
+function loadbar() {
+	//display the load bar
+	c.style.display = "block";
+	loading.style.display = "block";
+
+	//draw the loading bar
+	drawBar();
+
+	//listen to server for progress
+	socket.emit( "progress" );
+	socket.on( "progress", function( object ) {
+		console.log( "Received progress" );
+		//update loading bar
+		drawProgress( parseInt( object.p ) );
+	});
+
+	//upload the file
+	upload(); 
+}
+
+function drawBar() {
+	//draw outer box
+	ctx.fillStyle = "gray";
+	ctx.fillRect( 500, 190, 1500, 210 );	
+}
+
+function drawProgress( percent ) {
+	ctx.fillStyle = "red";
+
+	//calculate percentage of 1000
+	percent = percent * 10;
+	//add 500 tso to get progress between 500 and 1500
+	var progress = percent + 500;
+
+	ctx.fillRect( 500, 190, progress ,210) 
+}
 
 function spin() {
 	//display the spinner

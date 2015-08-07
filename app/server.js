@@ -52,6 +52,10 @@ io.on("connection", function( socket ) {
 			clusRef[i.toString()] = parents;
 		}
 
+		//send progress to loading bar
+		var progress = { "p": 10 };
+		io.emit( "progress", progress );
+
 		//prepare variables to be sent to client
 		var object = { "clusters": clusters, "clusRef": clusRef };
 		io.emit( "init", object ); //<-- send object to client
@@ -77,6 +81,10 @@ io.on("connection", function( socket ) {
 			}
 		}
 
+		//send progress to loading bar
+		var progress = { "p": 20 };
+		io.emit( "progress", progress );
+
 		//prepare variables to be sent to client
 		var object = { "simTable": simTable, "priorityQueue": priorityQueue };
 		io.emit( "build", object ); //<-- send object to client
@@ -86,10 +94,17 @@ io.on("connection", function( socket ) {
 		//put values brought over from client into server versions
 		setGlobalVariables( variables );
 
+		var startProgress = level[0].length;
+
 		console.time("clustering-process");
 		//keep clustering the patterns until there are only three clusters
 		while( level[level.length - 1].length > 1 ) {
 			addCluster();
+
+			//send progress to loading bar
+			var p = ( level[level.length - 1].length / startProgress ) * 100;
+			var progress = { "p": p };
+			io.emit( "progress", progress );
 		}
 		console.timeEnd("clustering-process");
 
