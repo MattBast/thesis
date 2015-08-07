@@ -42,6 +42,10 @@ app.get("/download", function( request, response, next ) {
 
 //server side calculations
 io.on("connection", function( socket ) {
+
+	//the initial number of clusters before any are clustered together
+	var startProgress;
+
 	//initialise clusters and cluster references (initClusters)
 	socket.on("init", function() {
 		var clusRef = new Object(); //<-- references the parents of a cluster
@@ -52,9 +56,7 @@ io.on("connection", function( socket ) {
 			clusRef[i.toString()] = parents;
 		}
 
-		//send progress to loading bar
-		var progress = { "p": 10 };
-		io.emit( "progress", progress );
+		startProgress = clusters.length;
 
 		//prepare variables to be sent to client
 		var object = { "clusters": clusters, "clusRef": clusRef };
@@ -81,10 +83,6 @@ io.on("connection", function( socket ) {
 			}
 		}
 
-		//send progress to loading bar
-		var progress = { "p": 20 };
-		io.emit( "progress", progress );
-
 		//prepare variables to be sent to client
 		var object = { "simTable": simTable, "priorityQueue": priorityQueue };
 		io.emit( "build", object ); //<-- send object to client
@@ -92,25 +90,23 @@ io.on("connection", function( socket ) {
 
 	socket.on("cluster", function( variables ) {
 		//put values brought over from client into server versions
-		setGlobalVariables( variables );
+		setGlobalVariables( variables );	
+	});
 
-		var startProgress = level[0].length;
-
-		console.time("clustering-process");
-		//keep clustering the patterns until there are only three clusters
-		while( level[level.length - 1].length > 1 ) {
-			addCluster();
-
-			//send progress to loading bar
-			var p = ( level[level.length - 1].length / startProgress ) * 100;
+	//update loading bar
+	socket.on( "progress", function() {
+		addCluster();
+		var p = Math.floor( ( 100 - ( level[level.length - 1].length / startProgress ) * 100 ) );
+		
+		if( level[level.length - 1].length <= 1 ) {
+			//prepare variables to be sent to client
+			var object = setReturnObject();
+			io.emit( "cluster", object ); //<-- send object to client
+		}
+		else {
 			var progress = { "p": p };
 			io.emit( "progress", progress );
-		}
-		console.timeEnd("clustering-process");
-
-		//prepare variables to be sent to client
-		var object = setReturnObject();
-		io.emit( "cluster", object ); //<-- send object to client
+		}	
 	});
 
 	//write variables into a .json file
@@ -131,6 +127,9 @@ io.on("connection", function( socket ) {
 		//send success message back to client
 		io.emit( "save" );
 	});
+
+	
+	
 });
 
 function setGlobalVariables( variables ) {

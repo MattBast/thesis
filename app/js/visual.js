@@ -208,7 +208,27 @@ function main() {
 			};
 
 			socket.emit("cluster", variables ); //<-- tell server to start function
+			socket.emit( "progress" );
+
+			socket.on( "progress", function( object ) {
+				var grd = createColourGradient();
+				ctx.fillStyle = grd;
+				ctx.globalAlpha = 1;
+
+				//calculate percentage of 1000
+				var progress = object.p * 10;
+
+				//update loading bar
+				ctx.fillRect( 500, 190, progress, 20 ); 
+
+				socket.emit( "progress" );
+			});
+
+			//update loading bar
+			//var interval = setInterval( updateProgress, 100 );
 			socket.on("cluster", function( variables ) {
+				//clearInterval( interval );
+
 				setGlobalVariables( variables );
 				console.log( "Finished clustering" );
 
@@ -256,6 +276,22 @@ function merge( left, right ){
 
     //concat what is left of left and right to result
     return result.concat( left.slice(il) ).concat( right.slice(ir) );
+}
+
+function createColourGradient() {
+	var grd = ctx.createLinearGradient( 500, 190, 1500, 210 );
+	grd.addColorStop( "0", "#1f77b4" );
+	grd.addColorStop( "0.1", "#ff7f0e" );
+	grd.addColorStop( "0.2", "#2ca02c" );
+	grd.addColorStop( "0.3", "#d62728" );
+	grd.addColorStop( "0.4", "#9467bd" );
+	grd.addColorStop( "0.5", "#8c564b" );
+	grd.addColorStop( "0.6", "#e377c2" );
+	grd.addColorStop( "0.7", "#7f7f7f" );
+	grd.addColorStop( "0.8", "#bcbd22" );
+	grd.addColorStop( "1", "#17becf" );
+	
+	return grd;
 }
 
 function getNumOfGroups() {

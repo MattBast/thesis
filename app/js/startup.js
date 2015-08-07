@@ -187,33 +187,15 @@ function loadbar() {
 	//draw the loading bar
 	drawBar();
 
-	//listen to server for progress
-	socket.emit( "progress" );
-	socket.on( "progress", function( object ) {
-		console.log( "Received progress" );
-		//update loading bar
-		drawProgress( parseInt( object.p ) );
-	});
-
 	//upload the file
 	upload(); 
 }
 
 function drawBar() {
 	//draw outer box
+	ctx.globalAlpha = 0.2;
 	ctx.fillStyle = "gray";
-	ctx.fillRect( 500, 190, 1500, 210 );	
-}
-
-function drawProgress( percent ) {
-	ctx.fillStyle = "red";
-
-	//calculate percentage of 1000
-	percent = percent * 10;
-	//add 500 tso to get progress between 500 and 1500
-	var progress = percent + 500;
-
-	ctx.fillRect( 500, 190, progress ,210) 
+	ctx.fillRect( 500, 190, 1000, 20 );	
 }
 
 function spin() {
