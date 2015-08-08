@@ -985,13 +985,47 @@ function tick() {
 
 //------------------- create frequency table functions -------------------
 
+function viewTable() {
+	var tableBox = document.getElementById( "tableBox" );
+	tableBox.style.display = "block";
+	tableBox.style.top = "30%";
+}
+
 function createTable( clusters ) {
 	var sortedTotal = getSortedTotal( clusters );
 	sortedTotal = sortedTotal.splice( 0, 10 );
 
 	var table = d3.select("body").append("table");
 
-	createTableHead( table );
+	createTableHead();
+
+	var tableEntityList = document.getElementById( "tableEntities" );
+	var tableFrequencyList = document.getElementById( "tableFrequency" );
+	for( var i = 0; i < sortedTotal.length; i++ ) {
+		//add new entity name to list
+		var li = document.createElement( "li" );
+		li.appendChild( document.createTextNode( sortedTotal[i].pattern ) );
+		tableEntityList.appendChild( li );
+
+		//add new Frequency to list
+		var li2 = document.createElement( "li" );
+
+		if( sortedTotal[i].frequency === undefined ) {
+			li2.appendChild( document.createTextNode( "0 (0%)" ) );
+			
+		}
+		else {
+			var percentage = Math.floor( (sortedTotal[i].frequency / totalNumOfPats) * 100 );
+			li2.appendChild( document.createTextNode( sortedTotal[i].frequency + " (" + percentage + "%)" ) );
+		}
+		tableFrequencyList.appendChild( li2 );
+	}
+
+	//display lists
+	document.getElementById( "tableEntities" ).style.display = "inline-block";
+	document.getElementById( "tableFrequency" ).style.display = "inline-block";
+
+	/*
 
 	//create rows for the table
 	var tr = table.selectAll("tr")
@@ -1029,6 +1063,8 @@ function createTable( clusters ) {
 	//deselect rows and return nodes stroke to black
 	d3.select("#deselect")
 		.on("click", deselectRows );
+
+	*/
 }
 
 function updateTable( dataNodes ) {
@@ -1162,18 +1198,9 @@ function sortTotal( total ) {
 	return sortedTotal;
 }
 
-function createTableHead( table ) {
-	var tableHeads = [
-		{ head: "Entity"}, 
-		{ head: "Frequency" }
-	];
-
-	var th = table.selectAll("th")
-				.data( tableHeads )
-				.enter()
-				.append("th");
-
-	th.append("td").html(function(d) { return d.head; } );
+function createTableHead() {
+	document.getElementById( "tableEntitiesHead" ).innerHTML = "Entity";
+	document.getElementById( "tableFrequencyHead" ).innerHTML = "Frequency";
 }
 
 function clickRow(d, i) {

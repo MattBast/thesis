@@ -2,6 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-GB" xml:lang="en-GB">
 	<link href="../css/visual.css" rel="stylesheet" type="text/css" />
 	<link href="../css/sidebar.css" rel="stylesheet" type="text/css" />
+	<link href="../css/table.css" rel="stylesheet" type="text/css" />
 	<link rel="stylesheet" href="../sidr-package-1.2.1/stylesheets/jquery.sidr.dark.css">
 	<head>
 		<title>Visual</title>
@@ -9,7 +10,7 @@
 	</head>
 	<body onload="setHeight()">
 		<div id="navBar">
-			<a id="left-menu" class="menu-button" href="#left-menu">Tools</a>
+			<a id="left-menu" class="menu-button" href="#left-menu">&#9776;</a>
 			<a id="right-menu" class="menu-button" href="#right-menu">Close</a>
 		</div>
 		
@@ -160,6 +161,14 @@
 			<p>To look for an entity not in the top ten, enter its name in the search bar and click search. The table will change its contents to reflect the search. A &quot;Top Ten&quot; button will appear when you click search which will return the tables contents to the top ten entities.</p>
 			<p>Clicking on a row in the table will change the visual to indicate which clusters the clicked entity turns up in. The clusters outline will change to a shade of red. The lighter the shade of red, the more of the clicked entity that cluster contains. Clusters with black outlines contain none of the clicked entity. While in this state, the hover tooltip changes its contents to show how many patterns in that cluster contain the clicked entity.</p>
 			<br/>
+		</div>
+
+		<div id="tableOpen"><a href="#" onclick="viewTable()">View Table</a></div>
+		<div id="tableBox">
+			<h4 id="tableEntitiesHead"></h4>
+			<h4 id="tableFrequencyHead"></h4>
+			<ul id="tableEntities"></ul>
+			<ul id="tableFrequency"></ul>
 		</div>
 
 		<!-- Various scripts -->

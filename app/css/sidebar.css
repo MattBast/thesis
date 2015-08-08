@@ -29,6 +29,9 @@ ul {
 
 #left-menu {
 	float: left;
+	font-size: 20px;
+	padding-left: 1%;
+	padding-right: 1%;
 }
 
 #right-menu {
