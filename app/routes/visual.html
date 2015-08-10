@@ -144,15 +144,6 @@
 			<br/>
 		</div>
 
-		<!-- Search bar for table -->
-		<div id="searchBar">
-			<input type="text" id="textInput"/>
-			<button type="button" id="searchButton">Search</button>
-			<button type="button" id="topTenButton" class="hidden">Top Ten</button>
-			<button type="button" id="deselect" class="hidden">No Frequency</button>
-			<button class="helpButton" onclick="helpOpen( tableHelpBox )">?</button>
-		</div>
-
 		<!-- frequency table help box -->
 		<div class="helpBox" id="tableHelpBox">
 			<button class="helpButton" onclick="helpClose( tableHelpBox )">X</button>
@@ -163,8 +154,15 @@
 			<br/>
 		</div>
 
-		<div id="tableOpen"><a href="#" onclick="viewTable()">View Table</a></div>
+		<!-- Box that holds the frequency table -->
 		<div id="tableBox">
+			<!-- Search bar for table -->
+			<input type="text" id="textInput" value="Search for entity here"/>
+			<button type="button" id="searchButton">Search</button>
+			<button type="button" id="topTenButton" class="hidden">Top Ten</button>
+			<button type="button" id="deselect" class="hidden">No Frequency</button>
+			<button class="helpButton" onclick="helpOpen( tableHelpBox )">?</button>
+			<!-- The table, its head and its contents --> 
 			<h4 id="tableEntitiesHead"></h4>
 			<h4 id="tableFrequencyHead"></h4>
 			<ul id="tableEntities"></ul>

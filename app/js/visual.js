@@ -32,8 +32,12 @@ var total = new Map();
 //how many colour groups the user wants
 var numOfGroups = getNumOfGroups();
 
-//table search bar
+//table tools
 var box = document.getElementById( "searchBar" );
+var searchButton = document.getElementById( "searchButton" );
+searchButton.addEventListener( "click", searchTable );
+var topTenButton = document.getElementById( "topTenButton" );
+topTenButton.addEventListener( "click", displayTopTen );
 
 //force diagram components
 var nodes = [], links = [];
@@ -311,16 +315,19 @@ function setGlobalVariables( variables ) {
 	level = variables.level;
 
 	//if loading a saved file, this will be true
-	if( entity.size === 0 ){
+	if( savedFileInput.files.length > 0 ){
+		
 		//convert Object into Map
 		var done = false;
+		var tmpEntity = new Map();
 		count = 0;
 		while( done === false ) {
 			if( variables.entity[count] === undefined ) {
 				done = true;
+				entity = tmpEntity;
 			}
 			else {
-				entity.set( count, variables.entity[count] );
+				tmpEntity.set( count, variables.entity[count] );
 				count++;
 			}
 		}
@@ -331,11 +338,11 @@ function setGlobalVariables( variables ) {
 
 function displayTools() {
 	var svg = document.getElementById( "svg" );
-	var searchBar = document.getElementById( "searchBar" );
+	var tableBox = document.getElementById( "tableBox" );
 
 	visDiv.style.display = "block";
 	svg.style.display = "block";
-	searchBar.style.display = "block";
+	tableBox.style.display = "block";
 }
 
 function displayHelpButton() {
@@ -985,22 +992,16 @@ function tick() {
 
 //------------------- create frequency table functions -------------------
 
-function viewTable() {
-	var tableBox = document.getElementById( "tableBox" );
-	tableBox.style.display = "block";
-	tableBox.style.top = "30%";
-}
-
 function createTable( clusters ) {
+	createTableHead();
+
 	var sortedTotal = getSortedTotal( clusters );
 	sortedTotal = sortedTotal.splice( 0, 10 );
 
-	var table = d3.select("body").append("table");
-
-	createTableHead();
-
 	var tableEntityList = document.getElementById( "tableEntities" );
 	var tableFrequencyList = document.getElementById( "tableFrequency" );
+	
+	//create new rows for the table
 	for( var i = 0; i < sortedTotal.length; i++ ) {
 		//add new entity name to list
 		var li = document.createElement( "li" );
@@ -1026,19 +1027,6 @@ function createTable( clusters ) {
 	document.getElementById( "tableFrequency" ).style.display = "inline-block";
 
 	/*
-
-	//create rows for the table
-	var tr = table.selectAll("tr")
-				.data( sortedTotal )
-				.enter()
-				.append("tr")
-				.on("click", clickRow );
-
-	//put data in the cells on each row of the table
-	putDataInRows( tr );
-
-	//search table for entities
-	d3.select("#searchButton").on("click", searchTable );
 
 	//return table to original state
 	d3.select("#topTenButton")
@@ -1276,27 +1264,16 @@ function clickRow(d, i) {
 	d3.select("#deselect").classed("hidden", false);
 }
 
-function putDataInRows( tr ) {
-	tr.append("td") //<-- append entity name
-		.attr("class", "pattern")
-		.html(function(d) { return d.pattern; } );
-	tr.append("td") //<-- append entity frequency
-		.attr("class", "frequency")
-		.html(function(d) { 
-			if( d.frequency === undefined ) {
-				return "0 (0%)";
-			}
-			else {
-				var percentage = Math.floor( (d.frequency / totalNumOfPats) * 100 );
-				return d.frequency + " (" + percentage + "%)"; 
-			}
-		});
-}
-
 function searchTable() {
-	d3.select("#topTenButton").classed("hidden", false);
+	//show top ten button and get value in text input box
+	topTenButton.style.display = "inline-block";
 	var patKey = document.getElementById( "textInput" ).value;
 
+	//empty list that makes up the table
+	$("#tableEntities").empty();
+	$("#tableFrequency").empty();
+
+	//run through list of entities and store any that match search
 	var entities = [];
 	for( var value of entity.values() ) {
 		if( value.indexOf( patKey ) != -1 ) {
@@ -1308,20 +1285,68 @@ function searchTable() {
 		}
 	}
 
-	d3.select( "table" ).remove();
+	//the two columns in the table
+	var tableEntityList = document.getElementById( "tableEntities" );
+	var tableFrequencyList = document.getElementById( "tableFrequency" );
 
-	table = d3.select("body").append("table");
+	//fill the two columns with the entities and frequencies found
+	for( var i = 0; i < entities.length; i++ ) {
+		//add new entity name to list
+		var li = document.createElement( "li" );
+		li.appendChild( document.createTextNode( entities[i].pattern ) );
+		tableEntityList.appendChild( li );
 
-	createTableHead( table );
+		//add new Frequency to list
+		var li2 = document.createElement( "li" );
 
-	var tr = table.selectAll("tr")
-		.data( entities )
-		.enter()
-		.append("tr")
-		.on("click", clickRow );
+		if( entities[i].frequency === undefined ) {
+			li2.appendChild( document.createTextNode( "0 (0%)" ) );
+			
+		}
+		else {
+			var percentage = Math.floor( (entities[i].frequency / totalNumOfPats) * 100 );
+			li2.appendChild( document.createTextNode( entities[i].frequency + " (" + percentage + "%)" ) );
+		}
+		tableFrequencyList.appendChild( li2 );
+	}
+}
 
-	//put data in the cells on each row of the table
-	putDataInRows( tr );
+function displayTopTen() {
+	//empty list that makes up the table
+	$("#tableEntities").empty();
+	$("#tableFrequency").empty();
+	
+	//get all entities
+	var clusters = level[ level.length - numOfGroups ];
+	var sortedTotal = getSortedTotal( clusters );
+	sortedTotal = sortedTotal.splice( 0, 10 );
+
+	var tableEntityList = document.getElementById( "tableEntities" );
+	var tableFrequencyList = document.getElementById( "tableFrequency" );
+	
+	//create new rows for the table
+	for( var i = 0; i < sortedTotal.length; i++ ) {
+		//add new entity name to list
+		var li = document.createElement( "li" );
+		li.appendChild( document.createTextNode( sortedTotal[i].pattern ) );
+		tableEntityList.appendChild( li );
+
+		//add new Frequency to list
+		var li2 = document.createElement( "li" );
+
+		if( sortedTotal[i].frequency === undefined ) {
+			li2.appendChild( document.createTextNode( "0 (0%)" ) );
+			
+		}
+		else {
+			var percentage = Math.floor( (sortedTotal[i].frequency / totalNumOfPats) * 100 );
+			li2.appendChild( document.createTextNode( sortedTotal[i].frequency + " (" + percentage + "%)" ) );
+		}
+		tableFrequencyList.appendChild( li2 );
+	}
+
+	//hide top ten button
+	topTenButton.style.display = "none";
 }
 
 function deselectRows() {
