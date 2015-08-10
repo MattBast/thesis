@@ -1026,6 +1026,16 @@ function createTable( clusters ) {
 	document.getElementById( "tableEntities" ).style.display = "inline-block";
 	document.getElementById( "tableFrequency" ).style.display = "inline-block";
 
+	//add click function to each row in table
+	tableEntityList.addEventListener( "click", function(e) {
+		console.log( e.target.innerHTML );
+		for( var j = 0; j < sortedTotal.length; j++ ) {
+			if( sortedTotal[j].pattern === e.target.innerHTML ) {
+				clickRow( sortedTotal[j].pattern, sortedTotal[j].frequency );
+			}
+		}
+	});
+
 	/*
 
 	//deselect rows and return nodes stroke to black
@@ -1171,7 +1181,7 @@ function createTableHead() {
 	document.getElementById( "tableFrequencyHead" ).innerHTML = "Frequency";
 }
 
-function clickRow(d, i) {
+function clickRow( rowPattern, totalFrequency ) {
 	//determines the max number of a specific entity a cluster could hold
 	var largestClus = getLargestCluster( dataset.nodes );
 
@@ -1180,14 +1190,9 @@ function clickRow(d, i) {
 		.domain([0, 100])
 		.range([100, 255]);
 
-	var rowPattern = d.pattern;
-	var totalFrequency = d.frequency;
-
 	//de-highlight all rows
-	d3.selectAll("tr").classed("highlight", false);
 
 	//highlight selected row
-	d3.select(this).classed("highlight", true);
 
 	//change the border of each node to a shade of red
 	nodes.transition()
@@ -1209,7 +1214,7 @@ function clickRow(d, i) {
 		})
 		.style("stroke-width", 5);
 
-	//change data in tooltip to mtch the data of the node currently hovered over
+	//change data in tooltip to match the data of the node currently hovered over
 	nodes.on("mouseover", function(d, i) {
 		var yPos = parseFloat(d3.select("svg").attr("y"));
 		var frequency = getFrequency( d.id );
