@@ -1028,26 +1028,6 @@ function createTable( clusters ) {
 
 	/*
 
-	//return table to original state
-	d3.select("#topTenButton")
-		.on("click", function() {
-			d3.select("#topTenButton").classed("hidden", true);
-			d3.select( "table" ).remove();
-
-			table = d3.select("body").append("table");
-
-			createTableHead( table );
-
-			var tr = table.selectAll("tr")
-						.data( sortedTotal )
-						.enter()
-						.append("tr")
-						.on("click", clickRow );
-
-			//put data in the cells on each row of the table
-			putDataInRows( tr );
-		})
-
 	//deselect rows and return nodes stroke to black
 	d3.select("#deselect")
 		.on("click", deselectRows );
@@ -1312,17 +1292,17 @@ function searchTable() {
 }
 
 function displayTopTen() {
+	var tableEntityList = document.getElementById( "tableEntities" );
+	var tableFrequencyList = document.getElementById( "tableFrequency" );
+
 	//empty list that makes up the table
 	$("#tableEntities").empty();
 	$("#tableFrequency").empty();
 	
 	//get all entities
 	var clusters = level[ level.length - numOfGroups ];
-	var sortedTotal = getSortedTotal( clusters );
+	var sortedTotal = sortTotal( total );
 	sortedTotal = sortedTotal.splice( 0, 10 );
-
-	var tableEntityList = document.getElementById( "tableEntities" );
-	var tableFrequencyList = document.getElementById( "tableFrequency" );
 	
 	//create new rows for the table
 	for( var i = 0; i < sortedTotal.length; i++ ) {
