@@ -1006,6 +1006,7 @@ function createTable( clusters ) {
 		//add new entity name to list
 		var li = document.createElement( "li" );
 		li.appendChild( document.createTextNode( sortedTotal[i].pattern ) );
+		li.className = i.toString();
 		tableEntityList.appendChild( li );
 
 		//add new Frequency to list
@@ -1019,6 +1020,7 @@ function createTable( clusters ) {
 			var percentage = Math.floor( (sortedTotal[i].frequency / totalNumOfPats) * 100 );
 			li2.appendChild( document.createTextNode( sortedTotal[i].frequency + " (" + percentage + "%)" ) );
 		}
+		li2.className = i.toString();
 		tableFrequencyList.appendChild( li2 );
 	}
 
@@ -1028,11 +1030,42 @@ function createTable( clusters ) {
 
 	//add click function to each row in table
 	tableEntityList.addEventListener( "click", function(e) {
-		console.log( e.target.innerHTML );
 		for( var j = 0; j < sortedTotal.length; j++ ) {
 			if( sortedTotal[j].pattern === e.target.innerHTML ) {
+				//de-highlight rows
+				//de-highlight all rows
+				d3.selectAll("li").classed("rowClicked", false);
+
 				//highlight row
-				$(e.target).addClass("rowClicked");
+				$( "." + e.target.className ).addClass("rowClicked");
+
+				//change visualisation
+				clickRow( sortedTotal[j].pattern, sortedTotal[j].frequency );
+			}
+		}
+	});
+
+	//add click function to each row in table
+	tableFrequencyList.addEventListener( "click", function(e) {
+
+		//get entity name
+		var entityName = "";
+		var listItems = tableEntityList.getElementsByTagName("li");
+		for( var i = 0; i < listItems.length; i++ ) {
+			if( listItems[i].className === e.target.className ) {
+				entityName = listItems[i].innerHTML;
+				break;
+			}
+		}
+
+
+		for( var j = 0; j < sortedTotal.length; j++ ) {
+			if( sortedTotal[j].pattern === entityName ) {
+				//de-highlight all rows
+				d3.selectAll("li").classed("rowClicked", false);
+
+				//highlight row
+				$( "." + e.target.className ).addClass("rowClicked");
 
 				//change visualisation
 				clickRow( sortedTotal[j].pattern, sortedTotal[j].frequency );
@@ -1298,13 +1331,41 @@ function searchTable() {
 
 	//add click function to each row in table
 	tableEntityList.addEventListener( "click", function(e) {
-		console.log( e.target.innerHTML );
 		for( var j = 0; j < entities.length; j++ ) {
 			if( entities[j].pattern === e.target.innerHTML ) {
+				//de-highlight all rows
+				d3.selectAll("li").classed("rowClicked", false);
+
 				//highlight row
-				var parent = $(e.target).parent();
-				parent.background = "#fff";
-				parent.color = "#333";
+				$( "." + e.target.className ).addClass("rowClicked");
+
+				//change visualisation
+				clickRow( entities[j].pattern, entities[j].frequency );
+			}
+		}
+	});
+
+	//add click function to each row in table
+	tableFrequencyList.addEventListener( "click", function(e) {
+
+		//get entity name
+		var entityName = "";
+		var listItems = tableEntityList.getElementsByTagName("li");
+		for( var i = 0; i < listItems.length; i++ ) {
+			if( listItems[i].className === e.target.className ) {
+				entityName = listItems[i].innerHTML;
+				break;
+			}
+		}
+
+
+		for( var j = 0; j < entities.length; j++ ) {
+			if( entities[j].pattern === entityName ) {
+				//de-highlight all rows
+				d3.selectAll("li").classed("rowClicked", false);
+
+				//highlight row
+				$( "." + e.target.className ).addClass("rowClicked");
 
 				//change visualisation
 				clickRow( entities[j].pattern, entities[j].frequency );
