@@ -1031,18 +1031,19 @@ function createTable( clusters ) {
 		console.log( e.target.innerHTML );
 		for( var j = 0; j < sortedTotal.length; j++ ) {
 			if( sortedTotal[j].pattern === e.target.innerHTML ) {
+				//highlight row
+				$(e.target).addClass("rowClicked");
+
+				//change visualisation
 				clickRow( sortedTotal[j].pattern, sortedTotal[j].frequency );
 			}
 		}
 	});
 
-	/*
-
 	//deselect rows and return nodes stroke to black
 	d3.select("#deselect")
 		.on("click", deselectRows );
 
-	*/
 }
 
 function updateTable( dataNodes ) {
@@ -1294,6 +1295,22 @@ function searchTable() {
 		}
 		tableFrequencyList.appendChild( li2 );
 	}
+
+	//add click function to each row in table
+	tableEntityList.addEventListener( "click", function(e) {
+		console.log( e.target.innerHTML );
+		for( var j = 0; j < entities.length; j++ ) {
+			if( entities[j].pattern === e.target.innerHTML ) {
+				//highlight row
+				var parent = $(e.target).parent();
+				parent.background = "#fff";
+				parent.color = "#333";
+
+				//change visualisation
+				clickRow( entities[j].pattern, entities[j].frequency );
+			}
+		}
+	});
 }
 
 function displayTopTen() {
@@ -1338,7 +1355,7 @@ function deselectRows() {
 	d3.select("#deselect").classed("hidden", true);
 
 	//de-highlight all rows
-	d3.selectAll("tr").classed("highlight", false);
+	d3.selectAll("li").classed("rowClicked", false);
 
 	//reset colour of nodes stroke
 	nodes.transition()
