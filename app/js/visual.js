@@ -993,6 +993,9 @@ function tick() {
 //------------------- create frequency table functions -------------------
 
 function createTable( clusters ) {
+	//make table width correct
+	document.getElementById( "tableBox" ).style.width = window.innerWidth + "px";
+
 	createTableHead();
 
 	var sortedTotal = getSortedTotal( clusters );
@@ -1076,7 +1079,6 @@ function createTable( clusters ) {
 	//deselect rows and return nodes stroke to black
 	d3.select("#deselect")
 		.on("click", deselectRows );
-
 }
 
 function updateTable( dataNodes ) {

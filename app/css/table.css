@@ -1,33 +1,8 @@
-#tableOpen {
-	position: fixed;
-	height: 4%;
-	width: 8%;
-	padding: 2%;
-	left: 43%;
-	top: 92%;
-	background: #333;
-	text-align: center;
-	border-top-left-radius: 5px;
-	border-top-right-radius: 5px;
-	margin: 0;
-}
-
-#tableOpen a {
-	color: #fff;
-	text-decoration: none;
-}
-
-#tableOpen:hover {
-	-webkit-box-shadow:inset 0 0 15px 3px #222;
-	-moz-box-shadow:inset 0 0 15px 3px #222;
-	box-shadow:inset 0 0 15px 3px #222;
-}
-
 #tableBox {
+	width: 100%;
 	left: 0%;
 	margin: 0;
 	padding: 0;
-	width: 100%;
 	height: 30%;
 	background: #333;
 	display: none;
