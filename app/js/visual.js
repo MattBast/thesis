@@ -925,7 +925,7 @@ function createList( frequency, clusSize ) {
 		//add to list
 		var item = {
 			"key": key,
-			"idf": idf
+			"tfidf": (tf * idf)
 		};
 		list.push( item );	
 	}
@@ -936,7 +936,7 @@ function createHtmlList( list ) {
 	var htmlList = "<ul>";
 	for( var j = 0; j < list.length; j++ ) {
 		//create new item and add to list
-		var itemContent = list[j].key.toString() + " : " + list[j].idf.toString();
+		var itemContent = list[j].key.toString() + " : " + list[j].tfidf.toString();
 		var li = "<li>" + itemContent + "</li>";
 		htmlList = htmlList + li;
 	}
@@ -966,7 +966,7 @@ function mergeByIdf( left, right ) {
     /* Compare elements from left and right arrays adding smaller one to 
     result array. Do this until one of the arrays is empty. */
     while ( il < left.length && ir < right.length ){
-        if( left[il].idf > right[ir].idf ){
+        if( left[il].tfidf > right[ir].tfidf ){
             result.push( left[il++] );
         } 
         else {
