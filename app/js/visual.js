@@ -42,7 +42,7 @@ topTenButton.addEventListener( "click", displayTopTen );
 //force diagram components
 var nodes = [], links = [];
 var windowWidth = window.innerWidth;
-var w = ((windowWidth / 100 ) * 90), h = 500;
+var w = ((windowWidth / 100 ) * 60), h = 500; //<-- width = 90% of screen size
 var visDiv = document.getElementById("visual");
 visDiv.style.width = w + "px";
 var svg = d3.select("#visual")
@@ -69,10 +69,6 @@ var buttons = [
 		"nine",
 		"ten"
 	];
-
-//the button that opens and closes the right sidebar
-var rightMenuButton = document.getElementById( "right-menu" );
-rightMenuButton.addEventListener( "click", hideButton );
 
 //---------------------- read file functions ----------------------
 
@@ -366,8 +362,8 @@ function visualise( clusters ) {
 	//draw line to tell user approximately how many patterns are visable
 	drawLine();
 
-	//tells user precisely how many patterns are visible
-	writeSidebarContent( n );
+	//put headers on sidebar
+	prepareSidebar( n );
 
 	//set inverse document frequency score for each entity
 	entityIDF = setIDFs( dataset );
@@ -785,35 +781,6 @@ function getLargestCluster( nodes ) {
 	return largestClus;
 }
 
-function writeSidebarContent( nodes, list ) {
-	var numPats = 0;
-	var nameOfFile = "";
-	for( var i = 0; i < nodes.length; i++ ) {
-		numPats += nodes[i].id.split( "-" ).length;
-	}
-	//check to see if using new dataset or saved file
-	if( fileInput.files.length > 0 ) {
-		nameOfFile = fileName.innerHTML = "File: " + fileInput.files[0].name;
-	}
-	else {
-		nameOfFile = fileName.innerHTML = "File: " + savedFileInput.files[0].name;
-	}
-	totalNumOfPats = numPats;
-
-	$("#right-menu").sidr({
-		name: "sidr-right",
-		side: "right",
-		source: function( name ) {
-			if( list === undefined ) {
-				return "<h2>" + nameOfFile + "</h2><h3>Patterns Present: " + numPats + "</h3>";
-			}
-			else {
-				return "<h2>" + nameOfFile + "</h2><h3>Patterns Present: " + numPats + "</h3>" + list;
-			}
-		}
-	});
-}
-
 function resetVis() {
 	//remove previous visualisation
 	dataset = { nodes: [], edges: [] };
@@ -861,33 +828,58 @@ function drawNodes( dataNodes, rScale ) {
 					return rScale( length );
 				})
 				.on("mouseover", hover )
-				.on("mouseout", hideTooltip )
+				.on("mouseout", notHover )
 				.on("click", clickNode )
 				.call(force.drag);
 
 	return nodes;
 }
 
+function prepareSidebar( nodes ) {
+	var numPats = 0;
+	var nameOfFile = "";
+	for( var i = 0; i < nodes.length; i++ ) {
+		numPats += nodes[i].id.split( "-" ).length;
+	}
+	//check to see if using new dataset or saved file
+	if( fileInput.files.length > 0 ) {
+		nameOfFile = fileName.innerHTML = "File: " + fileInput.files[0].name;
+	}
+	else {
+		nameOfFile = fileName.innerHTML = "File: " + savedFileInput.files[0].name;
+	}
+	totalNumOfPats = numPats;
+
+	//add variables to right sidebar
+	var sidebar = document.getElementById( "rightSidebar" );
+	var htmlFileName = document.createElement( "h2" );
+	htmlFileName.appendChild( document.createTextNode( nameOfFile ) );
+
+	var htmlNumPats = document.createElement( "h2" );
+	htmlNumPats.appendChild( document.createTextNode( "Patterns Present : " + numPats ) );
+
+	sidebar.appendChild( htmlFileName );
+	sidebar.appendChild( htmlNumPats );
+
+	//add list to sidebar
+	var list = document.createElement( "ul" );
+	list.id = "htmlList";
+	var li = document.createElement("li");
+	li.appendChild( document.createTextNode( "No Cluster Selected" ) );
+	list.appendChild( li );
+	sidebar.appendChild( list );
+}
+
 function hover( d, i ) {
-	var frequency = getFrequency( d.id );
+	//present summary tooltip
+	summaryTooltip( d, i );
 
-	var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
-	var text = "Number of Patterns: " + numOfPats;
-	var percentage = (numOfPats / totalNumOfPats) * 100;
-	text += " Percentage of total: " + percentage + "%";
+	//select list
+	var list = document.getElementById( "htmlList" );
 
-	d3.select("#tooltip")
-		.select("#value")
-		.text( text );
+	//clear list
+	$(list).empty();
 
-	d3.select("#tooltip").classed("hidden", false);
-}
-
-function hideTooltip() {
-	d3.select("#tooltip").classed("hidden", true);
-}
-
-function clickNode( d ) {
 	//total number of patterns in cluster
 	var clusSize = d.id.split("-").length;
 
@@ -900,15 +892,79 @@ function clickNode( d ) {
 	//sort list
 	list = sortByIdf( list );
 
-	//create html string of list and put in right sidebar
-	var htmlList = createHtmlList( list );
+	//create html version of list
+	putListInDiv( list );
+}
 
-	//write content into right sidebar
-	writeSidebarContent( dataset.nodes, htmlList );
+function summaryTooltip( d, i ) {
+	//get frequency of entity in cluster
+	var frequency = getFrequency( d.id );
 
-	//click button to open right sidebar
-	rightMenuButton.click();
-	rightMenuButton.style.display = "block";
+	//create text
+	var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
+	var text = "Number of Patterns: " + numOfPats;
+	var percentage = (numOfPats / totalNumOfPats) * 100;
+	text += " Percentage of total: " + percentage + "%";
+
+	//put text in tooltip
+	d3.select("#tooltip")
+		.select("#value")
+		.text( text );
+
+	//show tooltip
+	d3.select("#tooltip").classed("hidden", false);
+}
+
+function notHover() {
+	//hide tooltip
+	d3.select("#tooltip").classed("hidden", true);
+
+	//select list
+	var list = document.getElementById( "htmlList" );
+
+	//clear list
+	$(list).empty();
+
+	//add empty message to sidebar
+	var li = document.createElement("li");
+	li.appendChild( document.createTextNode( "No cluster selected" ) );
+	list.appendChild( li );
+}
+
+function clickNode( d ) {
+	//turn off hover functions for nodes
+	nodes.on( "mouseover", null ).on( "mouseout", null );
+
+	//highlight clicked node
+	d3.select(this).transition()
+		.style("stroke-width", 5)
+		.style("stroke", "#FFCC00");
+
+	//display deselect button
+	var button = document.getElementById( "deselect" );
+	button.style.display = "block";
+}
+
+function deselectNode() {
+	//turn on hover functions for nodes
+	nodes.on( "mouseover", hover ).on( "mouseout", notHover );
+
+	//dehighlight nodes strokes
+	nodes.transition()
+		.style("stroke-width", 1.5)
+		.style("stroke", "#000000");
+
+	//clear list
+	var list = document.getElementById( "htmlList" );
+	$(list).empty();
+
+	//add empty message to sidebar
+	var li = document.createElement("li");
+	li.appendChild( document.createTextNode( "No cluster selected" ) );
+	list.appendChild( li );
+
+	//hide tooltip
+	d3.select("#tooltip").classed("hidden", true);
 }
 
 function createList( frequency, clusSize ) {
@@ -932,16 +988,27 @@ function createList( frequency, clusSize ) {
 	return list;
 }
 
-function createHtmlList( list ) {
-	var htmlList = "<ul>";
+function putListInDiv( list ) {
+	var ul = document.getElementById("htmlList");
 	for( var j = 0; j < list.length; j++ ) {
 		//create new item and add to list
-		var itemContent = list[j].key.toString() + " : " + list[j].tfidf.toString();
-		var li = "<li>" + itemContent + "</li>";
-		htmlList = htmlList + li;
+		var li = document.createElement("li");
+		li.appendChild( document.createTextNode( list[j].key.toString() + " : " + list[j].tfidf.toString() ) );
+		li.addEventListener("click", function(e) {
+			//content of li
+			var content = e.target.innerHTML;
+
+			//get entity name from content
+			content = content.split( " :" );
+
+			//change value in table search box to clicked item in list
+			document.getElementById( "textInput" ).value = content[0];
+
+			//fire search table function
+			searchTable();
+		});
+		ul.appendChild( li );
 	}
-	htmlList = htmlList + "</ul>";
-	return htmlList;
 }
 
 function sortByIdf( array ) {
@@ -996,7 +1063,7 @@ function tick() {
 
 function createTable( clusters ) {
 	//make table width correct
-	document.getElementById( "tableBox" ).style.width = window.innerWidth + "px";
+	document.getElementById( "tableBox" ).style.width = ((window.innerWidth / 100) * 75) + "px";
 
 	createTableHead();
 
@@ -1078,7 +1145,7 @@ function createTable( clusters ) {
 	});
 
 	//deselect rows and return nodes stroke to black
-	d3.select("#deselect")
+	d3.select("#deselectRow")
 		.on("click", deselectRows );
 }
 
@@ -1172,7 +1239,7 @@ function updateTable( dataNodes ) {
 	});
 
 	//deselect rows and return nodes stroke to black
-	d3.select("#deselect")
+	d3.select("#deselectRow")
 		.on("click", deselectRows );
 }
 
@@ -1265,10 +1332,6 @@ function clickRow( rowPattern, totalFrequency ) {
 		.domain([0, 100])
 		.range([100, 255]);
 
-	//de-highlight all rows
-
-	//highlight selected row
-
 	//change the border of each node to a shade of red
 	nodes.transition()
 		.style("stroke", function(d, i) {
@@ -1321,7 +1384,7 @@ function clickRow( rowPattern, totalFrequency ) {
 	});
 
 	//deselect row button
-	d3.select("#deselect").classed("hidden", false);
+	d3.select("#deselectRow").classed("hidden", false);
 }
 
 function searchTable() {
@@ -1458,7 +1521,7 @@ function displayTopTen() {
 }
 
 function deselectRows() {
-	d3.select("#deselect").classed("hidden", true);
+	d3.select("#deselectRow").classed("hidden", true);
 
 	//de-highlight all rows
 	d3.selectAll("li").classed("rowClicked", false);
