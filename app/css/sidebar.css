@@ -46,3 +46,19 @@ ul {
 #right-content {
 	display: none;
 }
+
+#rightSidebar {
+	margin: 0;
+	position:fixed;
+	top:0;
+	height:100%;
+	z-index:999999;
+	width:25%;
+	overflow-x:none;
+	overflow-y:auto;
+	font-family:"lucida grande",tahoma,verdana,arial,sans-serif;
+	font-size:15px;
+	background:#333;
+	color:#fff;
+	left: 75%;
+}
