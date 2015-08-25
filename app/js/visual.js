@@ -42,7 +42,7 @@ topTenButton.addEventListener( "click", displayTopTen );
 //force diagram components
 var nodes = [], links = [];
 var windowWidth = window.innerWidth;
-var w = ((windowWidth / 100 ) * 60), h = 500; //<-- width = 90% of screen size
+var w = ((windowWidth / 100 ) * 65), h = 500; //<-- width = 65% of screen size
 var visDiv = document.getElementById("visual");
 visDiv.style.width = w + "px";
 var svg = d3.select("#visual")
@@ -870,10 +870,34 @@ function prepareSidebar( nodes ) {
 	sidebar.appendChild( list );
 }
 
-function hover( d, i ) {
+function hover( d ) {
 	//present summary tooltip
-	summaryTooltip( d, i );
+	summaryTooltip( d );
 
+	//change sidebar content
+	updateSidebar( d );
+}
+
+function summaryTooltip( d ) {
+	//get frequency of entity in cluster
+	var frequency = getFrequency( d.id );
+
+	//create text
+	var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
+	var text = "Number of Patterns: " + numOfPats;
+	var percentage = (numOfPats / totalNumOfPats) * 100;
+	text += " Percentage of total: " + percentage + "%";
+
+	//put text in tooltip
+	d3.select("#tooltip")
+		.select("#value")
+		.text( text );
+
+	//show tooltip
+	d3.select("#tooltip").classed("hidden", false);
+}
+
+function updateSidebar( d ) {
 	//select list
 	var list = document.getElementById( "htmlList" );
 
@@ -896,25 +920,6 @@ function hover( d, i ) {
 	putListInDiv( list );
 }
 
-function summaryTooltip( d, i ) {
-	//get frequency of entity in cluster
-	var frequency = getFrequency( d.id );
-
-	//create text
-	var numOfPats = d.id.split( "-" ).length; //<-- number of patterns
-	var text = "Number of Patterns: " + numOfPats;
-	var percentage = (numOfPats / totalNumOfPats) * 100;
-	text += " Percentage of total: " + percentage + "%";
-
-	//put text in tooltip
-	d3.select("#tooltip")
-		.select("#value")
-		.text( text );
-
-	//show tooltip
-	d3.select("#tooltip").classed("hidden", false);
-}
-
 function notHover() {
 	//hide tooltip
 	d3.select("#tooltip").classed("hidden", true);
@@ -934,6 +939,17 @@ function notHover() {
 function clickNode( d ) {
 	//turn off hover functions for nodes
 	nodes.on( "mouseover", null ).on( "mouseout", null );
+
+	//present summary tooltip
+	summaryTooltip( d );
+
+	//change sidebar content
+	updateSidebar( d );
+
+	//dehighlight nodes strokes
+	nodes.transition()
+		.style("stroke-width", 1.5)
+		.style("stroke", "#000000");
 
 	//highlight clicked node
 	d3.select(this).transition()
@@ -965,6 +981,9 @@ function deselectNode() {
 
 	//hide tooltip
 	d3.select("#tooltip").classed("hidden", true);
+
+	//hide deselect button
+	this.style.display = "none";
 }
 
 function createList( frequency, clusSize ) {
@@ -1361,7 +1380,6 @@ function clickRow( rowPattern, totalFrequency ) {
 
 		//alter text in tooltip
 		d3.select("#tooltip")
-			.style("left", 0)
 			.style("top", (yPos + 20) + "px")
 			.select("#value")
 			.text( function() {
