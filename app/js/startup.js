@@ -1,3 +1,12 @@
+//returns a node list (accessible much like an array)
+var boxes = document.getElementsByClassName( "floatingBox" );
+var currentBox = 0;
+
+//the confirm new or existing choice button
+var choiceButton = document.getElementById( "choiceButton" );
+var choice = document.getElementsByName( "choice" );
+choiceButton.addEventListener( "click", clickChoice );
+
 //fade in and out input boxes
 var fileInputBox = document.getElementById("fileInputBox");
 var numOfNodesBox = document.getElementById("numOfNodesBox");
@@ -10,11 +19,6 @@ fileInput.addEventListener( "change", insertButton );
 var savedFileInput = document.getElementById( "savedFileInput" );
 savedFileInput.addEventListener( "change", insertButton );
 
-//the confirm new or existing choice button
-var choiceButton = document.getElementById( "choiceButton" );
-var choice = document.getElementsByName( "choice" );
-choiceButton.addEventListener( "click", clickChoice );
-
 //the confirm button on file upload
 var fileUploadButton = document.getElementById( "fileUploadButton" );
 fileUploadButton.addEventListener( "click", clickUpload );
@@ -23,6 +27,10 @@ fileUploadButton.addEventListener( "click", clickUpload );
 var savedFileUploadButton = document.getElementById( "savedFileUploadButton" );
 savedFileUploadButton.addEventListener( "click", clickSavedUpload );
 
+//the final button that commences the upload function
+var finishButton = document.getElementById( "finishButton" );
+finishButton.addEventListener( "click", clickFinish );
+
 //the variables controlling the loading spinner
 var c = document.getElementById( "canvas" );
 var ctx = c.getContext( "2d" );
@@ -30,52 +38,84 @@ var loading = document.getElementById( "loading" );
 var degrees = 0;
 var timer;
 
-//-------------- fade in and out startup box functions ---------------
+//so data can be received from the server
+var socket = io.connect("http://localhost:8000");
 
-function fadeIn( box ) {
-	box.style.display = "block";
-	var opacity = 0.1; //<-- initial opacity
-	var timer = setInterval( function() {
-		//stop increasing opacity when reach 1
-		if( opacity >= 1 ) {
-			clearInterval( timer );
-		}
-		//increase opacity
-		box.style.opacity = opacity;
-		box.style.filter = "alpha(opacity=" + opacity * 100 + ")";
-		opacity += opacity * 0.1;
-	}, 50 );
+//-------------- change size of boxes inside container --------------
+
+function setHeight() {
+	var height = $( "#container" ).height();
+	height =  height - ((height / 100) * 10);
+	for( var i = 0; i < boxes.length; i++ ) {
+		boxes[i].style.height = (height - 5) + "px";
+	}
 }
 
-function fadeOut( box, fadeInBox ) {
-	var opacity = 1; //<-- initial opacity
-	var timer = setInterval( function() {
-		//stop decreasing opacity when reach 0.1
-		if( opacity <= 0.1 ) {
+//------------- slide in and out startup box functions --------------
+
+function slideLeft() {
+	//variable to be incremented down
+	var position = 100;
+
+	//move box
+	var timer = setInterval( function(){
+		position -= 1;
+		boxes[currentBox].style.left = position + "%";
+
+		if( position === 5 ){
 			clearInterval( timer );
-			box.style.display = "none";
-			//fade in next div if one has been specified
-			if( fadeInBox !== undefined ) {
-				fadeIn( fadeInBox );
+		}
+	}, 5 );
+}
+
+function slideRight() {
+	//variable to be incremented down
+	var position = 5;
+
+	//move box
+	var timer = setInterval( function(){
+		position += 1;
+		boxes[currentBox].style.left = position + "%";
+
+		if( position === 100 ){
+			clearInterval( timer );
+			if( currentBox === 1 || currentBox === 2 ) {
+				currentBox = 0;
+				fileInput.value = "";
+				savedFileInput.value = "";
 			}
-			//otherwise start the loading spinner
+			else if( currentBox === 3 && fileInput.files.length !== 0 ) { 
+				currentBox = 2;
+			}
 			else {
-				spin();
+				currentBox = 1;
 			}
+			pushOut();
 		}
-		//decrease opacity
-		box.style.opacity = opacity;
-		box.style.filter = "alpha(opacity=" + opacity * 100 + ")";
-		opacity -= opacity * 0.1;
-	}, 50 );
+	}, 5 );
 }
 
-function insertButton() {
-	if( fileInput.files.length === 0 ) {
-		alert( "No file selected" );
+function pushIn() {
+	boxes[currentBox].style.boxShadow = "inset 0 0 15px 3px #222";
+}
+
+function pushOut() {
+	boxes[currentBox].style.boxShadow = "none";
+}
+
+function clickChoice() {
+	if( choice[0].checked !== true && choice[1].checked !== true) {
+		alert( "Please choose one of the options" );
+	}
+	else if( choice[0].checked === true ) {
+		pushIn(); //<-- change style of panel
+		currentBox = 2;
+		slideLeft();
 	}
 	else {
-		fileUploadButton.style.opacity = 1;
+		pushIn(); //<-- change style of panel
+		currentBox = 1;
+		slideLeft();
 	}
 }
 
@@ -84,7 +124,9 @@ function clickUpload() {
 		alert( "Please select a file first" );
 	}
 	else {
-		fadeOut( fileInputBox, numOfNodesBox );
+		pushIn(); //<-- change style of panel
+		currentBox = 3;
+		slideLeft();
 	}
 }
 
@@ -93,20 +135,68 @@ function clickSavedUpload() {
 		alert( "Please select a file first" );
 	}
 	else {
-		fadeOut( savedFileInputBox, numOfNodesBox );
+		pushIn(); //<-- change style of panel
+		currentBox = 3;
+		slideLeft();
 	}
 }
 
-function clickChoice() {
-	if( choice[0].checked === true ) {
-		fadeOut( choiceBox, fileInputBox );
+function clickFinish() {
+	pushIn();
+	var container = document.getElementById( "container" );
+	var opacity = 1;
+	var timer = setInterval( function() {
+		//stop fading and make box disappear
+		if( opacity <= 0.1 ) {
+			clearInterval( timer );
+			container.style.display = "none";
+			load();
+		}
+		container.style.opacity = opacity;
+		container.style.filter = "alpha( opacity=" + opacity * 100 + ")";
+		opacity -= opacity * 0.1;
+	}, 10 );
+}
+
+function insertButton() {
+	if( fileInput.files.length === 0 && savedFileInput.files.length === 0 ) {
+		alert( "No file selected" );
 	}
 	else {
-		fadeOut( choiceBox, savedFileInputBox );
+		fileUploadButton.style.opacity = 1;
+		savedFileUploadButton.style.opacity = 1;
 	}
 }
 
-//-------------------- loading spinner functions -------------------
+//------------------------- loading functions -----------------------
+
+function load() {
+	if( fileInput.files.length > 0 ) {
+		loadbar();
+	}
+	else {
+		spin();
+	}
+}
+
+function loadbar() {
+	//display the load bar
+	c.style.display = "block";
+	loading.style.display = "block";
+
+	//draw the loading bar
+	drawBar();
+
+	//upload the file
+	upload(); 
+}
+
+function drawBar() {
+	//draw outer box
+	ctx.globalAlpha = 0.2;
+	ctx.fillStyle = "gray";
+	ctx.fillRect( 500, 190, 1000, 20 );	
+}
 
 function spin() {
 	//display the spinner
@@ -142,8 +232,12 @@ function rotate( degrees ) {
 
 function drawSpinner() {
 	//colour and width of line
-	ctx.strokeStyle = "#98bf21";
-	ctx.lineWidth = 5;
+	var grd = ctx.createLinearGradient( 900, 0, 1100, 0 );
+	grd.addColorStop( "0", "#9467bd" );
+	grd.addColorStop( "0.3", "#1f77b4" );
+	grd.addColorStop( "1", "#d62728" );
+	ctx.strokeStyle = grd;
+	ctx.lineWidth = 20;
 
 	//draw circle with gap in it
 	ctx.beginPath();

@@ -1,21 +1,35 @@
-div {
-	border: solid 1px black;
-	height: 15%;
-  	margin-left: 15%;
-  	margin-right: 15%;
-  	margin-top: 10%;
-  	margin-bottom: 0;
+body {
+	margin: 0;
+	position: absolute;
+}
+
+#container {
+	position: fixed;
+	width: 75%;
+	height: 40%;
+	top: 30%;
+	padding: 0;
+	padding-top: 3%;
+	padding-bottom: 10%;
+	-moz-box-shadow:  0px 0px 10px 5px #222;
+	-webkit-box-shadow:  0px 0px 10px 5px #222;
+	box-shadow:  0px 0px 10px 5px #222;
+	overflow: hidden;
 }
 
 .floatingBox {
+	position: absolute;
+	width: 80%;
+	border: 4px solid #ccc;
+	border-bottom: 5px solid #bbb;
+	border-top: 4px solid #ddd;
 	border-radius: 10px;
-	background-color: rgb(250, 250, 250);
-	margin-top: 15%;
-	margin-left: 25%;
-	margin-right: 25%;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	background-color: #E5E4E2;
+	left: 5%;
+	margin: 0;
 	padding: 5%;
-	box-shadow: 10px 10px 5px #888888;
-	opacity: 0;
 	z-index: 0;
 }
 
@@ -55,19 +69,26 @@ div {
 }
 
 #numOfNodesBox {
-	display: none;
+	left: 100%;
+	z-index: 1;
 }
 
 #fileInputBox {
-	display: none;
+	left: 100%;
+	z-index: 1;
 }
 
 #fileUploadButton {
 	opacity: 0.5;
 }
 
+#savedFileUploadButton {
+	opacity: 0.5;
+}
+
 #savedFileInputBox {
-	display: none;
+	left: 100%;
+	z-index: 1;
 }
 
 #downloadFileName {
@@ -75,9 +96,9 @@ div {
 }
 
 #canvas {
-	width: 60%;
-	margin-left: 20%;
-	margin-right: 20%;
+	width: 40%;
+	margin-left: 18%;
+	margin-right: 18%;
 	margin-top: 20%;
 	display: none;
 }
@@ -85,15 +106,22 @@ div {
 #loading {
 	padding-left: 27%;
 	padding-right: 25%;
-	margin-left: 20%;
-	margin-right: 20%;
+	margin-left: 15%;
+	margin-right: 15%;
 	margin-top: 0;
 	display: none;
 }
 
 #visual {
-	margin-top: 2%;
-	border: none;
+	margin: 5%;
+	margin-top: 10%;
+	border: 4px solid #ccc;
+	border-bottom: 5px solid #bbb;
+	border-top: 4px solid #ddd;
+	border-radius: 10px;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	display: none;
 }
 
 #svg {
@@ -119,20 +147,6 @@ button {
 	margin-left: 20%;
 	margin-right: 20%;
 	text-align: center;
-	display: none;
-}
-
-#saveButton {
-	color: white;
-	background-color: #98bf21;
-	border: solid 1px #98bf21;
-	border-radius: 5px;
-
-	padding: 12px;
-	margin-top: 0;
-	margin-left: 46%;
-	margin-right: 45%;
-	width: 33px;
 	display: none;
 }
 
@@ -184,30 +198,7 @@ table {
 	pointer-events: none;
 }
 
-#tooltip2 {
-	position: absolute;
-	margin-top: 0;
-	margin-bottom: 0;
-	margin-left: 10%;
-	margin-right: 10%;
-	width: 400px;
-	height: 500px;
-	padding: 10px;
-	background-color: white;
-	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
-	border-radius: 10px;
-	-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
-	-moz-box-shadow: 4px 4px 4px 10px rgba(0, 0, 0, 0.4);
-	box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
-	overflow: scroll; 
-}
-
 #tooltip.hidden {
-	display: none;
-}
-
-#tooltip2.hidden {
 	display: none;
 }
 
@@ -244,10 +235,6 @@ tr:hover {
 
 tr.highlight:hover {
 	background-color: #98bf21;
-}
-
-#topTenButton.hidden {
-	display: none;
 }
 
 #deselect.hidden {

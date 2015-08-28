@@ -1,45 +1,68 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-GB" xml:lang="en-GB">
-	<link href="../css/index.css" rel="stylesheet" type="text/css" />
 	<link href="../css/visual.css" rel="stylesheet" type="text/css" />
+	<link href="../css/sidebar.css" rel="stylesheet" type="text/css" />
+	<link href="../css/table.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" href="../sidr-package-1.2.1/stylesheets/jquery.sidr.dark.css">
 	<head>
 		<title>Visual</title>
 		<script type="text/javascript" src="../d3/d3.min.js"></script>
 	</head>
-	<body onload="fadeIn( choiceBox )">
+	<body onload="setHeight()">
+		<div id="navBar">
+			<a id="left-menu" class="menu-button" href="#left-menu">&#9776;</a>
+			<a id="deselect" class="menu-button" onclick="deselectNode()">Deselect</a>
+		</div>
+		
 		<!-- Navigation bar -->
-		<ul>
-			<li><a href="index.html">Home</a></li>
-			<li><a href="visual.html">Visualise</a></li>
-			<li><a href="terms.html">Terminology</a></li>
-			<li><a href="tutorial.html">Tutorial</a></li>
-		</ul>
-
-		<!-- Open saved file or create new box -->
-		<div class="floatingBox" id="choiceBox">
-			<h3>Would you like to create a new visualisation or reopen an existing one?</h3>
-			<input type="radio" name="choice" value="new">New Visualisation
-			<br/>
-			<input type="radio" name="choice" value="existing">Load existing visualisation
-			<br/>
-			<button id="choiceButton">Confirm</button>
+		<div id="left-content">
+			<ul>
+				<li><a href="#">New</a></li>
+				<li>Number of groups<input type="text" id="groups" value="5"/><button type="button" onclick="resetVis()">Reset</button></li>
+				<li><a id="goBack" href="#" onclick="goBackOneVis()">Back</a></li>
+				<li><a id="save" href="#" onclick="clickSave()">Save</a></li>
+			</ul>
 		</div>
 
-		<!-- Upload .json file box -->
-		<div class="floatingBox" id="savedFileInputBox">
-			<h3>Please enter the saved file:</h3>
-			<input type="file" id="savedFileInput"/>
-			<br/>
-			<button id="savedFileUploadButton">Confirm</button>
-		</div>
+		<div id="container">
+			<!-- Open saved file or create new box -->
+			<div class="floatingBox" id="choiceBox">
+				<h3>Would you like to create a new data visualisation or reopen an existing one?</h3>
+				<input type="radio" name="choice" value="new">New data visualisation
+				<br/>
+				<input type="radio" name="choice" value="existing">Load existing data visualisation
+				<br/>
+				<button id="choiceButton">Confirm</button>
+			</div>
 
-		<!-- Upload .txt file box -->
-		<div class="floatingBox" id="fileInputBox">
-			<button class="helpButton" onclick="helpOpen( fileInputHelpBox )">?</button>
-			<h3>Please enter the file containing the patterns:</h3>
-			<input type="file" id="fileInput"/>
-			<br/>
-			<button id="fileUploadButton">Confirm</button>
+			<!-- Upload .json file box -->
+			<div class="floatingBox" id="savedFileInputBox">
+				<button class="backButton" onclick="slideRight()">&lt;&lt; Back</button>
+				<h3>Please enter your saved file:</h3>
+				<input type="file" id="savedFileInput"/>
+				<br/>
+				<button id="savedFileUploadButton">Confirm</button>
+			</div>
+
+			<!-- Upload .txt file box -->
+			<div class="floatingBox" id="fileInputBox">
+				<button class="backButton" onclick="slideRight()">&lt;&lt; Back</button>
+				<button class="helpButton" onclick="helpOpen( fileInputHelpBox )">?</button>
+				<h3>Please enter the file containing the patterns:</h3>
+				<input type="file" id="fileInput"/>
+				<br/>
+				<button id="fileUploadButton">Confirm</button>
+			</div>
+
+			<!-- Number of nodes choice box -->
+			<div class="floatingBox" id="numOfNodesBox">
+				<button class="backButton" onclick="slideRight()">&lt;&lt; Back</button>
+				<button class="helpButton" onclick="helpOpen( numberOfNodesHelpBox )">?</button>
+				<h3>How many nodes per group would you like:</h3>
+				<input type="text" id="numOfNodes" value="8"/>
+				<br/>
+				<button id="finishButton">Confirm</button>
+			</div>
 		</div>
 
 		<!-- Upload file help box -->
@@ -54,16 +77,6 @@
 			<br/>
 		</div>
 
-		<!-- Number of nodes choice box -->
-		<div class="floatingBox" id="numOfNodesBox">
-			<button class="backButton" onclick="fadeOut( numOfNodesBox, fileInputBox )">&lt;&lt; Back</button>
-			<button class="helpButton" onclick="helpOpen( numberOfNodesHelpBox )">?</button>
-			<h3>How many nodes per group would you like:</h3>
-			<input type="text" id="numOfNodes" value="8"/>
-			<br/>
-			<button onclick="fadeOut( numOfNodesBox );">Confirm</button>
-		</div>
-
 		<!-- Number of nodes choice help box -->
 		<div class="helpBox" id="numberOfNodesHelpBox">
 			<button class="helpButton" onclick="helpClose( numberOfNodesHelpBox )">X</button>
@@ -74,19 +87,19 @@
 			<br/>
 		</div>
 
-		<!-- Loading spinner -->
+		<button id="backOneVis" onclick="goBackOneVis()">&lt;&lt; Back One</button>
+
+		<!-- Loading spinner and bar -->
 		<canvas id="canvas" width="2000" height="400"></canvas>
 		<h4 id="loading">Loading</h4>
 
 		<!-- Pattern count box -->
-		<div class="floatingBox" id="patternCount">
-			<button class="helpButton" onclick="helpOpen( patternCountHelpBox )">?</button>
-			<h3 id="fileName"></h3>
+		<div id="right-content">
+			<h2 id="fileName"></h2>
 			<h3 id="patternsPresent"></h3>
-			<input type="text" id="groups" value="5"/>Number of groups (maximum of ten)
-			<br/>
-			<button id="backOneVis" onclick="goBackOneVis()">&lt;&lt; Back One</button>
-			<button type="button" onclick="resetVis()">Reset</button>
+			<!--
+			<button class="helpButton" onclick="helpOpen( patternCountHelpBox )">?</button>
+			-->
 		</div>
 
 		<!-- Pattern Count help box -->
@@ -110,8 +123,6 @@
 			<div id="tooltip" class="hidden">
 				<p><span id="value"></span></p>
 			</div>
-			<!-- Click node tooltip -->
-			<div id="tooltip2" class="hidden"></div>
 		</div>
 
 		<!-- Visualisation help box -->
@@ -134,15 +145,6 @@
 			<br/>
 		</div>
 
-		<!-- Search bar for table -->
-		<div id="searchBar">
-			<input type="text" id="textInput"/>
-			<button type="button" id="searchButton">Search</button>
-			<button type="button" id="topTenButton" class="hidden">Top Ten</button>
-			<button type="button" id="deselect" class="hidden">No Frequency</button>
-			<button class="helpButton" onclick="helpOpen( tableHelpBox )">?</button>
-		</div>
-
 		<!-- frequency table help box -->
 		<div class="helpBox" id="tableHelpBox">
 			<button class="helpButton" onclick="helpClose( tableHelpBox )">X</button>
@@ -153,14 +155,24 @@
 			<br/>
 		</div>
 
-		<h4 class="saveTitle" id="saveTitle">
-			Saving your results allows you skip the loading phase next time you visit
-		</h4>
-		<div id="saveButton">Save</div>
-		<h4 class="saveTitle" id="DownloadTitle">
-			File successfully created. Click here to download.
-		</h4>
-		<a id="downloadButton" href="#">Download</a>
+		<!-- Sidebar showing the tf-idf of selected node -->
+		<div id="rightSidebar">
+		</div>
+
+		<!-- Box that holds the frequency table -->
+		<div id="tableBox">
+			<!-- Search bar for table -->
+			<input type="text" id="textInput" value="Search for entity here"/>
+			<button type="button" id="searchButton">Search</button>
+			<button type="button" id="topTenButton" class="hidden">Top Ten</button>
+			<button type="button" id="deselectRow" class="hidden">No Frequency</button>
+			<button class="helpButton" onclick="helpOpen( tableHelpBox )">?</button>
+			<!-- The table, its head and its contents --> 
+			<h4 id="tableEntitiesHead"></h4>
+			<h4 id="tableFrequencyHead"></h4>
+			<ul id="tableEntities"></ul>
+			<ul id="tableFrequency"></ul>
+		</div>
 
 		<!-- Various scripts -->
 		<script src ="http://localhost:8000/socket.io/socket.io.js"></script>
@@ -168,5 +180,7 @@
 		<script type="text/javascript" src="../js/startup.js"></script>
 		<script type="text/javascript" src="../js/help.js"></script>
 		<script type="text/javascript" src="../js/visual.js"></script>
+		<script type="text/javascript" src="../js/sidebar.js"></script>
+		<script type="text/javascript" src="../sidr-package-1.2.1/jquery.sidr.min.js"></script>
 	</body>
 </html>

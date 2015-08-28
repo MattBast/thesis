@@ -1,0 +1,107 @@
+#tableBox {
+	width: 100%;
+	left: 0%;
+	margin: 0;
+	padding: 0;
+	height: 30%;
+	background: #333;
+	display: none;
+	overflow: scroll;
+}
+
+#tableBox input[type="text"] {
+	width:60%;
+	font-size:13px;
+	padding:5px;
+	-webkit-box-sizing:border-box;
+	-moz-box-sizing:border-box;
+	box-sizing:border-box;
+	margin:0 0 10px;
+	-webkit-border-radius:2px;
+	-moz-border-radius:2px;
+	-ms-border-radius:2px;
+	-o-border-radius:2px;
+	border-radius:2px;
+	border:none;
+	background:rgba(0,0,0,0.1);
+	color:rgba(255,255,255,0.6);
+	display: inline-block;
+	clear:both;
+}
+
+#tableEntitiesHead {
+	float: left;
+	color: #fff;
+	width: 46%;
+	padding: 2%;
+	margin: 0;
+	text-align: center;
+
+	font-weight:normal;
+	background-image:-webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #4d4d4d), color-stop(100%, #1a1a1a));
+	background-image:-webkit-linear-gradient(#4d4d4d,#1a1a1a);
+	background-image:-moz-linear-gradient(#4d4d4d,#1a1a1a);
+	background-image:-o-linear-gradient(#4d4d4d,#1a1a1a);
+	background-image:linear-gradient(#4d4d4d,#1a1a1a);
+	-webkit-box-shadow:0 5px 5px 3px rgba(0,0,0,0.2);
+	-moz-box-shadow:0 5px 5px 3px rgba(0,0,0,0.2);
+	box-shadow:0 5px 5px 3px rgba(0,0,0,0.2);
+}
+
+#tableFrequencyHead {
+	float: right;
+	color: #fff;
+	width: 46%;
+	padding: 2%;
+	margin: 0;
+	text-align: center;
+
+	font-weight:normal;
+	background-image:-webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #4d4d4d), color-stop(100%, #1a1a1a));
+	background-image:-webkit-linear-gradient(#4d4d4d,#1a1a1a);
+	background-image:-moz-linear-gradient(#4d4d4d,#1a1a1a);
+	background-image:-o-linear-gradient(#4d4d4d,#1a1a1a);
+	background-image:linear-gradient(#4d4d4d,#1a1a1a);
+	-webkit-box-shadow:0 5px 5px 3px rgba(0,0,0,0.2);
+	-moz-box-shadow:0 5px 5px 3px rgba(0,0,0,0.2);
+	box-shadow:0 5px 5px 3px rgba(0,0,0,0.2);
+}
+
+#tableEntities {
+	width: 50%;
+	padding: 0;
+	margin: 0;
+	float: left;
+	color: #fff;
+	list-style: none;
+}
+
+#tableFrequency {
+	width: 50%;
+	padding: 0;
+	margin: 0;
+	float: right;
+	color: #fff;
+	list-style: none;
+}
+
+#tableEntities li {
+	margin:0;
+	line-height:48px;
+	border-top:1px solid #4d4d4d;
+	border-bottom:1px solid #1a1a1a;
+	text-align: center;
+}
+
+#tableFrequency li {
+	margin:0;
+	line-height:48px;
+	border-top:1px solid #4d4d4d;
+	border-bottom:1px solid #1a1a1a;
+	text-align: center;
+}
+
+.rowClicked {
+	color: #333;
+	background: #fff;
+}

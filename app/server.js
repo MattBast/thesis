@@ -42,6 +42,10 @@ app.get("/download", function( request, response, next ) {
 
 //server side calculations
 io.on("connection", function( socket ) {
+
+	//the initial number of clusters before any are clustered together
+	var startProgress;
+
 	//initialise clusters and cluster references (initClusters)
 	socket.on("init", function() {
 		var clusRef = new Object(); //<-- references the parents of a cluster
@@ -51,6 +55,8 @@ io.on("connection", function( socket ) {
 			clusters.push( i.toString() );
 			clusRef[i.toString()] = parents;
 		}
+
+		startProgress = clusters.length;
 
 		//prepare variables to be sent to client
 		var object = { "clusters": clusters, "clusRef": clusRef };
@@ -84,23 +90,28 @@ io.on("connection", function( socket ) {
 
 	socket.on("cluster", function( variables ) {
 		//put values brought over from client into server versions
-		setGlobalVariables( variables );
+		setGlobalVariables( variables );	
+	});
 
-		console.time("clustering-process");
-		//keep clustering the patterns until there are only three clusters
-		while( level[level.length - 1].length > 1 ) {
-			addCluster();
+	//update loading bar
+	socket.on( "progress", function() {
+		addCluster();
+		var p = Math.floor( ( 100 - ( level[level.length - 1].length / startProgress ) * 100 ) );
+		
+		if( level[level.length - 1].length <= 1 ) {
+			//prepare variables to be sent to client
+			var object = setReturnObject();
+			io.emit( "cluster", object ); //<-- send object to client
 		}
-		console.timeEnd("clustering-process");
-
-		//prepare variables to be sent to client
-		var object = setReturnObject();
-		io.emit( "cluster", object ); //<-- send object to client
+		else {
+			var progress = { "p": p };
+			io.emit( "progress", progress );
+		}	
 	});
 
 	//write variables into a .json file
 	socket.on("save", function( variables ) {
-		
+
 		//get file name
 		var fileName = variables.fileName.split(".");
 
@@ -116,6 +127,9 @@ io.on("connection", function( socket ) {
 		//send success message back to client
 		io.emit( "save" );
 	});
+
+	
+	
 });
 
 function setGlobalVariables( variables ) {
