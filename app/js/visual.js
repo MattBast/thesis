@@ -474,7 +474,7 @@ function groupButtons() {
 				});
 			//change data appearing in hover effect
 			nodes.on("mouseover", hover )
-				.on("mouseout", hideTooltip )
+				.on("mouseout", notHover )
 				.call(force.drag);
 
 			//calculates x and y coordinates of every element
@@ -484,12 +484,14 @@ function groupButtons() {
 			updateTable( dataset.nodes );
 
 			updateLine( dataset.nodes );
+
+			updateSidebarHead( dataset.nodes );
 		});
 }
 
 function goBackOneVis() {
 	//one level below original visualisation
-	if( listOfDatasets.length === 1 ) {
+	if( listOfDatasets.length <= 1 ) {
 		resetVis();
 		backOneVis.style.display = "none";
 		listOfDatasets.pop();
@@ -533,7 +535,7 @@ function goBackOneVis() {
 			
 		//change data appearing in hover effect
 		nodes.on("mouseover", hover )
-			.on("mouseout", hideTooltip )
+			.on("mouseout", notHover )
 			.call(force.drag);
 
 		//calculates x and y coordinates of every element
@@ -545,6 +547,8 @@ function goBackOneVis() {
 		updateLine( oldDataset.nodes );
 
 		listOfDatasets.pop();
+
+		updateSidebarHead( oldDataset.nodes );
 	}	
 }
 
@@ -757,9 +761,6 @@ function newDataset( oldDataset, clickedClass ) {
 			count++;
 		}
 	}
-	
-	//update how many patterns are present
-	writeSidebarContent( newDataset.nodes );
 
 	//create groups of nodes
 	newDataset.nodes = getMoreNodes( newDataset.nodes );
@@ -798,6 +799,9 @@ function resetVis() {
 
 	//find out how many groups the user wants this time
 	numOfGroups = getNumOfGroups();
+
+	//clear the sidebar
+	$(document.getElementById( "rightSidebar" )).empty();
 
 	//re-visualise everything
 	visualise( level[ level.length - numOfGroups ] );
@@ -868,6 +872,15 @@ function prepareSidebar( nodes ) {
 	li.appendChild( document.createTextNode( "No Cluster Selected" ) );
 	list.appendChild( li );
 	sidebar.appendChild( list );
+}
+
+function updateSidebarHead( nodes ) {
+	var numPats = 0;
+	for( var i = 0; i < nodes.length; i++ ) {
+		numPats += nodes[i].id.split( "-" ).length;
+	}
+	var sidebarChildren = document.getElementById( "rightSidebar" ).childNodes;
+	sidebarChildren[2].innerHTML = "Patterns Present : " + numPats;
 }
 
 function hover( d ) {
@@ -983,7 +996,7 @@ function deselectNode() {
 	d3.select("#tooltip").classed("hidden", true);
 
 	//hide deselect button
-	this.style.display = "none";
+	document.getElementById( "deselect" ).style.display = "none";
 }
 
 function createList( frequency, clusSize ) {
