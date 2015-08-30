@@ -385,7 +385,7 @@ function visualise( clusters ) {
 		.linkDistance(function(d) {
 			return distScale(d.value);
 		})
-		.charge([-400])
+		.charge([-10])
 		.start();
 
 	//draw a line for every element in edges array
@@ -435,9 +435,6 @@ function groupButtons() {
 			var lastDataset = dataset;
 			listOfDatasets.push( lastDataset );
 
-			//display back button
-			backOneVis.style.display = "block";
-
 			//get new data
 			dataset = newDataset( dataset, d );
 
@@ -480,12 +477,14 @@ function groupButtons() {
 			//calculates x and y coordinates of every element
 			force.on("tick", tick ); 
 
+			//update headers on right sidebar
+			updateSidebarHead( dataset.nodes );
+
 			//update frequency table
 			updateTable( dataset.nodes );
 
+			//adjust position of marker on left line
 			updateLine( dataset.nodes );
-
-			updateSidebarHead( dataset.nodes );
 		});
 }
 
@@ -493,7 +492,6 @@ function goBackOneVis() {
 	//one level below original visualisation
 	if( listOfDatasets.length <= 1 ) {
 		resetVis();
-		backOneVis.style.display = "none";
 		listOfDatasets.pop();
 	}
 	//go back one
@@ -541,14 +539,16 @@ function goBackOneVis() {
 		//calculates x and y coordinates of every element
 		force.on("tick", tick ); 
 
-		//update frequency table
-		updateTable( oldDataset.nodes );
+		//update headers on right sidebar
+		updateSidebarHead( dataset.nodes );
 
-		updateLine( oldDataset.nodes );
+		//update frequency table
+		updateTable( dataset.nodes );
+
+		//adjust position of marker on left line
+		updateLine( dataset.nodes );
 
 		listOfDatasets.pop();
-
-		updateSidebarHead( oldDataset.nodes );
 	}	
 }
 
@@ -803,6 +803,10 @@ function resetVis() {
 	//clear the sidebar
 	$(document.getElementById( "rightSidebar" )).empty();
 
+	//empty list that makes up the table
+	$("#tableEntities").empty();
+	$("#tableFrequency").empty();
+
 	//re-visualise everything
 	visualise( level[ level.length - numOfGroups ] );
 }
@@ -879,6 +883,7 @@ function updateSidebarHead( nodes ) {
 	for( var i = 0; i < nodes.length; i++ ) {
 		numPats += nodes[i].id.split( "-" ).length;
 	}
+	totalNumOfPats = numPats;
 	var sidebarChildren = document.getElementById( "rightSidebar" ).childNodes;
 	sidebarChildren[2].innerHTML = "Patterns Present : " + numPats;
 }
