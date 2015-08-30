@@ -2,7 +2,7 @@
   "name": "thesis",
   "version": "1.0.0",
   "description": "a tool that visualises the output of RMiner",
-  "main": "index.js",
+  "main": "visual.js",
   "repository": {
     "type": "git",
     "url": "thesis"

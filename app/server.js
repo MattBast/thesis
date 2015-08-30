@@ -4,7 +4,6 @@ var server = require("http").createServer(app);
 var io = require("socket.io")(server);
 var fs = require("fs");
 var path = require("path");
-var mime = require("mime");
 var url = require("url");
 
 //the variables used during the clustering process
