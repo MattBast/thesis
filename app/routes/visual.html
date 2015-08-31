@@ -133,19 +133,24 @@
 			<button class="helpButton" onclick="helpClose( visualHelpBox )">X</button>
 			<h3>Visual Display Help</h3>
 			<p>This is the visualisation of the pattern set you entered at the start. This help box has been divided into three sections regarding which part of the visualisation you need help with.</p>
+			<h4>Main display</h4>
+			<img src="../images/main-display.png" class="helpImage" alt="group_buttons" />
+			<p>A pattern is list of entities that regularly appear on the same row/tuple of a database. The example below shows two patterns from a Twitter database. These are twitter users that have all used the hashtags also present in the pattern: </p>
+			<p id="patternExample"><strong>p1</strong> = <i>twitter_id.Kerrie_Alysee twitter_id.kigosygonyki twitter_id.lovicivuwuwi twitter_id.briittanywood twitter_id.MsSheaa twitter_id.mijaloketoji twitter_id.cequqabisoke hashtag_id.sundayfollows hashtag_id.tuesdayfollows hashtag_id.blockz</i></br><strong>p2</strong> = <i>twitter_id.cavonepiziz twitter_id.Kerrie_Alysee twitter_id.kigosygonyki twitter_id.lovicivuwuwi twitter_id.briittanywood twitter_id.MsSheaa hashtag_id.social hashtag_id.influence hashtag_id.sundayfollows</i></p>
+			<p>A set of patterns can include thousadns of patterns. This tool clusters similar patterns (patterns with a number of matching entities) into clusters and represents them as circles. Below are some details about the graph:</p>
+			<ul>
+				<li><strong>Size:</strong> The size of the circle represents how many patterns that circle represents relative to the other circles</li>
+				<li><strong>Position:</strong> Circles are drawn to other circles that hold similar patterns. They are pushed away from circles with disimilar patterns</li>
+				<li><strong>Colour:</strong> The clusters have been grouped together with clusters that represent similar patterns.</li>
+				<li><strong>Hover and click:</strong> Hover over a circle to see the names of the entities included in the patterns represented by that circle (they appear in the right sidebar). Click the circle to keep the entities there even when you're not hovering over the node</li>
+				<li><strong>Right sidebar:</strong> The entities in the sidebarare ordered by how interesting they are in that cluster. Interesting entities are defined as entities that appear frequently in the selected cluster but not very frequently in all the other clusters. You can click an item in the list to find it in the frequency table at the bottom of the page. Click help button by table for more details about the table.</li>
+			</ul>
 			<h4>Group Buttons</h4>
 			<img src="../images/group_buttons.png" class="helpImage" alt="group_buttons" />
 			<p>Each button represents the group of clusters it shares a colour with. Hovering over a button will highlight all the clusters that it represents. Clicking a button will slice away all clusters not in that group. Each cluster in the group will be split down into its own group (and will be given a new colour to represent this). There will therefore be as many colour groups as there were clusters in the group selected.</p>
 			<h4>Location slider</h4>
 			<img src="../images/slider.png" class="helpImage" alt="group_buttons" />
 			<p>This slider gives a quick view of how many patterns are currently displayed relative to how many patterns there are in the file that has been visualised.</p>
-			<h4>Main display</h4>
-			<img src="../images/five_groups.png" class="helpImage" alt="group_buttons" />
-			<img src="../images/ten_groups.png" class="helpImage" alt="group_buttons" />
-			<p>This tool groups patterns together into clusters of similar patterns. Each circle represents a cluster of similar patterns. Each cluster in turn has been grouped with other clusters that contain similar patterns. Further to this, each cluster is pulled towards clusters it is similar to and pushed away from clusters it is disimilar to. Clusters close together then contain patterns that are similar to the patterns in the other cluster. Clusters far away from one another contain patterns that are disimilar from the patterns in the other cluster.</p>
-			<p>Hovering over a cluster causes a tooltip to appear in the top left of the visualisation. This tooltip provides summary information about that cluster including how many patterns it contains and what percentage of patterns it represents compared to how many patterns are currently been displayed.</p>
-			<p>Clicking a cluster causes a tooltip to appear that provides a detailed look at the entities the patterns in that cluster contains. Each entity has been given a score that tells you how interesting that entity is. If that entity is present in many of the clusters, it is given a low score. If it does not turn up very much at all, it is also given a low score. If turns up regularly in the patterns in the clicked cluster but not very often in other clusters, it is given a high score. Scores range between the numbers 0 and 1.</p>
-			<br/>
 		</div>
 
 		<!-- frequency table help box -->
