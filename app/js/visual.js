@@ -473,7 +473,10 @@ function groupButtons() {
 				.attr("r", function(d) {
 					var length = d.id.split( "-" ).length;
 					return rScale( length );
-				});
+				})
+				.style("stroke", d3.rgb( 0, 0, 0 ) )
+				.style("stroke-width", 1);
+
 			//change data appearing in hover effect
 			nodes.on("mouseover", hover )
 				.on("mouseout", notHover )
@@ -495,9 +498,8 @@ function groupButtons() {
 
 function goBackOneVis() {
 	//one level below original visualisation
-	if( listOfDatasets.length <= 1 ) {
-		resetVis();
-		listOfDatasets.pop();
+	if( listOfDatasets.length === 0 ) {
+		alert( "All patterns are currently present. You cannot go back" );
 	}
 	//go back one
 	else {
@@ -539,7 +541,9 @@ function goBackOneVis() {
 			.attr("r", function(d) {
 				var length = d.id.split( "-" ).length;
 				return rScale( length );
-			});
+			})
+			.style("stroke", d3.rgb( 0, 0, 0 ) )
+			.style("stroke-width", 1);
 			
 		//change data appearing in hover effect
 		nodes.on("mouseover", hover )
@@ -550,13 +554,13 @@ function goBackOneVis() {
 		force.on("tick", tick ); 
 
 		//update headers on right sidebar
-		updateSidebarHead( dataset.nodes );
+		updateSidebarHead( oldDataset.nodes );
 
 		//update frequency table
-		updateTable( dataset.nodes );
+		updateTable( oldDataset.nodes );
 
 		//adjust position of marker on left line
-		updateLine( dataset.nodes );
+		updateLine( oldDataset.nodes );
 
 		listOfDatasets.pop();
 	}	
@@ -895,7 +899,7 @@ function updateSidebarHead( nodes ) {
 	}
 	totalNumOfPats = numPats;
 	var sidebarChildren = document.getElementById( "rightSidebar" ).childNodes;
-	sidebarChildren[2].innerHTML = "Patterns Present : " + numPats;
+	sidebarChildren[1].innerHTML = "Patterns Present : " + numPats;
 }
 
 function hover( d ) {
