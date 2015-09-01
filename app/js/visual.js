@@ -449,9 +449,14 @@ function groupButtons() {
 			force.nodes(dataset.nodes)
 				.links(dataset.edges)
 				.start();
-			
+
+			//update current nodes
 			nodes = nodes.data( dataset.nodes );
 			links = links.data( dataset.edges );
+
+			//enter any new nodes that are needed
+			nodes.enter().append("circle");
+			links.enter().append("line");
 
 			//remove spare nodes and links
 			nodes.exit().remove();
@@ -468,7 +473,10 @@ function groupButtons() {
 				.attr("r", function(d) {
 					var length = d.id.split( "-" ).length;
 					return rScale( length );
-				});
+				})
+				.style("stroke", d3.rgb( 0, 0, 0 ) )
+				.style("stroke-width", 1);
+
 			//change data appearing in hover effect
 			nodes.on("mouseover", hover )
 				.on("mouseout", notHover )
@@ -490,9 +498,8 @@ function groupButtons() {
 
 function goBackOneVis() {
 	//one level below original visualisation
-	if( listOfDatasets.length <= 1 ) {
-		resetVis();
-		listOfDatasets.pop();
+	if( listOfDatasets.length === 0 ) {
+		alert( "All patterns are currently present. You cannot go back" );
 	}
 	//go back one
 	else {
@@ -511,8 +518,13 @@ function goBackOneVis() {
 			.links(oldDataset.edges)
 			.start();
 			
+		//update current nodes	
 		nodes = nodes.data( oldDataset.nodes );
 		links = links.data( oldDataset.edges );
+
+		//enter any new nodes that are needed
+		nodes.enter().append("circle");
+		links.enter().append("line");
 
 		//remove spare nodes and links
 		nodes.exit().remove();
@@ -529,7 +541,9 @@ function goBackOneVis() {
 			.attr("r", function(d) {
 				var length = d.id.split( "-" ).length;
 				return rScale( length );
-			});
+			})
+			.style("stroke", d3.rgb( 0, 0, 0 ) )
+			.style("stroke-width", 1);
 			
 		//change data appearing in hover effect
 		nodes.on("mouseover", hover )
@@ -540,13 +554,13 @@ function goBackOneVis() {
 		force.on("tick", tick ); 
 
 		//update headers on right sidebar
-		updateSidebarHead( dataset.nodes );
+		updateSidebarHead( oldDataset.nodes );
 
 		//update frequency table
-		updateTable( dataset.nodes );
+		updateTable( oldDataset.nodes );
 
 		//adjust position of marker on left line
-		updateLine( dataset.nodes );
+		updateLine( oldDataset.nodes );
 
 		listOfDatasets.pop();
 	}	
@@ -1137,7 +1151,7 @@ function createTable( clusters ) {
 	document.getElementById( "tableEntities" ).style.display = "inline-block";
 	document.getElementById( "tableFrequency" ).style.display = "inline-block";
 
-	//add click function to each row in table
+	//add click function to each row in table (entity column)
 	tableEntityList.addEventListener( "click", function(e) {
 		for( var j = 0; j < sortedTotal.length; j++ ) {
 			if( sortedTotal[j].pattern === e.target.innerHTML ) {
@@ -1153,7 +1167,7 @@ function createTable( clusters ) {
 		}
 	});
 
-	//add click function to each row in table
+	//add click function to each row in table (frequency column)
 	tableFrequencyList.addEventListener( "click", function(e) {
 
 		//get entity name

@@ -2,8 +2,10 @@
 var fileInputHelpBox = document.getElementById( "fileInputHelpBox" );
 var numberOfNodesHelpBox = document.getElementById( "numberOfNodesHelpBox" );
 var patternCountHelpBox = document.getElementById( "patternCountHelpBox" );
+var blanket = document.getElementById( "blanket" );
 
 function helpOpen( box ) {
+	blanket.style.display = "block";
 	box.style.display = "block";
 	var opacity = 0.1; //<-- initial opacity
 	var timer = setInterval( function() {
@@ -15,10 +17,11 @@ function helpOpen( box ) {
 		box.style.opacity = opacity;
 		box.style.filter = "alpha(opacity=" + opacity * 100 + ")";
 		opacity += opacity * 0.1;
-	}, 50 );
+	}, 1 );
 }
 
 function helpClose( box ) {
+	blanket.style.display = "none";
 	var opacity = 1; //<-- initial opacity
 	var timer = setInterval( function() {
 		//stop decreasing opacity when reach 0.1
@@ -30,5 +33,5 @@ function helpClose( box ) {
 		box.style.opacity = opacity;
 		box.style.filter = "alpha(opacity=" + opacity * 100 + ")";
 		opacity -= opacity * 0.1;
-	}, 50 );
+	}, 1 );
 }
