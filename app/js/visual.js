@@ -858,6 +858,12 @@ function drawNodes( dataNodes, rScale ) {
 }
 
 function prepareSidebar( nodes ) {
+	//correct height of sidebar
+	var navbarHeight = document.getElementById( "navBar" ).clientHeight;
+	var sidebar = document.getElementById( "rightSidebar" );
+	sidebar.style.top = navbarHeight + "px";
+	sidebar.style.display = "block";
+
 	var numPats = 0;
 	var nameOfFile = "";
 	for( var i = 0; i < nodes.length; i++ ) {
@@ -873,7 +879,6 @@ function prepareSidebar( nodes ) {
 	totalNumOfPats = numPats;
 
 	//add variables to right sidebar
-	var sidebar = document.getElementById( "rightSidebar" );
 	var htmlFileName = document.createElement( "h2" );
 	htmlFileName.appendChild( document.createTextNode( nameOfFile ) );
 
