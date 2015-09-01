@@ -899,7 +899,7 @@ function updateSidebarHead( nodes ) {
 	}
 	totalNumOfPats = numPats;
 	var sidebarChildren = document.getElementById( "rightSidebar" ).childNodes;
-	sidebarChildren[1].innerHTML = "Patterns Present : " + numPats;
+	sidebarChildren[2].innerHTML = "Patterns Present : " + numPats;
 }
 
 function hover( d ) {
@@ -1151,7 +1151,7 @@ function createTable( clusters ) {
 	document.getElementById( "tableEntities" ).style.display = "inline-block";
 	document.getElementById( "tableFrequency" ).style.display = "inline-block";
 
-	//add click function to each row in table
+	//add click function to each row in table (entity column)
 	tableEntityList.addEventListener( "click", function(e) {
 		for( var j = 0; j < sortedTotal.length; j++ ) {
 			if( sortedTotal[j].pattern === e.target.innerHTML ) {
@@ -1167,7 +1167,7 @@ function createTable( clusters ) {
 		}
 	});
 
-	//add click function to each row in table
+	//add click function to each row in table (frequency column)
 	tableFrequencyList.addEventListener( "click", function(e) {
 
 		//get entity name
