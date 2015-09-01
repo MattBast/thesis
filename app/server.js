@@ -127,7 +127,12 @@ io.on("connection", function( socket ) {
 		io.emit( "save" );
 	});
 
-	
+	//use sample.json data to run demo
+	socket.on("demo", function() {
+		console.log( "Demo" );
+		var data = JSON.parse( fs.readFileSync("./sample-data/sample.json", "utf8" ));
+		io.emit( "demo", data );
+	});
 	
 });
 

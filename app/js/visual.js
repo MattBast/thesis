@@ -87,6 +87,22 @@ function upload() {
 		var reader = new FileReader();
 		readOldFile( file, reader );
 	}
+	else if( fileInput.files.length === 0 && savedFileInput.files.length === 0 ) {
+		console.log( "demo" );
+		socket.emit("demo");
+		socket.on("demo", function( data ) {
+			//set global variables to values specified in file
+			setGlobalVariables( data );
+
+			//get rid of the loading spinner
+			stopSpin();
+
+			//visualise the data
+			displayTools();
+			displayHelpButton();
+			visualise( level[ level.length - numOfGroups ] );						
+		});
+	}
 	else {
 		alert("File is empty");
 	}
@@ -312,8 +328,8 @@ function setGlobalVariables( variables ) {
 	simTable = variables.simTable;
 	level = variables.level;
 
-	//if loading a saved file, this will be true
-	if( savedFileInput.files.length > 0 ){
+	//if loading a saved file or running the demo, this will be true
+	if( savedFileInput.files.length > 0 || ( fileInput.files.length === 0 && savedFileInput.files.length === 0 ) ){
 		
 		//convert Object into Map
 		var done = false;
@@ -873,8 +889,11 @@ function prepareSidebar( nodes ) {
 	if( fileInput.files.length > 0 ) {
 		nameOfFile = fileName.innerHTML = "File: " + fileInput.files[0].name;
 	}
-	else {
+	else if( savedFileInput.files.length > 0 ) {
 		nameOfFile = fileName.innerHTML = "File: " + savedFileInput.files[0].name;
+	}
+	else {
+		nameOfFile = fileName.innerHTML = "File: sample.json";
 	}
 	totalNumOfPats = numPats;
 

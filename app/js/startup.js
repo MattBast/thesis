@@ -104,7 +104,7 @@ function pushOut() {
 }
 
 function clickChoice() {
-	if( choice[0].checked !== true && choice[1].checked !== true) {
+	if( choice[0].checked !== true && choice[1].checked !== true && choice[2].checked !== true ) {
 		alert( "Please choose one of the options" );
 	}
 	else if( choice[0].checked === true ) {
@@ -112,10 +112,13 @@ function clickChoice() {
 		currentBox = 2;
 		slideLeft();
 	}
-	else {
+	else if( choice[1].checked === true ) {
 		pushIn(); //<-- change style of panel
 		currentBox = 1;
 		slideLeft();
+	}
+	else {
+		clickFinish();
 	}
 }
 
