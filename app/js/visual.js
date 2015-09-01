@@ -449,9 +449,14 @@ function groupButtons() {
 			force.nodes(dataset.nodes)
 				.links(dataset.edges)
 				.start();
-			
+
+			//update current nodes
 			nodes = nodes.data( dataset.nodes );
 			links = links.data( dataset.edges );
+
+			//enter any new nodes that are needed
+			nodes.enter().append("circle");
+			links.enter().append("line");
 
 			//remove spare nodes and links
 			nodes.exit().remove();
@@ -511,8 +516,13 @@ function goBackOneVis() {
 			.links(oldDataset.edges)
 			.start();
 			
+		//update current nodes	
 		nodes = nodes.data( oldDataset.nodes );
 		links = links.data( oldDataset.edges );
+
+		//enter any new nodes that are needed
+		nodes.enter().append("circle");
+		links.enter().append("line");
 
 		//remove spare nodes and links
 		nodes.exit().remove();
